@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="BEAM - 실시간 보안 메시징 플랫폼. Spring Boot 기반의 현대적인 채팅 애플리케이션 포트폴리오 프로젝트">
+    <meta name="keywords" content="Spring Boot, WebSocket, Chat Application, Real-time Messaging, Portfolio">
+    <title>BEAM - 실시간 보안 메시징 플랫폼</title>
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <span>⚡</span>
+                <span>BEAM</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#tech">Tech Stack</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+            </ul>
+            <button class="nav-cta" onclick="quickStart()">Live Demo</button>
+            <button class="menu-toggle" onclick="toggleMobileMenu()">☰</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span>🚀</span>
+                <span>Spring Boot 3.2 · WebSocket · PostgreSQL</span>
+            </div>
+            <h1>
+                실시간 보안 메시징<br>
+                <span class="gradient-text">BEAM Platform</span>
+            </h1>
+            <p class="hero-subtitle">
+                JWT 인증, WebSocket 실시간 통신, 파일 공유를 지원하는
+                엔터프라이즈급 채팅 애플리케이션 포트폴리오 프로젝트
+            </p>
+            <div class="hero-buttons">
+                <button class="btn btn-primary" id="quickStartBtn" onclick="quickStart()">
+                    <span class="btn-icon">⚡</span>
+                    <span>바로 시작하기</span>
+                </button>
+                <a href="https://github.com/araeLaver/simple-chat-server" target="_blank" class="btn btn-secondary">
+                    <span class="btn-icon">📦</span>
+                    <span>GitHub</span>
+                </a>
+                <a href="/swagger-ui/index.html" target="_blank" class="btn btn-secondary">
+                    <span class="btn-icon">📚</span>
+                    <span>API 문서</span>
+                </a>
+            </div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>서버에 연결 중...</p>
+            </div>
+            <div class="error-message" id="error"></div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section" id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">FEATURES</span>
+                <h2 class="section-title">핵심 기능</h2>
+                <p class="section-description">
+                    현대적인 메시징 플랫폼에 필요한 모든 기능을 포함합니다
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3 class="feature-title">다중 인증 시스템</h3>
+                    <p class="feature-description">
+                        JWT 기반 인증, 이메일 OTP 인증, 전화번호 인증, 게스트 로그인을 지원합니다.
+                        Spring Security를 활용한 보안 강화.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">실시간 WebSocket</h3>
+                    <p class="feature-description">
+                        WebSocket을 이용한 양방향 실시간 메시징.
+                        연결 관리, 자동 재연결, 상태 동기화를 지원합니다.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <h3 class="feature-title">그룹 & DM 채팅</h3>
+                    <p class="feature-description">
+                        Public/Private/Secret 타입의 그룹 채팅방과 1:1 Direct Message.
+                        멤버 관리, 권한 설정, 메시지 암호화 지원.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📎</div>
+                    <h3 class="feature-title">파일 공유</h3>
+                    <p class="feature-description">
+                        DM 및 그룹 채팅에서 파일 업로드/다운로드.
+                        썸네일 생성, 메타데이터 추적, 접근 제어 기능.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3 class="feature-title">친구 시스템</h3>
+                    <p class="feature-description">
+                        친구 요청, 수락/거절, 차단 기능.
+                        Caffeine 캐싱으로 빠른 친구 목록 조회.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3 class="feature-title">전문 검색</h3>
+                    <p class="feature-description">
+                        메시지, 사용자, 채팅방 검색.
+                        JPA Native Query를 활용한 효율적인 전문 검색.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">✅</div>
+                    <h3 class="feature-title">읽음 확인</h3>
+                    <p class="feature-description">
+                        메시지별 읽음 상태 추적.
+                        마지막 읽은 메시지, 읽지 않은 메시지 카운트 관리.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3 class="feature-title">보안 & Rate Limiting</h3>
+                    <p class="feature-description">
+                        Bucket4j 기반 API Rate Limiting.
+                        CORS 설정, 입력 검증, 메시지 암호화 지원.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3 class="feature-title">모니터링</h3>
+                    <p class="feature-description">
+                        Prometheus 메트릭 수집, Spring Actuator 헬스 체크.
+                        성능 지표 추적 및 시스템 상태 모니터링.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack Section -->
+    <section class="section" id="tech">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">TECHNOLOGY</span>
+                <h2 class="section-title">기술 스택</h2>
+                <p class="section-description">
+                    최신 기술을 활용한 확장 가능한 아키텍처
+                </p>
+            </div>
+
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <div class="tech-icon">☕</div>
+                    <div class="tech-name">Java 17</div>
+                    <div class="tech-category">Language</div>
+                </div>
+
+                <div class="tech-item">
+                    <div class="tech-icon">🍃</div>
+                    <div class="tech-name">Spring Boot 3.2</div>
+                    <div class="tech-category">Framework</div>
+                </div>
+
+                <div class="tech-item">
+                    <div class="tech-icon">🔌</div>
+                    <div class="tech-name">WebSocket</div>
+                    <div class="tech-category">Real-time</div>
+                </div>
+
+                <div class="tech-item">
+                    <div class="tech-icon">🐘</div>
+                    <div class="tech-name">PostgreSQL</div>
+                    <div class="tech-category">Database</div>
+                </div>
+
+                <div class="tech-item">
+                    <div class="tech-icon">🔑</div>
+                    <div class="tech-name">JWT</div>
+                    <div class="tech-category">Authentication</div>
+                </div>
+
+                <div class="tech-item">
+                    <div class="tech-icon">🛡️</div>
+                    <div class="tech-name">Spring Security</div>
+                    <div class="tech-category">Security</div>
+                </div>
+
+                <div class="tech-item">
+                    <div class="tech-icon">💾</div>
+                    <div class="tech-name">Caffeine Cache</div>
+                    <div class="tech-category">Caching</div>
+                </div>
+
+                <div class="tech-item">
+                    <div class="tech-icon">⚡</div>
+                    <div class="tech-name">Bucket4j</div>
+                    <div class="tech-category">Rate Limiting</div>
+                </div>
+
+                <div class="tech-item">
+                    <div class="tech-icon">🐳</div>
+                    <div class="tech-name">Docker</div>
+                    <div class="tech-category">Deployment</div>
+                </div>
+
+                <div class="tech-item">
+                    <div class="tech-icon">☁️</div>
+                    <div class="tech-name">Koyeb</div>
+                    <div class="tech-category">Cloud PaaS</div>
+                </div>
+
+                <div class="tech-item">
+                    <div class="tech-icon">📊</div>
+                    <div class="tech-name">Prometheus</div>
+                    <div class="tech-category">Monitoring</div>
+                </div>
+
+                <div class="tech-item">
+                    <div class="tech-icon">📚</div>
+                    <div class="tech-name">Swagger</div>
+                    <div class="tech-category">API Docs</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section class="section" id="architecture">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">ARCHITECTURE</span>
+                <h2 class="section-title">시스템 아키텍처</h2>
+                <p class="section-description">
+                    계층화된 구조로 관심사 분리와 확장성을 확보
+                </p>
+            </div>
+
+            <div class="architecture-diagram">
+                <div class="arch-layers">
+                    <div class="arch-layer">
+                        <div class="arch-layer-title">
+                            <span>🌐</span>
+                            <span>Presentation Layer</span>
+                        </div>
+                        <div class="arch-layer-items">
+                            <span class="arch-item">REST Controllers (9개)</span>
+                            <span class="arch-item">WebSocket Handler</span>
+                            <span class="arch-item">DTO Validation</span>
+                            <span class="arch-item">Exception Handling</span>
+                        </div>
+                    </div>
+
+                    <div class="arch-layer">
+                        <div class="arch-layer-title">
+                            <span>🔒</span>
+                            <span>Security Layer</span>
+                        </div>
+                        <div class="arch-layer-items">
+                            <span class="arch-item">JWT Filter</span>
+                            <span class="arch-item">Rate Limiting</span>
+                            <span class="arch-item">CORS Configuration</span>
+                            <span class="arch-item">Authentication Manager</span>
+                        </div>
+                    </div>
+
+                    <div class="arch-layer">
+                        <div class="arch-layer-title">
+                            <span>⚙️</span>
+                            <span>Business Logic Layer</span>
+                        </div>
+                        <div class="arch-layer-items">
+                            <span class="arch-item">AuthService</span>
+                            <span class="arch-item">RoomService</span>
+                            <span class="arch-item">MessageService</span>
+                            <span class="arch-item">DirectMessageService</span>
+                            <span class="arch-item">FriendService</span>
+                            <span class="arch-item">FileStorageService</span>
+                            <span class="arch-item">EmailService</span>
+                            <span class="arch-item">MonitoringService</span>
+                        </div>
+                    </div>
+
+                    <div class="arch-layer">
+                        <div class="arch-layer-title">
+                            <span>💾</span>
+                            <span>Data Access Layer</span>
+                        </div>
+                        <div class="arch-layer-items">
+                            <span class="arch-item">Spring Data JPA</span>
+                            <span class="arch-item">Repository Pattern</span>
+                            <span class="arch-item">Custom Queries</span>
+                            <span class="arch-item">Caffeine Cache</span>
+                        </div>
+                    </div>
+
+                    <div class="arch-layer">
+                        <div class="arch-layer-title">
+                            <span>🗄️</span>
+                            <span>Persistence Layer</span>
+                        </div>
+                        <div class="arch-layer-items">
+                            <span class="arch-item">PostgreSQL</span>
+                            <span class="arch-item">Flyway Migration</span>
+                            <span class="arch-item">Entity Models (13개)</span>
+                            <span class="arch-item">Indexed Queries</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>⚡ BEAM</h3>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                    Spring Boot 기반의 실시간 보안 메시징 플랫폼
+                </p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Resources</h3>
+                <ul class="footer-links">
+                    <li><a href="/swagger-ui/index.html" target="_blank">
+                        <span>📚</span>
+                        <span>API Documentation</span>
+                    </a></li>
+                    <li><a href="https://github.com/araeLaver/simple-chat-server" target="_blank">
+                        <span>📦</span>
+                        <span>GitHub Repository</span>
+                    </a></li>
+                    <li><a href="/actuator/health" target="_blank">
+                        <span>💚</span>
+                        <span>Health Check</span>
+                    </a></li>
+                    <li><a href="/actuator/prometheus" target="_blank">
+                        <span>📊</span>
+                        <span>Metrics</span>
+                    </a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3>Features</h3>
+                <ul class="footer-links">
+                    <li><a href="#features">실시간 메시징</a></li>
+                    <li><a href="#features">파일 공유</a></li>
+                    <li><a href="#features">친구 시스템</a></li>
+                    <li><a href="#features">보안 인증</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3>Tech Stack</h3>
+                <ul class="footer-links">
+                    <li><a href="#tech">Spring Boot 3.2</a></li>
+                    <li><a href="#tech">WebSocket</a></li>
+                    <li><a href="#tech">PostgreSQL</a></li>
+                    <li><a href="#tech">Docker & Koyeb</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="social-links">
+                <a href="https://github.com/araeLaver/simple-chat-server" target="_blank" class="social-link">
+                    <span>📦</span>
+                </a>
+                <a href="/swagger-ui/index.html" target="_blank" class="social-link">
+                    <span>📚</span>
+                </a>
+            </div>
+            <p>&copy; 2025 BEAM. Portfolio Project. Built with Spring Boot.</p>
+        </div>
+    </footer>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

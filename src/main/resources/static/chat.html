@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#667eea">
+    <title>BEAM Chat - 실시간 메시징</title>
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <link rel="stylesheet" href="/css/chat.css">
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <!-- Sidebar Header -->
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <span>⚡</span>
+                    <span>BEAM</span>
+                </div>
+                <div class="sidebar-search">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="검색..." id="searchInput">
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="sidebar-tabs">
+                <button class="tab-btn active" data-tab="chats">
+                    💬 채팅
+                </button>
+                <button class="tab-btn" data-tab="friends">
+                    👥 친구
+                </button>
+                <button class="tab-btn" data-tab="rooms">
+                    🏠 방
+                </button>
+            </div>
+
+            <!-- Conversation List -->
+            <div class="sidebar-content">
+                <div class="conversation-list" id="conversationList">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="main-chat">
+            <!-- Chat Header -->
+            <header class="chat-header">
+                <div class="chat-header-info">
+                    <button class="icon-btn" id="menuBtn">
+                        ☰
+                    </button>
+                    <div class="chat-header-avatar">
+                        🌍
+                    </div>
+                    <div class="chat-header-details">
+                        <h3 id="chatHeaderName">일반 채팅</h3>
+                        <div class="chat-header-status" id="chatHeaderStatus">
+                            온라인
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-header-actions">
+                    <button class="icon-btn" title="검색">
+                        🔍
+                    </button>
+                    <button class="icon-btn" title="설정">
+                        ⚙️
+                    </button>
+                    <button class="icon-btn" id="logoutBtn" title="로그아웃">
+                        🚪
+                    </button>
+                </div>
+            </header>
+
+            <!-- Messages Container -->
+            <div class="messages-container" id="messagesContainer">
+                <!-- Messages will be populated by JavaScript -->
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <div class="input-actions">
+                        <button class="input-btn" title="파일 첨부" onclick="document.getElementById('fileInput').click()">
+                            📎
+                        </button>
+                        <input type="file" id="fileInput" style="display: none;">
+                        <button class="input-btn" title="이모지">
+                            😊
+                        </button>
+                    </div>
+                    <div class="message-input-wrapper">
+                        <textarea
+                            id="messageInput"
+                            class="message-input"
+                            placeholder="메시지를 입력하세요... (Enter: 전송, Shift+Enter: 줄바꿈)"
+                            rows="1"
+                        ></textarea>
+                    </div>
+                    <button class="send-btn" id="sendBtn" title="전송">
+                        ➤
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <script src="/js/chat.js"></script>
+</body>
+</html>
