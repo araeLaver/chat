@@ -194,3 +194,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// Expose functions to global scope for onclick handlers
+window.quickStart = quickStart;
+window.viewDemo = viewDemo;
+window.toggleMobileMenu = toggleMobileMenu;
+window.copyToClipboard = copyToClipboard;
