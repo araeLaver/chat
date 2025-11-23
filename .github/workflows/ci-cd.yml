@@ -1,151 +1,67 @@
-name: 🚀 ChatApp CI/CD Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ master, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 
 env:
   JAVA_VERSION: '17'
-  NODE_VERSION: '18'
 
 jobs:
   test:
-    name: 🧪 Test & Build
+    name: Test & Build
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: 📥 Checkout code
+    - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: ☕ Set up JDK ${{ env.JAVA_VERSION }}
+
+    - name: Set up JDK ${{ env.JAVA_VERSION }}
       uses: actions/setup-java@v4
       with:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
-        
-    - name: 📦 Cache Maven dependencies
+
+    - name: Cache Maven dependencies
       uses: actions/cache@v4
       with:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
-        
-    - name: 🔧 Run tests
+
+    - name: Run tests
       run: mvn clean test
-      
-    - name: 📊 Generate test report
-      uses: dorny/test-reporter@v1
-      if: always() && hashFiles('target/surefire-reports/*.xml') != ''
-      with:
-        name: Maven Tests
-        path: target/surefire-reports/*.xml
-        reporter: java-junit
-        
-    - name: 🏗️ Build application
+
+    - name: Build application
       run: mvn clean package -DskipTests
-      
-    - name: 📤 Upload artifact
+
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: chatapp-jar
+        name: beam-server
         path: target/*.jar
 
-  deploy-dev:
-    name: 🚧 Deploy to Development
+  deploy:
+    name: Deploy to Production
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
-    environment: development
-    
+    if: github.ref == 'refs/heads/master'
+
     steps:
-    - name: 📥 Checkout code
+    - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: 📤 Download artifact
+
+    - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: chatapp-jar
+        name: beam-server
         path: target/
-        
-    - name: 🚀 Deploy to Koyeb (Dev)
+
+    - name: Deploy to Koyeb
       env:
         KOYEB_API_TOKEN: ${{ secrets.KOYEB_API_TOKEN }}
       run: |
-        echo "Deploying to development environment..."
-        curl -X POST "https://app.koyeb.com/v1/apps" \
-          -H "Authorization: Bearer $KOYEB_API_TOKEN" \
-          -H "Content-Type: application/json" \
-          -d '{
-            "name": "chatapp-dev",
-            "services": [{
-              "name": "chatapp-dev-service",
-              "git": {
-                "repository": "github.com/araeLaver/simple-chat-server",
-                "branch": "develop"
-              },
-              "instance_types": [{"type": "free"}],
-              "ports": [{"port": 8000, "protocol": "http"}],
-              "env": [
-                {"key": "SPRING_PROFILES_ACTIVE", "value": "prod"},
-                {"key": "PORT", "value": "8000"}
-              ]
-            }]
-          }'
-        
-  deploy-prod:
-    name: 🎯 Deploy to Production
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    environment: production
-    
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      
-    - name: 📤 Download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: chatapp-jar
-        path: target/
-        
-    - name: 🚀 Deploy to Koyeb (Prod)
-      env:
-        KOYEB_API_TOKEN: ${{ secrets.KOYEB_API_TOKEN }}
-      run: |
-        echo "Deploying to production environment..."
-        curl -X POST "https://app.koyeb.com/v1/apps" \
-          -H "Authorization: Bearer $KOYEB_API_TOKEN" \
-          -H "Content-Type: application/json" \
-          -d '{
-            "name": "chatapp-prod",
-            "services": [{
-              "name": "chatapp-prod-service",
-              "git": {
-                "repository": "github.com/araeLaver/simple-chat-server",
-                "branch": "main"
-              },
-              "instance_types": [{"type": "nano"}],
-              "ports": [{"port": 8000, "protocol": "http"}],
-              "env": [
-                {"key": "SPRING_PROFILES_ACTIVE", "value": "prod"},
-                {"key": "PORT", "value": "8000"}
-              ]
-            }]
-          }'
-        
-  security-scan:
-    name: 🔒 Security Scan
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      
-    - name: 🔍 Run security scan
-      uses: securecodewarrior/github-action-add-sarif@v1
-      with:
-        sarif-file: 'security-scan-results.sarif'
+        echo "Deploying to production..."
+        # Koyeb deployment via GitHub integration
