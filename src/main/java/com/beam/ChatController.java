@@ -344,7 +344,7 @@ public class ChatController {
 
             userRepository.save(user);
 
-            // TODO: 실제 SMS 발송 구현 (Naver Cloud Platform SMS API 등)
+            // Note: SMS integration pending - email verification recommended
             // smsService.sendVerificationCode(phoneNumber, verificationCode);
 
             Map<String, Object> response = new HashMap<>();

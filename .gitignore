@@ -41,7 +41,6 @@ build/
 
 # VS Code
 .vscode/
-.claude/
 
 # Spring Boot
 *.jar
