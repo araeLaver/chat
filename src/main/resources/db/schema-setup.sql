@@ -1,18 +1,16 @@
--- PostgreSQL Schema Setup for Simple Chat Server
--- Run this script to create both dev and prod schemas
-
--- Connect as superuser or database owner
--- CREATE DATABASE koyebdb; -- If database doesn't exist
+-- PostgreSQL Schema Setup for BEAM Chat Server
+-- Run this script to create schemas for dev and prod environments
 
 -- Create schemas
-CREATE SCHEMA IF NOT EXISTS chatapp_dev;
-CREATE SCHEMA IF NOT EXISTS chatapp_prod;
+CREATE SCHEMA IF NOT EXISTS chat_dev;
+CREATE SCHEMA IF NOT EXISTS chat_prod;
 
--- Grant permissions (adjust user as needed)
-GRANT ALL PRIVILEGES ON SCHEMA chatapp_dev TO "koyeb-adm";
-GRANT ALL PRIVILEGES ON SCHEMA chatapp_prod TO "koyeb-adm";
+-- Grant permissions (replace 'your_username' with actual database user)
+-- GRANT ALL PRIVILEGES ON SCHEMA chat_dev TO your_username;
+-- GRANT ALL PRIVILEGES ON SCHEMA chat_prod TO your_username;
 
 -- Set search path for development
--- SET search_path TO chatapp_dev;
+-- SET search_path TO chat_dev;
 
--- You can now run the schema creation DDL in each schema by setting the currentSchema parameter in the connection URL
+-- You can now run the schema creation DDL in each schema
+-- by setting the currentSchema parameter in the connection URL

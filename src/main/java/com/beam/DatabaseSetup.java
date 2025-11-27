@@ -4,89 +4,83 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.SQLException;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 
+/**
+ * Database setup utility for initializing chat server schemas.
+ *
+ * Usage:
+ *   Set environment variables before running:
+ *   - DATABASE_URL: JDBC connection URL
+ *   - DATABASE_USERNAME: Database username
+ *   - DATABASE_PASSWORD: Database password
+ *
+ * Example:
+ *   export DATABASE_URL="jdbc:postgresql://localhost:5432/chatdb?sslmode=require"
+ *   export DATABASE_USERNAME="postgres"
+ *   export DATABASE_PASSWORD="your-password"
+ *   java -cp target/classes com.beam.DatabaseSetup
+ */
 public class DatabaseSetup {
-    
-    private static final String DB_URL = "jdbc:postgresql://ep-blue-unit-a2ev3s9x.eu-central-1.pg.koyeb.app/koyebdb?sslmode=require";
-    private static final String USERNAME = "koyeb-adm";
-    private static final String PASSWORD = "TRQuyavq9W5B";
-    
+
+    private static final String DB_URL = System.getenv("DATABASE_URL");
+    private static final String USERNAME = System.getenv("DATABASE_USERNAME");
+    private static final String PASSWORD = System.getenv("DATABASE_PASSWORD");
+
     public static void main(String[] args) {
-        System.out.println("🚀 PostgreSQL 데이터베이스 초기화 시작...");
-        
+        if (DB_URL == null || USERNAME == null || PASSWORD == null) {
+            System.err.println("Error: Required environment variables not set.");
+            System.err.println("Please set: DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD");
+            System.exit(1);
+        }
+
+        System.out.println("Starting PostgreSQL database initialization...");
+
         try {
-            // 드라이버 로드
             Class.forName("org.postgresql.Driver");
-            
-            // 데이터베이스 연결
+
             Connection connection = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
             Statement statement = connection.createStatement();
-            
-            // 1. 스키마 생성
-            System.out.println("📁 스키마 생성 중...");
-            statement.execute("CREATE SCHEMA IF NOT EXISTS chatapp_dev");
-            statement.execute("CREATE SCHEMA IF NOT EXISTS chatapp_prod");
-            System.out.println("✅ 스키마 생성 완료");
-            
-            // 2. chatapp_dev 스키마 초기화
-            System.out.println("🔧 chatapp_dev 스키마 초기화 중...");
-            setupDevSchema(statement);
-            System.out.println("✅ chatapp_dev 초기화 완료");
-            
-            // 3. chatapp_prod 스키마 초기화
-            System.out.println("🔧 chatapp_prod 스키마 초기화 중...");
-            setupProdSchema(statement);
-            System.out.println("✅ chatapp_prod 초기화 완료");
-            
-            // 4. 테이블 확인
-            System.out.println("🔍 테이블 생성 확인 중...");
+
+            System.out.println("Creating schemas...");
+            statement.execute("CREATE SCHEMA IF NOT EXISTS chat_dev");
+            statement.execute("CREATE SCHEMA IF NOT EXISTS chat_prod");
+            System.out.println("Schemas created successfully.");
+
+            System.out.println("Initializing chat_dev schema...");
+            setupSchema(statement, "chat_dev");
+            System.out.println("chat_dev initialized.");
+
+            System.out.println("Initializing chat_prod schema...");
+            setupSchema(statement, "chat_prod");
+            System.out.println("chat_prod initialized.");
+
             verifyTables(statement);
-            
+
             statement.close();
             connection.close();
-            System.out.println("🎉 데이터베이스 초기화 완료!");
-            
+            System.out.println("Database initialization completed!");
+
         } catch (Exception e) {
-            System.err.println("❌ 오류 발생: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
             e.printStackTrace();
+            System.exit(1);
         }
     }
-    
-    private static void setupDevSchema(Statement statement) throws SQLException {
-        statement.execute("SET search_path TO chatapp_dev");
-        
-        // 기존 테이블 삭제
+
+    private static void setupSchema(Statement statement, String schema) throws SQLException {
+        statement.execute("SET search_path TO " + schema);
+
         statement.execute("DROP TABLE IF EXISTS user_sessions CASCADE");
         statement.execute("DROP TABLE IF EXISTS messages CASCADE");
         statement.execute("DROP TABLE IF EXISTS chat_rooms CASCADE");
         statement.execute("DROP TABLE IF EXISTS users CASCADE");
         statement.execute("DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE");
-        
-        // 테이블 생성
+
         createTables(statement);
         createInitialData(statement);
     }
-    
-    private static void setupProdSchema(Statement statement) throws SQLException {
-        statement.execute("SET search_path TO chatapp_prod");
-        
-        // 기존 테이블 삭제
-        statement.execute("DROP TABLE IF EXISTS user_sessions CASCADE");
-        statement.execute("DROP TABLE IF EXISTS messages CASCADE");
-        statement.execute("DROP TABLE IF EXISTS chat_rooms CASCADE");
-        statement.execute("DROP TABLE IF EXISTS users CASCADE");
-        statement.execute("DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE");
-        
-        // 테이블 생성
-        createTables(statement);
-        createInitialData(statement);
-    }
-    
+
     private static void createTables(Statement statement) throws SQLException {
-        // Users Table
         statement.execute("""
             CREATE TABLE users (
                 id BIGSERIAL PRIMARY KEY,
@@ -101,8 +95,7 @@ public class DatabaseSetup {
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """);
-        
-        // Chat Rooms Table
+
         statement.execute("""
             CREATE TABLE chat_rooms (
                 room_id VARCHAR(50) PRIMARY KEY,
@@ -117,8 +110,7 @@ public class DatabaseSetup {
                 CONSTRAINT chk_room_type CHECK (room_type IN ('NORMAL', 'SECRET', 'VOLATILE'))
             )
         """);
-        
-        // Messages Table
+
         statement.execute("""
             CREATE TABLE messages (
                 id BIGSERIAL PRIMARY KEY,
@@ -143,8 +135,7 @@ public class DatabaseSetup {
                 CONSTRAINT fk_messages_room_id FOREIGN KEY (room_id) REFERENCES chat_rooms(room_id) ON DELETE CASCADE
             )
         """);
-        
-        // User Sessions Table
+
         statement.execute("""
             CREATE TABLE user_sessions (
                 id BIGSERIAL PRIMARY KEY,
@@ -162,44 +153,27 @@ public class DatabaseSetup {
                 CONSTRAINT fk_sessions_room_id FOREIGN KEY (room_id) REFERENCES chat_rooms(room_id) ON DELETE SET NULL
             )
         """);
-        
-        // 인덱스 생성
+
         createIndexes(statement);
-        
-        // 트리거 함수 및 트리거 생성
         createTriggers(statement);
     }
-    
+
     private static void createIndexes(Statement statement) throws SQLException {
-        // Users 인덱스
         statement.execute("CREATE INDEX idx_users_username ON users(username)");
         statement.execute("CREATE INDEX idx_users_email ON users(email)");
         statement.execute("CREATE INDEX idx_users_is_active ON users(is_active)");
-        statement.execute("CREATE INDEX idx_users_created_at ON users(created_at)");
-        
-        // Chat Rooms 인덱스
         statement.execute("CREATE INDEX idx_chat_rooms_room_type ON chat_rooms(room_type)");
         statement.execute("CREATE INDEX idx_chat_rooms_is_active ON chat_rooms(is_active)");
-        
-        // Messages 인덱스
         statement.execute("CREATE INDEX idx_messages_room_id ON messages(room_id)");
         statement.execute("CREATE INDEX idx_messages_sender ON messages(sender)");
         statement.execute("CREATE INDEX idx_messages_timestamp ON messages(timestamp)");
         statement.execute("CREATE INDEX idx_messages_user_id ON messages(user_id)");
-        statement.execute("CREATE INDEX idx_messages_security_type ON messages(security_type)");
-        statement.execute("CREATE INDEX idx_messages_expires_at ON messages(expires_at)");
-        statement.execute("CREATE INDEX idx_messages_is_deleted ON messages(is_deleted)");
-        
-        // User Sessions 인덱스
         statement.execute("CREATE INDEX idx_sessions_session_id ON user_sessions(session_id)");
         statement.execute("CREATE INDEX idx_sessions_user_id ON user_sessions(user_id)");
-        statement.execute("CREATE INDEX idx_sessions_room_id ON user_sessions(room_id)");
         statement.execute("CREATE INDEX idx_sessions_is_online ON user_sessions(is_online)");
-        statement.execute("CREATE INDEX idx_sessions_last_activity ON user_sessions(last_activity)");
     }
-    
+
     private static void createTriggers(Statement statement) throws SQLException {
-        // 트리거 함수 생성
         statement.execute("""
             CREATE OR REPLACE FUNCTION update_updated_at_column()
             RETURNS TRIGGER AS $$
@@ -209,67 +183,50 @@ public class DatabaseSetup {
             END;
             $$ language 'plpgsql'
         """);
-        
-        // 트리거 생성
+
         statement.execute("""
-            CREATE TRIGGER update_users_updated_at 
-                BEFORE UPDATE ON users 
-                FOR EACH ROW 
+            CREATE TRIGGER update_users_updated_at
+                BEFORE UPDATE ON users
+                FOR EACH ROW
                 EXECUTE FUNCTION update_updated_at_column()
         """);
-        
+
         statement.execute("""
-            CREATE TRIGGER update_chat_rooms_updated_at 
-                BEFORE UPDATE ON chat_rooms 
-                FOR EACH ROW 
+            CREATE TRIGGER update_chat_rooms_updated_at
+                BEFORE UPDATE ON chat_rooms
+                FOR EACH ROW
                 EXECUTE FUNCTION update_updated_at_column()
         """);
     }
-    
+
     private static void createInitialData(Statement statement) throws SQLException {
-        // 기본 채팅방 생성
         statement.execute("""
             INSERT INTO chat_rooms (room_id, room_name, room_type, description, max_users) VALUES
-            ('general', '일반 채팅방', 'NORMAL', '모든 사용자가 참여할 수 있는 일반 채팅방입니다.', NULL),
-            ('tech', '개발 이야기', 'NORMAL', '개발과 기술에 관한 이야기를 나누는 채팅방입니다.', NULL),
-            ('casual', '자유 토론', 'NORMAL', '자유롭게 대화를 나누는 채팅방입니다.', NULL),
-            ('secret', '🔐 비밀 대화', 'SECRET', '암호화된 메시지로 안전한 대화를 나누는 채팅방입니다.', 10),
-            ('volatile', '💥 휘발성 채팅', 'VOLATILE', '메시지가 자동으로 삭제되는 휘발성 채팅방입니다.', 20)
+            ('general', 'General Chat', 'NORMAL', 'Public chat room for all users.', NULL),
+            ('tech', 'Tech Talk', 'NORMAL', 'Discuss technology and development.', NULL),
+            ('casual', 'Casual', 'NORMAL', 'Casual conversations.', NULL)
         """);
-        
-        // secret 방에 암호화 키 설정
-        statement.execute("UPDATE chat_rooms SET encryption_key = 'secret123' WHERE room_id = 'secret'");
     }
-    
+
     private static void verifyTables(Statement statement) throws SQLException {
-        // dev 스키마 테이블 확인
-        System.out.println("\n📊 chatapp_dev 스키마 테이블:");
+        System.out.println("\nchat_dev schema tables:");
         var devResult = statement.executeQuery("""
-            SELECT table_name FROM information_schema.tables 
-            WHERE table_schema = 'chatapp_dev' 
+            SELECT table_name FROM information_schema.tables
+            WHERE table_schema = 'chat_dev'
             ORDER BY table_name
         """);
         while (devResult.next()) {
-            System.out.println("  ✓ " + devResult.getString("table_name"));
+            System.out.println("  - " + devResult.getString("table_name"));
         }
-        
-        // prod 스키마 테이블 확인
-        System.out.println("\n📊 chatapp_prod 스키마 테이블:");
+
+        System.out.println("\nchat_prod schema tables:");
         var prodResult = statement.executeQuery("""
-            SELECT table_name FROM information_schema.tables 
-            WHERE table_schema = 'chatapp_prod' 
+            SELECT table_name FROM information_schema.tables
+            WHERE table_schema = 'chat_prod'
             ORDER BY table_name
         """);
         while (prodResult.next()) {
-            System.out.println("  ✓ " + prodResult.getString("table_name"));
-        }
-        
-        // 채팅방 데이터 확인
-        statement.execute("SET search_path TO chatapp_dev");
-        var roomsResult = statement.executeQuery("SELECT room_id, room_name FROM chat_rooms ORDER BY room_id");
-        System.out.println("\n🏠 생성된 채팅방:");
-        while (roomsResult.next()) {
-            System.out.println("  🏠 " + roomsResult.getString("room_id") + ": " + roomsResult.getString("room_name"));
+            System.out.println("  - " + prodResult.getString("table_name"));
         }
     }
 }
