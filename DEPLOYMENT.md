@@ -1,71 +1,66 @@
-# 🚀 배포 가이드
+# Deployment Guide
 
-## 개요
+## Overview
 
-BEAM 메신저를 프로덕션 환경에 배포하는 완벽한 가이드입니다.
+Complete guide for deploying BEAM Messenger to production environments.
 
 ---
 
-## 📋 배포 전 체크리스트
+## Pre-Deployment Checklist
 
-### 필수 환경변수 준비
+### Required Environment Variables
 
 ```bash
-✅ DATABASE_URL          # PostgreSQL 연결 URL
-✅ DATABASE_USERNAME     # DB 사용자명
-✅ DATABASE_PASSWORD     # DB 패스워드
-✅ JWT_SECRET           # 256-bit JWT 시크릿
-✅ CORS_ALLOWED_ORIGINS # 허용할 도메인 (쉼표 구분)
-✅ SPRING_PROFILES_ACTIVE=prod
+DATABASE_URL          # PostgreSQL connection URL
+DATABASE_USERNAME     # Database username
+DATABASE_PASSWORD     # Database password
+JWT_SECRET           # 256-bit JWT signing key
+CORS_ALLOWED_ORIGINS # Allowed domains (comma-separated)
+SPRING_PROFILES_ACTIVE=prod
 ```
 
-### 보안 체크
+### Security Check
 
-- [ ] JWT_SECRET이 강력한 256-bit 키인지 확인
-- [ ] CORS_ALLOWED_ORIGINS가 실제 도메인으로 설정되었는지 확인
-- [ ] DATABASE_PASSWORD가 환경변수로 설정되었는지 확인
-- [ ] HTTPS/WSS 인증서 준비 (프로덕션)
-- [ ] Git에 민감 정보가 없는지 최종 확인
+- [ ] JWT_SECRET is a strong 256-bit key
+- [ ] CORS_ALLOWED_ORIGINS is set to actual domain
+- [ ] DATABASE_PASSWORD is set via environment variable
+- [ ] HTTPS/WSS certificate prepared (production)
+- [ ] No sensitive data in Git
 
 ---
 
-## 🐳 Docker 배포
+## Docker Deployment
 
-### 1. 로컬 Docker 테스트
+### 1. Local Docker Test
 
 ```bash
-# 1. 이미지 빌드
+# Build image
 docker build -t beam-server:latest .
 
-# 2. 로컬 실행 (.env 파일 사용)
+# Run with env file
 docker run -p 8080:8080 --env-file .env beam-server:latest
 
-# 3. 테스트
+# Verify
 curl http://localhost:8080/actuator/health
 ```
 
-### 2. Docker Hub 배포
+### 2. Docker Hub Deployment
 
 ```bash
-# 1. Docker Hub 로그인
+# Login to Docker Hub
 docker login
 
-# 2. 태그 추가
+# Tag and push
 docker tag beam-server:latest your-username/beam-server:latest
-docker tag beam-server:latest your-username/beam-server:1.0.0
-
-# 3. 푸시
 docker push your-username/beam-server:latest
-docker push your-username/beam-server:1.0.0
 
-# 4. 서버에서 실행
-docker pull your-username/beam-server:latest
+# Run on server
 docker run -d -p 8080:8080 \
   -e DATABASE_URL="jdbc:postgresql://..." \
   -e DATABASE_USERNAME="username" \
   -e DATABASE_PASSWORD="password" \
   -e JWT_SECRET="your-secret" \
-  -e CORS_ALLOWED_ORIGINS="https://beam.chat" \
+  -e CORS_ALLOWED_ORIGINS="https://your-domain.com" \
   -e SPRING_PROFILES_ACTIVE="prod" \
   --name beam-server \
   your-username/beam-server:latest
@@ -73,158 +68,85 @@ docker run -d -p 8080:8080 \
 
 ---
 
-## ☁️ Koyeb 배포 (추천)
+## Koyeb Deployment (Recommended)
 
-Koyeb은 Git 연동으로 자동 배포를 지원하는 PaaS입니다.
+### Method 1: GitHub Integration
 
-### 방법 1: GitHub 연동 (자동 배포)
-
-1. **Koyeb 대시보드** 접속
+1. **Koyeb Dashboard**
    - https://app.koyeb.com
 
-2. **서비스 생성**
-   - `Create Service` 클릭
-   - GitHub repository 선택: `araeLaver/simple-chat-server`
+2. **Create Service**
+   - `Create Service` > Select GitHub repository
    - Branch: `main`
 
-3. **빌드 설정**
+3. **Build Settings**
    ```
    Builder: Dockerfile
    Dockerfile path: Dockerfile
    ```
 
-4. **환경변수 설정**
+4. **Environment Variables**
    ```
-   DATABASE_URL=jdbc:postgresql://ep-blue-unit-a2ev3s9x.eu-central-1.pg.koyeb.app/koyebdb?currentSchema=chatapp_prod&sslmode=require
-   DATABASE_USERNAME=koyeb-adm
-   DATABASE_PASSWORD=TRQuyavq9W5B
-   JWT_SECRET=Yc5SfNZegvtvNJaLyvNtzoXwUyKi+MHhG4tv75N7PYKnKDWdFLLHaqFnrDNNHaRnxjlVEHFrKpK1KHJ2ZK+qNA==
+   DATABASE_URL=jdbc:postgresql://your-host/your-db?currentSchema=chat&sslmode=require
+   DATABASE_USERNAME=your-username
+   DATABASE_PASSWORD=your-password
+   JWT_SECRET=your-256-bit-secret
    CORS_ALLOWED_ORIGINS=https://your-app.koyeb.app
    SPRING_PROFILES_ACTIVE=prod
    ```
 
-5. **인스턴스 설정**
-   - Region: Frankfurt (eu-west) 또는 가까운 지역
-   - Instance type: Nano (512MB RAM) 또는 Micro (1GB RAM)
+5. **Instance Settings**
+   - Region: Frankfurt (eu-west) or nearest
+   - Instance type: Nano (512MB) or Micro (1GB)
    - Port: 8080
    - Health check: `/actuator/health`
 
-6. **배포**
-   - `Deploy` 버튼 클릭
-   - 자동으로 빌드 및 배포 시작
-   - 완료 후 Public URL 제공
-
-### 방법 2: Docker Image 배포
-
-```bash
-# 1. 로컬에서 이미지 빌드
-docker build -t beam-server:prod .
-
-# 2. Docker Hub 푸시
-docker tag beam-server:prod your-username/beam-server:prod
-docker push your-username/beam-server:prod
-
-# 3. Koyeb에서 Docker 이미지 선택
-# - Docker Registry: Docker Hub
-# - Image: your-username/beam-server:prod
-# - 환경변수 설정 (위와 동일)
-```
-
-### Koyeb CLI 사용
-
-```bash
-# 1. Koyeb CLI 설치
-curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | bash
-
-# 2. 로그인
-koyeb login
-
-# 3. 서비스 생성
-koyeb service create beam-server \
-  --git github.com/araeLaver/simple-chat-server \
-  --git-branch main \
-  --ports 8080:http \
-  --routes /:8080 \
-  --env DATABASE_URL="jdbc:postgresql://..." \
-  --env DATABASE_USERNAME="koyeb-adm" \
-  --env DATABASE_PASSWORD="TRQuyavq9W5B" \
-  --env JWT_SECRET="Yc5SfNZegvtvNJaLyvNtzoXwUyKi+MHhG4tv75N7PYKnKDWdFLLHaqFnrDNNHaRnxjlVEHFrKpK1KHJ2ZK+qNA==" \
-  --env CORS_ALLOWED_ORIGINS="https://your-app.koyeb.app" \
-  --env SPRING_PROFILES_ACTIVE="prod" \
-  --instance-type nano \
-  --regions fra
-```
+6. **Deploy**
 
 ---
 
-## 🌩️ AWS 배포
+## AWS Deployment
 
 ### AWS Elastic Beanstalk
 
 ```bash
-# 1. EB CLI 설치
+# Install EB CLI
 pip install awsebcli
 
-# 2. EB 초기화
+# Initialize
 eb init -p docker beam-server --region us-east-1
 
-# 3. 환경 생성
+# Create environment
 eb create beam-production
 
-# 4. 환경변수 설정
+# Set environment variables
 eb setenv \
   DATABASE_URL="jdbc:postgresql://..." \
   DATABASE_USERNAME="username" \
   DATABASE_PASSWORD="password" \
   JWT_SECRET="your-secret" \
-  CORS_ALLOWED_ORIGINS="https://beam.example.com" \
+  CORS_ALLOWED_ORIGINS="https://your-domain.com" \
   SPRING_PROFILES_ACTIVE="prod"
 
-# 5. 배포
+# Deploy
 eb deploy
-
-# 6. 상태 확인
-eb status
-eb open
 ```
-
-### AWS ECS (Fargate)
-
-1. **ECR에 이미지 푸시**
-   ```bash
-   aws ecr create-repository --repository-name beam-server
-   docker tag beam-server:latest <account-id>.dkr.ecr.<region>.amazonaws.com/beam-server:latest
-   aws ecr get-login-password | docker login --username AWS --password-stdin <account-id>.dkr.ecr.<region>.amazonaws.com
-   docker push <account-id>.dkr.ecr.<region>.amazonaws.com/beam-server:latest
-   ```
-
-2. **ECS 태스크 정의 생성** (AWS Console)
-   - Container: beam-server
-   - Image: ECR URI
-   - Port: 8080
-   - Environment Variables: 위 환경변수 추가
-
-3. **서비스 생성**
-   - Cluster 생성
-   - Service 생성 (Fargate)
-   - Load Balancer 설정
-   - Auto Scaling 설정
 
 ---
 
-## 🎯 Heroku 배포
+## Heroku Deployment
 
 ```bash
-# 1. Heroku CLI 설치
+# Install Heroku CLI
 # https://devcenter.heroku.com/articles/heroku-cli
 
-# 2. 로그인
+# Login
 heroku login
 
-# 3. 앱 생성
+# Create app
 heroku create beam-server
 
-# 4. 환경변수 설정
+# Set environment variables
 heroku config:set \
   DATABASE_URL="jdbc:postgresql://..." \
   DATABASE_USERNAME="username" \
@@ -233,58 +155,24 @@ heroku config:set \
   CORS_ALLOWED_ORIGINS="https://beam-server.herokuapp.com" \
   SPRING_PROFILES_ACTIVE="prod"
 
-# 5. 배포
+# Deploy
 git push heroku main
 
-# 6. 확인
+# Verify
 heroku open
 heroku logs --tail
 ```
 
 ---
 
-## 🔧 Render 배포
-
-1. **Render 대시보드** 접속
-   - https://dashboard.render.com
-
-2. **새 Web Service 생성**
-   - Connect GitHub repository: `araeLaver/simple-chat-server`
-   - Branch: `main`
-
-3. **설정**
-   ```
-   Name: beam-server
-   Environment: Docker
-   Region: Frankfurt
-   Instance Type: Starter ($7/month)
-   ```
-
-4. **환경변수 추가**
-   ```
-   DATABASE_URL=jdbc:postgresql://...
-   DATABASE_USERNAME=username
-   DATABASE_PASSWORD=password
-   JWT_SECRET=your-secret
-   CORS_ALLOWED_ORIGINS=https://beam-server.onrender.com
-   SPRING_PROFILES_ACTIVE=prod
-   ```
-
-5. **Deploy**
-   - `Create Web Service` 클릭
-   - 자동 배포 시작
-
----
-
-## 📊 배포 후 확인
+## Post-Deployment Verification
 
 ### Health Check
 
 ```bash
-# 서버 상태 확인
 curl https://your-domain.com/actuator/health
 
-# 예상 응답
+# Expected response
 {
   "status": "UP",
   "components": {
@@ -295,24 +183,23 @@ curl https://your-domain.com/actuator/health
 }
 ```
 
-### API 테스트
+### API Test
 
 ```bash
-# Swagger UI 접속
+# Swagger UI
 https://your-domain.com/swagger-ui.html
 
-# 회원가입 테스트
+# Registration test
 curl -X POST https://your-domain.com/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "username": "testuser",
     "password": "testpass123",
-    "displayName": "Test User",
-    "phoneNumber": "01012345678"
+    "displayName": "Test User"
   }'
 ```
 
-### 로그 모니터링
+### Log Monitoring
 
 ```bash
 # Koyeb
@@ -321,60 +208,42 @@ koyeb logs beam-server --follow
 # Heroku
 heroku logs --tail
 
-# AWS
-eb logs --follow
-
 # Docker
 docker logs -f beam-server
 ```
 
 ---
 
-## 🔍 문제 해결
+## Troubleshooting
 
-### 데이터베이스 연결 실패
+### Database Connection Failed
+- Verify DATABASE_URL, USERNAME, PASSWORD
+- Check SSL settings (sslmode=require)
 
+### Memory Issues
 ```bash
-# PostgreSQL 연결 테스트
-psql -h ep-blue-unit-a2ev3s9x.eu-central-1.pg.koyeb.app -U koyeb-adm -d koyebdb
-
-# 환경변수 확인
-echo $DATABASE_URL
-```
-
-### 메모리 부족
-
-```bash
-# JVM 메모리 설정 (Dockerfile 또는 환경변수)
 JAVA_OPTS="-Xms128m -Xmx512m -XX:+UseG1GC"
 ```
 
-### CORS 에러
+### CORS Errors
+- Verify CORS_ALLOWED_ORIGINS includes frontend domain
 
+### Port Conflicts
 ```bash
-# CORS_ALLOWED_ORIGINS 확인
-# 프론트엔드 도메인이 정확히 포함되어 있는지 확인
-CORS_ALLOWED_ORIGINS=https://beam.chat,https://www.beam.chat
-```
-
-### 포트 충돌
-
-```bash
-# 환경변수로 포트 변경
 PORT=8081
 ```
 
 ---
 
-## 📈 모니터링 & 스케일링
+## Monitoring & Scaling
 
-### Actuator 메트릭
+### Actuator Metrics
 
 ```bash
-# Prometheus 메트릭
+# Prometheus metrics
 curl https://your-domain.com/actuator/prometheus
 
-# 애플리케이션 정보
+# Application info
 curl https://your-domain.com/actuator/info
 ```
 
@@ -388,29 +257,25 @@ curl https://your-domain.com/actuator/info
 
 ---
 
-## 🔒 프로덕션 보안 체크리스트
+## Production Security Checklist
 
-- [ ] HTTPS/WSS 활성화
-- [ ] JWT_SECRET 강력한 키 사용
-- [ ] CORS 실제 도메인만 허용
-- [ ] 데이터베이스 SSL 연결
-- [ ] 환경변수로 민감 정보 관리
-- [ ] Rate Limiting 활성화
-- [ ] Actuator 엔드포인트 보호
-- [ ] 정기적인 보안 업데이트
-- [ ] 로그 모니터링
-- [ ] 백업 자동화
+- [ ] HTTPS/WSS enabled
+- [ ] Strong JWT_SECRET
+- [ ] CORS restricted to actual domains
+- [ ] Database SSL connection
+- [ ] Environment variables for secrets
+- [ ] Rate limiting enabled
+- [ ] Actuator endpoints protected
+- [ ] Regular security updates
+- [ ] Log monitoring
+- [ ] Backup automation
 
 ---
 
-## 📚 추가 리소스
+## Additional Resources
 
 - [Koyeb Documentation](https://www.koyeb.com/docs)
 - [AWS Documentation](https://docs.aws.amazon.com/)
 - [Heroku Documentation](https://devcenter.heroku.com/)
 - [Docker Documentation](https://docs.docker.com/)
 - [Spring Boot Deployment](https://docs.spring.io/spring-boot/docs/current/reference/html/deployment.html)
-
----
-
-**🎉 배포 완료! BEAM 메신저가 이제 전 세계에서 사용 가능합니다!**

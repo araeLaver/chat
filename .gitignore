@@ -113,3 +113,6 @@ apache-maven.zip
 
 # Environment variables
 .env
+
+# Claude Code
+.claude/
