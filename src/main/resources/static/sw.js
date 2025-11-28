@@ -1,9 +1,13 @@
-const CACHE_NAME = 'securechat-v1.0.0';
+const CACHE_NAME = 'beam-v1.0.0';
 const CACHE_ASSETS = [
   '/',
   '/index.html',
+  '/chat.html',
   '/manifest.json',
-  // 오프라인에서도 기본 기능 동작하도록 캐시
+  '/css/main.css',
+  '/css/chat.css',
+  '/js/app.js',
+  '/js/chat.js'
 ];
 
 // Service Worker 설치 이벤트

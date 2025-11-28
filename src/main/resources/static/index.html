@@ -4,12 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#667eea">
-    <meta name="description" content="BEAM - 실시간 보안 메시징 플랫폼. Spring Boot 기반의 현대적인 채팅 애플리케이션 포트폴리오 프로젝트">
-    <meta name="keywords" content="Spring Boot, WebSocket, Chat Application, Real-time Messaging, Portfolio">
-    <title>BEAM - 실시간 보안 메시징 플랫폼</title>
+    <meta name="description" content="BEAM - Real-time secure messaging platform with WebSocket, JWT authentication, and end-to-end encryption">
+    <meta name="keywords" content="Secure Messaging, WebSocket, Real-time Chat, Encrypted Communication">
+    <meta name="author" content="BEAM Team">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="BEAM - Secure Messaging Platform">
+    <meta property="og:description" content="Real-time secure messaging with enterprise-grade security">
+    <meta property="og:type" content="website">
+    <title>BEAM - Secure Messaging Platform</title>
 
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
     <link rel="stylesheet" href="/css/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
 </head>
 <body>
     <!-- Animated Background -->
@@ -40,29 +48,25 @@
     <section class="hero">
         <div class="hero-content">
             <div class="hero-badge">
-                <span>🚀</span>
-                <span>Spring Boot 3.2 · WebSocket · PostgreSQL</span>
+                <span>🔐</span>
+                <span>End-to-End Encrypted · Real-time · Secure</span>
             </div>
             <h1>
-                실시간 보안 메시징<br>
+                Secure Messaging<br>
                 <span class="gradient-text">BEAM Platform</span>
             </h1>
             <p class="hero-subtitle">
-                JWT 인증, WebSocket 실시간 통신, 파일 공유를 지원하는
-                엔터프라이즈급 채팅 애플리케이션 포트폴리오 프로젝트
+                Enterprise-grade secure messaging with real-time communication,
+                file sharing, and advanced encryption
             </p>
             <div class="hero-buttons">
                 <button class="btn btn-primary" id="quickStartBtn" onclick="quickStart()">
                     <span class="btn-icon">⚡</span>
-                    <span>바로 시작하기</span>
+                    <span>Get Started</span>
                 </button>
-                <a href="https://github.com/araeLaver/simple-chat-server" target="_blank" class="btn btn-secondary">
-                    <span class="btn-icon">📦</span>
-                    <span>GitHub</span>
-                </a>
-                <a href="/swagger-ui/index.html" target="_blank" class="btn btn-secondary">
-                    <span class="btn-icon">📚</span>
-                    <span>API 문서</span>
+                <a href="#features" class="btn btn-secondary">
+                    <span class="btn-icon">✨</span>
+                    <span>Features</span>
                 </a>
             </div>
             <div class="loading" id="loading">
@@ -348,63 +352,41 @@
             <div class="footer-section">
                 <h3>⚡ BEAM</h3>
                 <p style="color: var(--text-secondary); margin-top: 0.5rem;">
-                    Spring Boot 기반의 실시간 보안 메시징 플랫폼
+                    Secure messaging platform for modern teams
                 </p>
             </div>
 
             <div class="footer-section">
-                <h3>Resources</h3>
+                <h3>Product</h3>
                 <ul class="footer-links">
-                    <li><a href="/swagger-ui/index.html" target="_blank">
-                        <span>📚</span>
-                        <span>API Documentation</span>
-                    </a></li>
-                    <li><a href="https://github.com/araeLaver/simple-chat-server" target="_blank">
-                        <span>📦</span>
-                        <span>GitHub Repository</span>
-                    </a></li>
-                    <li><a href="/actuator/health" target="_blank">
-                        <span>💚</span>
-                        <span>Health Check</span>
-                    </a></li>
-                    <li><a href="/actuator/prometheus" target="_blank">
-                        <span>📊</span>
-                        <span>Metrics</span>
-                    </a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#tech">Technology</a></li>
+                    <li><a href="#architecture">Architecture</a></li>
                 </ul>
             </div>
 
             <div class="footer-section">
                 <h3>Features</h3>
                 <ul class="footer-links">
-                    <li><a href="#features">실시간 메시징</a></li>
-                    <li><a href="#features">파일 공유</a></li>
-                    <li><a href="#features">친구 시스템</a></li>
-                    <li><a href="#features">보안 인증</a></li>
+                    <li><a href="#features">Real-time Messaging</a></li>
+                    <li><a href="#features">File Sharing</a></li>
+                    <li><a href="#features">Friend System</a></li>
+                    <li><a href="#features">Secure Auth</a></li>
                 </ul>
             </div>
 
             <div class="footer-section">
-                <h3>Tech Stack</h3>
+                <h3>Security</h3>
                 <ul class="footer-links">
-                    <li><a href="#tech">Spring Boot 3.2</a></li>
-                    <li><a href="#tech">WebSocket</a></li>
-                    <li><a href="#tech">PostgreSQL</a></li>
-                    <li><a href="#tech">Docker & Koyeb</a></li>
+                    <li><a href="#features">End-to-End Encryption</a></li>
+                    <li><a href="#features">JWT Authentication</a></li>
+                    <li><a href="#features">Rate Limiting</a></li>
                 </ul>
             </div>
         </div>
 
         <div class="footer-bottom">
-            <div class="social-links">
-                <a href="https://github.com/araeLaver/simple-chat-server" target="_blank" class="social-link">
-                    <span>📦</span>
-                </a>
-                <a href="/swagger-ui/index.html" target="_blank" class="social-link">
-                    <span>📚</span>
-                </a>
-            </div>
-            <p>&copy; 2025 BEAM. Portfolio Project. Built with Spring Boot.</p>
+            <p>&copy; 2025 BEAM. All rights reserved.</p>
         </div>
     </footer>
 
