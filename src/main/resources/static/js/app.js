@@ -143,9 +143,13 @@ async function handleLogin(e) {
 
         // Store auth data
         localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('username', data.user.username);
-        localStorage.setItem('displayName', data.user.displayName);
+        localStorage.setItem('user', JSON.stringify({
+            id: data.userId,
+            username: data.username,
+            displayName: data.displayName
+        }));
+        localStorage.setItem('username', data.username);
+        localStorage.setItem('displayName', data.displayName);
         if (data.defaultRoomId) {
             localStorage.setItem('defaultRoomId', data.defaultRoomId);
         }
@@ -218,9 +222,13 @@ async function handleRegister(e) {
 
         // Store auth data
         localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('username', data.user.username);
-        localStorage.setItem('displayName', data.user.displayName);
+        localStorage.setItem('user', JSON.stringify({
+            id: data.userId,
+            username: data.username,
+            displayName: data.displayName
+        }));
+        localStorage.setItem('username', data.username);
+        localStorage.setItem('displayName', data.displayName);
         if (data.defaultRoomId) {
             localStorage.setItem('defaultRoomId', data.defaultRoomId);
         }
