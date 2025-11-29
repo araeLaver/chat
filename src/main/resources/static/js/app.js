@@ -37,8 +37,207 @@ function toggleMobileMenu() {
     }
 }
 
-// Quick Start Function - Guest Login
-async function quickStart() {
+// ===========================
+// Auth Modal Functions
+// ===========================
+
+function openLoginModal() {
+    const modal = document.getElementById('authModal');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    if (loginForm) loginForm.style.display = 'block';
+    if (registerForm) registerForm.style.display = 'none';
+
+    // Clear previous errors
+    clearAuthErrors();
+}
+
+function openRegisterModal() {
+    const modal = document.getElementById('authModal');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    if (loginForm) loginForm.style.display = 'none';
+    if (registerForm) registerForm.style.display = 'block';
+
+    // Clear previous errors
+    clearAuthErrors();
+}
+
+function closeAuthModal() {
+    const modal = document.getElementById('authModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    clearAuthErrors();
+}
+
+function showLoginForm(e) {
+    if (e) e.preventDefault();
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+
+    if (loginForm) loginForm.style.display = 'block';
+    if (registerForm) registerForm.style.display = 'none';
+    clearAuthErrors();
+}
+
+function showRegisterForm(e) {
+    if (e) e.preventDefault();
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+
+    if (loginForm) loginForm.style.display = 'none';
+    if (registerForm) registerForm.style.display = 'block';
+    clearAuthErrors();
+}
+
+function clearAuthErrors() {
+    const loginError = document.getElementById('loginError');
+    const registerError = document.getElementById('registerError');
+    if (loginError) loginError.textContent = '';
+    if (registerError) registerError.textContent = '';
+}
+
+// Handle Login
+async function handleLogin(e) {
+    e.preventDefault();
+
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errorDiv = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+
+    if (!username || !password) {
+        errorDiv.textContent = 'Please fill in all fields';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span>Signing in...</span>';
+
+    try {
+        const response = await fetch(`${API_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || data.message || 'Login failed');
+        }
+
+        // Store auth data
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('username', data.user.username);
+        localStorage.setItem('displayName', data.user.displayName);
+        if (data.defaultRoomId) {
+            localStorage.setItem('defaultRoomId', data.defaultRoomId);
+        }
+
+        // Redirect to chat
+        window.location.href = '/chat.html';
+
+    } catch (err) {
+        console.error('Login error:', err);
+        errorDiv.textContent = err.message || 'Login failed. Please check your credentials.';
+        btn.disabled = false;
+        btn.innerHTML = '<span>Sign In</span>';
+    }
+}
+
+// Handle Register
+async function handleRegister(e) {
+    e.preventDefault();
+
+    const username = document.getElementById('registerUsername').value.trim();
+    const displayName = document.getElementById('registerDisplayName').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('registerConfirmPassword').value;
+    const errorDiv = document.getElementById('registerError');
+    const btn = document.getElementById('registerBtn');
+
+    // Validation
+    if (!username || !displayName || !password || !confirmPassword) {
+        errorDiv.textContent = 'Please fill in all fields';
+        return;
+    }
+
+    if (username.length < 3 || username.length > 20) {
+        errorDiv.textContent = 'Username must be 3-20 characters';
+        return;
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+        errorDiv.textContent = 'Username can only contain letters, numbers, and underscores';
+        return;
+    }
+
+    if (password.length < 6) {
+        errorDiv.textContent = 'Password must be at least 6 characters';
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        errorDiv.textContent = 'Passwords do not match';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span>Creating account...</span>';
+
+    try {
+        const response = await fetch(`${API_URL}/api/auth/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, displayName, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || data.message || 'Registration failed');
+        }
+
+        // Store auth data
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('username', data.user.username);
+        localStorage.setItem('displayName', data.user.displayName);
+        if (data.defaultRoomId) {
+            localStorage.setItem('defaultRoomId', data.defaultRoomId);
+        }
+
+        // Redirect to chat
+        window.location.href = '/chat.html';
+
+    } catch (err) {
+        console.error('Register error:', err);
+        errorDiv.textContent = err.message || 'Registration failed. Please try again.';
+        btn.disabled = false;
+        btn.innerHTML = '<span>Create Account</span>';
+    }
+}
+
+// Guest Login
+async function guestLogin() {
     const button = document.getElementById('quickStartBtn');
     const loading = document.getElementById('loading');
     const error = document.getElementById('error');
@@ -134,5 +333,27 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Expose functions to global scope for onclick handlers
-window.quickStart = quickStart;
 window.toggleMobileMenu = toggleMobileMenu;
+window.openLoginModal = openLoginModal;
+window.openRegisterModal = openRegisterModal;
+window.closeAuthModal = closeAuthModal;
+window.showLoginForm = showLoginForm;
+window.showRegisterForm = showRegisterForm;
+window.handleLogin = handleLogin;
+window.handleRegister = handleRegister;
+window.guestLogin = guestLogin;
+
+// Close modal on outside click
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('authModal');
+    if (e.target === modal) {
+        closeAuthModal();
+    }
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeAuthModal();
+    }
+});
