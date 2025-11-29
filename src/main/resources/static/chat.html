@@ -1,42 +1,75 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" content="#6366f1">
     <meta name="description" content="BEAM Chat - Secure real-time messaging">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>BEAM Chat</title>
 
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
     <link rel="manifest" href="/manifest.json">
     <link rel="stylesheet" href="/css/chat.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="chat-container">
+    <div class="app-container">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <!-- Sidebar Header -->
             <div class="sidebar-header">
-                <div class="sidebar-logo">
-                    <span>⚡</span>
-                    <span>BEAM</span>
+                <div class="sidebar-brand">
+                    <div class="brand-logo">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                    </div>
+                    <span class="brand-name">BEAM</span>
                 </div>
-                <div class="sidebar-search">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" placeholder="검색..." id="searchInput">
+                <button class="icon-btn sidebar-close" id="sidebarClose">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Search -->
+            <div class="sidebar-search">
+                <div class="search-input-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <input type="text" placeholder="Search conversations..." id="searchInput">
                 </div>
             </div>
 
             <!-- Tabs -->
             <div class="sidebar-tabs">
                 <button class="tab-btn active" data-tab="chats">
-                    💬 채팅
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                    </svg>
+                    <span>Chats</span>
                 </button>
                 <button class="tab-btn" data-tab="friends">
-                    👥 친구
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                    </svg>
+                    <span>Friends</span>
                 </button>
                 <button class="tab-btn" data-tab="rooms">
-                    🏠 방
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                        <polyline points="9,22 9,12 15,12 15,22"/>
+                    </svg>
+                    <span>Rooms</span>
                 </button>
             </div>
 
@@ -46,67 +79,115 @@
                     <!-- Populated by JavaScript -->
                 </div>
             </div>
+
+            <!-- User Profile -->
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar" id="userAvatar">G</div>
+                    <div class="user-info">
+                        <span class="user-name" id="userName">Guest</span>
+                        <span class="user-status">
+                            <span class="status-dot"></span>
+                            Online
+                        </span>
+                    </div>
+                    <button class="icon-btn" id="settingsBtn" title="Settings">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </aside>
 
         <!-- Main Chat Area -->
-        <main class="main-chat">
+        <main class="main-content">
             <!-- Chat Header -->
             <header class="chat-header">
-                <div class="chat-header-info">
-                    <button class="icon-btn" id="menuBtn">
-                        ☰
+                <div class="header-left">
+                    <button class="icon-btn mobile-menu-btn" id="menuBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 12h18M3 6h18M3 18h18"/>
+                        </svg>
                     </button>
-                    <div class="chat-header-avatar">
-                        🌍
-                    </div>
-                    <div class="chat-header-details">
-                        <h3 id="chatHeaderName">일반 채팅</h3>
-                        <div class="chat-header-status" id="chatHeaderStatus">
-                            온라인
+                    <div class="chat-info">
+                        <div class="chat-avatar" id="chatAvatar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M2 12h20"/>
+                            </svg>
+                        </div>
+                        <div class="chat-details">
+                            <h2 id="chatName">General</h2>
+                            <span class="chat-status" id="chatStatus">
+                                <span class="status-dot"></span>
+                                <span>Online</span>
+                            </span>
                         </div>
                     </div>
                 </div>
-                <div class="chat-header-actions">
-                    <button class="icon-btn" title="검색">
-                        🔍
+                <div class="header-actions">
+                    <button class="icon-btn" title="Search in chat">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="M21 21l-4.35-4.35"/>
+                        </svg>
                     </button>
-                    <button class="icon-btn" title="설정">
-                        ⚙️
+                    <button class="icon-btn" title="Call">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                        </svg>
                     </button>
-                    <button class="icon-btn" id="logoutBtn" title="로그아웃">
-                        🚪
+                    <button class="icon-btn" id="logoutBtn" title="Logout">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+                        </svg>
                     </button>
                 </div>
             </header>
 
             <!-- Messages Container -->
             <div class="messages-container" id="messagesContainer">
-                <!-- Messages will be populated by JavaScript -->
+                <!-- Welcome State -->
+                <div class="welcome-state" id="welcomeState">
+                    <div class="welcome-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                        </svg>
+                    </div>
+                    <h3>Welcome to BEAM</h3>
+                    <p>Select a conversation to start messaging</p>
+                </div>
             </div>
 
             <!-- Input Area -->
             <div class="input-area">
-                <div class="input-wrapper">
+                <div class="input-container">
                     <div class="input-actions">
-                        <button class="input-btn" title="파일 첨부" onclick="document.getElementById('fileInput').click()">
-                            📎
+                        <button class="icon-btn" title="Attach file" onclick="document.getElementById('fileInput').click()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+                            </svg>
                         </button>
                         <input type="file" id="fileInput" style="display: none;">
-                        <button class="input-btn" title="이모지">
-                            😊
-                        </button>
                     </div>
                     <div class="message-input-wrapper">
                         <textarea
                             id="messageInput"
                             class="message-input"
-                            placeholder="메시지를 입력하세요... (Enter: 전송, Shift+Enter: 줄바꿈)"
+                            placeholder="Type a message..."
                             rows="1"
                         ></textarea>
                     </div>
-                    <button class="send-btn" id="sendBtn" title="전송">
-                        ➤
+                    <button class="send-btn" id="sendBtn" title="Send message">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                        </svg>
                     </button>
+                </div>
+                <div class="input-hint">
+                    <span>Press <kbd>Enter</kbd> to send, <kbd>Shift + Enter</kbd> for new line</span>
                 </div>
             </div>
         </main>
@@ -114,6 +195,9 @@
 
     <!-- Mobile Overlay -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
 
     <script src="/js/chat.js"></script>
 </body>
