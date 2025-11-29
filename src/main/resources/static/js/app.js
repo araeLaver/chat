@@ -6,13 +6,9 @@ const API_URL = window.location.origin;
 
 // Navbar Scroll Effect
 window.addEventListener('scroll', () => {
-    const navbar = document.querySelector('.navbar');
+    const navbar = document.getElementById('navbar');
     if (navbar) {
-        if (window.scrollY > 50) {
-            navbar.classList.add('scrolled');
-        } else {
-            navbar.classList.remove('scrolled');
-        }
+        navbar.classList.toggle('scrolled', window.scrollY > 50);
     }
 });
 
@@ -30,43 +26,28 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Intersection Observer for Animations
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -100px 0px'
-};
+// Mobile Menu Toggle
+function toggleMobileMenu() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
 
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, observerOptions);
+    if (mobileMenu && mobileMenuBtn) {
+        mobileMenu.classList.toggle('active');
+        mobileMenuBtn.classList.toggle('active');
+    }
+}
 
-// Observe all feature cards and sections
-document.addEventListener('DOMContentLoaded', () => {
-    const animatedElements = document.querySelectorAll('.feature-card, .tech-item, .arch-layer');
-    animatedElements.forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(20px)';
-        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        observer.observe(el);
-    });
-});
-
-// Quick Start Function
+// Quick Start Function - Guest Login
 async function quickStart() {
     const button = document.getElementById('quickStartBtn');
     const loading = document.getElementById('loading');
     const error = document.getElementById('error');
 
-    if (!button || !loading) return;
-
     // UI State
-    button.disabled = true;
-    button.style.opacity = '0.6';
+    if (button) {
+        button.disabled = true;
+        button.style.opacity = '0.7';
+    }
     if (loading) loading.classList.add('active');
     if (error) error.classList.remove('active');
 
@@ -96,95 +77,52 @@ async function quickStart() {
 
     } catch (err) {
         console.error('Quick start error:', err);
+
         if (error) {
-            error.textContent = '⚠️ 연결 실패. 다시 시도해주세요.';
+            error.querySelector('span').textContent = 'Connection failed. Please try again.';
             error.classList.add('active');
+
+            // Auto-hide error after 5 seconds
+            setTimeout(() => {
+                error.classList.remove('active');
+            }, 5000);
         }
-        button.disabled = false;
-        button.style.opacity = '1';
+
+        if (button) {
+            button.disabled = false;
+            button.style.opacity = '1';
+        }
         if (loading) loading.classList.remove('active');
     }
 }
 
-// View Demo
-function viewDemo() {
-    const demoSection = document.getElementById('demo');
-    if (demoSection) {
-        demoSection.scrollIntoView({ behavior: 'smooth' });
-    }
-}
+// Intersection Observer for Animations
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -100px 0px'
+};
 
-// Mobile Menu Toggle
-function toggleMobileMenu() {
-    const navLinks = document.querySelector('.nav-links');
-    if (navLinks) {
-        navLinks.classList.toggle('active');
-    }
-}
-
-// Copy to Clipboard
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        showNotification('클립보드에 복사되었습니다!');
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
     });
-}
+}, observerOptions);
 
-// Show Notification
-function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        background: ${type === 'success' ? '#10B981' : '#EF4444'};
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-        z-index: 10000;
-        animation: slideInRight 0.3s ease;
-    `;
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
-// Animation Keyframes
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);
-
-// Initialize on DOM Load
+// Initialize animations on DOM Load
 document.addEventListener('DOMContentLoaded', () => {
     console.log('BEAM Application Initialized');
+
+    // Observe animated elements
+    const animatedElements = document.querySelectorAll('.feature-card, .tech-item, .arch-layer, .security-card');
+    animatedElements.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+    });
 
     // Add active state to current nav link
     const currentPath = window.location.pathname;
@@ -197,6 +135,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Expose functions to global scope for onclick handlers
 window.quickStart = quickStart;
-window.viewDemo = viewDemo;
 window.toggleMobileMenu = toggleMobileMenu;
-window.copyToClipboard = copyToClipboard;

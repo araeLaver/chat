@@ -1,79 +1,209 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#667eea">
-    <meta name="description" content="BEAM - Real-time secure messaging platform with WebSocket, JWT authentication, and end-to-end encryption">
-    <meta name="keywords" content="Secure Messaging, WebSocket, Real-time Chat, Encrypted Communication">
-    <meta name="author" content="BEAM Team">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="description" content="BEAM - Enterprise-grade secure messaging platform with real-time WebSocket communication, end-to-end encryption, and advanced security features.">
+    <meta name="keywords" content="Secure Messaging, WebSocket, Real-time Chat, Encrypted Communication, Enterprise Chat">
+    <meta name="author" content="BEAM">
     <meta name="robots" content="index, follow">
+
+    <!-- Open Graph -->
     <meta property="og:title" content="BEAM - Secure Messaging Platform">
-    <meta property="og:description" content="Real-time secure messaging with enterprise-grade security">
+    <meta property="og:description" content="Enterprise-grade secure messaging with real-time communication and end-to-end encryption">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="/images/og-image.png">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="BEAM - Secure Messaging Platform">
+    <meta name="twitter:description" content="Enterprise-grade secure messaging with real-time communication">
+
     <title>BEAM - Secure Messaging Platform</title>
 
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
     <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
     <link rel="stylesheet" href="/css/main.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Animated Background -->
-    <div class="animated-bg">
-        <div class="gradient-orb orb-1"></div>
-        <div class="gradient-orb orb-2"></div>
-        <div class="gradient-orb orb-3"></div>
+    <div class="bg-animation">
+        <div class="gradient-sphere sphere-1"></div>
+        <div class="gradient-sphere sphere-2"></div>
+        <div class="gradient-sphere sphere-3"></div>
+        <div class="grid-overlay"></div>
     </div>
 
     <!-- Navigation -->
-    <nav class="navbar">
+    <nav class="navbar" id="navbar">
         <div class="nav-container">
             <a href="#" class="nav-logo">
-                <span>⚡</span>
-                <span>BEAM</span>
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                </div>
+                <span class="logo-text">BEAM</span>
             </a>
-            <ul class="nav-links">
+
+            <ul class="nav-links" id="navLinks">
                 <li><a href="#features">Features</a></li>
-                <li><a href="#tech">Tech Stack</a></li>
+                <li><a href="#technology">Technology</a></li>
                 <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#security">Security</a></li>
             </ul>
-            <button class="nav-cta" onclick="quickStart()">Live Demo</button>
-            <button class="menu-toggle" onclick="toggleMobileMenu()">☰</button>
+
+            <div class="nav-actions">
+                <button class="btn btn-ghost" onclick="quickStart()">Sign In</button>
+                <button class="btn btn-primary" onclick="quickStart()">
+                    <span>Get Started</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </div>
+
+            <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
         </div>
     </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <ul class="mobile-nav-links">
+            <li><a href="#features" onclick="toggleMobileMenu()">Features</a></li>
+            <li><a href="#technology" onclick="toggleMobileMenu()">Technology</a></li>
+            <li><a href="#architecture" onclick="toggleMobileMenu()">Architecture</a></li>
+            <li><a href="#security" onclick="toggleMobileMenu()">Security</a></li>
+        </ul>
+        <div class="mobile-nav-actions">
+            <button class="btn btn-primary btn-block" onclick="quickStart()">Get Started Free</button>
+        </div>
+    </div>
 
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-content">
-            <div class="hero-badge">
-                <span>🔐</span>
-                <span>End-to-End Encrypted · Real-time · Secure</span>
+            <div class="hero-badge animate-fade-in">
+                <div class="badge-dot"></div>
+                <span>Now Available - Version 1.0</span>
             </div>
-            <h1>
+
+            <h1 class="hero-title animate-fade-in-up">
                 Secure Messaging<br>
-                <span class="gradient-text">BEAM Platform</span>
+                <span class="text-gradient">Reimagined</span>
             </h1>
-            <p class="hero-subtitle">
-                Enterprise-grade secure messaging with real-time communication,
-                file sharing, and advanced encryption
+
+            <p class="hero-description animate-fade-in-up delay-1">
+                Enterprise-grade security meets beautiful design. Real-time messaging
+                with end-to-end encryption, built for teams that value privacy.
             </p>
-            <div class="hero-buttons">
-                <button class="btn btn-primary" id="quickStartBtn" onclick="quickStart()">
-                    <span class="btn-icon">⚡</span>
-                    <span>Get Started</span>
+
+            <div class="hero-cta animate-fade-in-up delay-2">
+                <button class="btn btn-primary btn-lg" id="quickStartBtn" onclick="quickStart()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                    <span>Start Messaging</span>
                 </button>
-                <a href="#features" class="btn btn-secondary">
-                    <span class="btn-icon">✨</span>
-                    <span>Features</span>
+                <a href="#features" class="btn btn-outline btn-lg">
+                    <span>Explore Features</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 9l-7 7-7-7"/>
+                    </svg>
                 </a>
             </div>
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>서버에 연결 중...</p>
+
+            <div class="hero-stats animate-fade-in-up delay-3">
+                <div class="stat-item">
+                    <span class="stat-value">256-bit</span>
+                    <span class="stat-label">Encryption</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-value">&lt;50ms</span>
+                    <span class="stat-label">Latency</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-value">99.9%</span>
+                    <span class="stat-label">Uptime</span>
+                </div>
             </div>
-            <div class="error-message" id="error"></div>
+
+            <!-- Loading State -->
+            <div class="loading-overlay" id="loading">
+                <div class="loading-spinner"></div>
+                <p>Connecting to server...</p>
+            </div>
+
+            <!-- Error State -->
+            <div class="error-toast" id="error">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 8v4M12 16h.01"/>
+                </svg>
+                <span>Connection failed. Please try again.</span>
+            </div>
+        </div>
+
+        <!-- Hero Visual -->
+        <div class="hero-visual animate-fade-in delay-2">
+            <div class="app-preview">
+                <div class="preview-header">
+                    <div class="preview-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="preview-title">BEAM Chat</span>
+                </div>
+                <div class="preview-content">
+                    <div class="preview-sidebar">
+                        <div class="preview-channel active">
+                            <span class="channel-icon">#</span>
+                            <span>general</span>
+                        </div>
+                        <div class="preview-channel">
+                            <span class="channel-icon">#</span>
+                            <span>engineering</span>
+                        </div>
+                        <div class="preview-channel">
+                            <span class="channel-icon locked">🔒</span>
+                            <span>private</span>
+                        </div>
+                    </div>
+                    <div class="preview-chat">
+                        <div class="preview-message received">
+                            <div class="message-avatar">A</div>
+                            <div class="message-body">
+                                <span class="message-author">Alice</span>
+                                <p>Hey team! The new release is ready for review.</p>
+                            </div>
+                        </div>
+                        <div class="preview-message sent">
+                            <div class="message-body">
+                                <p>Awesome! I'll check it out right now.</p>
+                            </div>
+                        </div>
+                        <div class="preview-message received">
+                            <div class="message-avatar">B</div>
+                            <div class="message-body">
+                                <span class="message-author">Bob</span>
+                                <p>The encryption module looks solid. Great work!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -81,180 +211,240 @@
     <section class="section" id="features">
         <div class="container">
             <div class="section-header">
-                <span class="section-badge">FEATURES</span>
-                <h2 class="section-title">핵심 기능</h2>
+                <span class="section-label">Features</span>
+                <h2 class="section-title">Everything you need for<br><span class="text-gradient">secure communication</span></h2>
                 <p class="section-description">
-                    현대적인 메시징 플랫폼에 필요한 모든 기능을 포함합니다
+                    Built with modern security standards and designed for seamless collaboration
                 </p>
             </div>
 
             <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🔐</div>
-                    <h3 class="feature-title">다중 인증 시스템</h3>
-                    <p class="feature-description">
-                        JWT 기반 인증, 이메일 OTP 인증, 전화번호 인증, 게스트 로그인을 지원합니다.
-                        Spring Security를 활용한 보안 강화.
-                    </p>
+                <div class="feature-card featured">
+                    <div class="feature-icon gradient-bg">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0110 0v4"/>
+                        </svg>
+                    </div>
+                    <h3>End-to-End Encryption</h3>
+                    <p>All messages are encrypted using AES-256. Only you and your recipients can read your messages.</p>
+                    <div class="feature-tag">Enterprise Security</div>
                 </div>
 
                 <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
-                    <h3 class="feature-title">실시간 WebSocket</h3>
-                    <p class="feature-description">
-                        WebSocket을 이용한 양방향 실시간 메시징.
-                        연결 관리, 자동 재연결, 상태 동기화를 지원합니다.
-                    </p>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                    </div>
+                    <h3>Real-time WebSocket</h3>
+                    <p>Instant message delivery with sub-50ms latency. Auto-reconnect and state synchronization built-in.</p>
                 </div>
 
                 <div class="feature-card">
-                    <div class="feature-icon">💬</div>
-                    <h3 class="feature-title">그룹 & DM 채팅</h3>
-                    <p class="feature-description">
-                        Public/Private/Secret 타입의 그룹 채팅방과 1:1 Direct Message.
-                        멤버 관리, 권한 설정, 메시지 암호화 지원.
-                    </p>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                        </svg>
+                    </div>
+                    <h3>Team Collaboration</h3>
+                    <p>Create public, private, or secret channels. Manage roles and permissions with fine-grained controls.</p>
                 </div>
 
                 <div class="feature-card">
-                    <div class="feature-icon">📎</div>
-                    <h3 class="feature-title">파일 공유</h3>
-                    <p class="feature-description">
-                        DM 및 그룹 채팅에서 파일 업로드/다운로드.
-                        썸네일 생성, 메타데이터 추적, 접근 제어 기능.
-                    </p>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+                        </svg>
+                    </div>
+                    <h3>File Sharing</h3>
+                    <p>Share files securely with automatic thumbnail generation and comprehensive access controls.</p>
                 </div>
 
                 <div class="feature-card">
-                    <div class="feature-icon">👥</div>
-                    <h3 class="feature-title">친구 시스템</h3>
-                    <p class="feature-description">
-                        친구 요청, 수락/거절, 차단 기능.
-                        Caffeine 캐싱으로 빠른 친구 목록 조회.
-                    </p>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="M21 21l-4.35-4.35"/>
+                        </svg>
+                    </div>
+                    <h3>Full-text Search</h3>
+                    <p>Find any message, file, or conversation instantly with our powerful search engine.</p>
                 </div>
 
                 <div class="feature-card">
-                    <div class="feature-icon">🔍</div>
-                    <h3 class="feature-title">전문 검색</h3>
-                    <p class="feature-description">
-                        메시지, 사용자, 채팅방 검색.
-                        JPA Native Query를 활용한 효율적인 전문 검색.
-                    </p>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                            <path d="M22 4L12 14.01l-3-3"/>
+                        </svg>
+                    </div>
+                    <h3>Read Receipts</h3>
+                    <p>Know when your messages are delivered and read with real-time status updates.</p>
                 </div>
 
                 <div class="feature-card">
-                    <div class="feature-icon">✅</div>
-                    <h3 class="feature-title">읽음 확인</h3>
-                    <p class="feature-description">
-                        메시지별 읽음 상태 추적.
-                        마지막 읽은 메시지, 읽지 않은 메시지 카운트 관리.
-                    </p>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <h3>Rate Limiting</h3>
+                    <p>Built-in protection against abuse with intelligent rate limiting powered by Bucket4j.</p>
                 </div>
 
                 <div class="feature-card">
-                    <div class="feature-icon">🛡️</div>
-                    <h3 class="feature-title">보안 & Rate Limiting</h3>
-                    <p class="feature-description">
-                        Bucket4j 기반 API Rate Limiting.
-                        CORS 설정, 입력 검증, 메시지 암호화 지원.
-                    </p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <h3 class="feature-title">모니터링</h3>
-                    <p class="feature-description">
-                        Prometheus 메트릭 수집, Spring Actuator 헬스 체크.
-                        성능 지표 추적 및 시스템 상태 모니터링.
-                    </p>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                            <path d="M8 21h8M12 17v4"/>
+                        </svg>
+                    </div>
+                    <h3>Monitoring</h3>
+                    <p>Prometheus metrics and health checks for complete observability of your messaging infrastructure.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Tech Stack Section -->
-    <section class="section" id="tech">
+    <!-- Technology Section -->
+    <section class="section section-alt" id="technology">
         <div class="container">
             <div class="section-header">
-                <span class="section-badge">TECHNOLOGY</span>
-                <h2 class="section-title">기술 스택</h2>
+                <span class="section-label">Technology</span>
+                <h2 class="section-title">Built with<br><span class="text-gradient">modern stack</span></h2>
                 <p class="section-description">
-                    최신 기술을 활용한 확장 가능한 아키텍처
+                    Production-ready technologies for scalability and reliability
                 </p>
             </div>
 
-            <div class="tech-grid">
-                <div class="tech-item">
-                    <div class="tech-icon">☕</div>
-                    <div class="tech-name">Java 17</div>
-                    <div class="tech-category">Language</div>
+            <div class="tech-showcase">
+                <div class="tech-category">
+                    <h3 class="tech-category-title">Backend</h3>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-icon-wrapper">
+                                <span class="tech-emoji">☕</span>
+                            </div>
+                            <div class="tech-info">
+                                <span class="tech-name">Java 17</span>
+                                <span class="tech-desc">Modern LTS</span>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-icon-wrapper">
+                                <span class="tech-emoji">🍃</span>
+                            </div>
+                            <div class="tech-info">
+                                <span class="tech-name">Spring Boot 3.2</span>
+                                <span class="tech-desc">Framework</span>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-icon-wrapper">
+                                <span class="tech-emoji">🔌</span>
+                            </div>
+                            <div class="tech-info">
+                                <span class="tech-name">WebSocket</span>
+                                <span class="tech-desc">Real-time</span>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-icon-wrapper">
+                                <span class="tech-emoji">🔑</span>
+                            </div>
+                            <div class="tech-info">
+                                <span class="tech-name">JWT</span>
+                                <span class="tech-desc">Authentication</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="tech-item">
-                    <div class="tech-icon">🍃</div>
-                    <div class="tech-name">Spring Boot 3.2</div>
-                    <div class="tech-category">Framework</div>
+                <div class="tech-category">
+                    <h3 class="tech-category-title">Data & Security</h3>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-icon-wrapper">
+                                <span class="tech-emoji">🐘</span>
+                            </div>
+                            <div class="tech-info">
+                                <span class="tech-name">PostgreSQL</span>
+                                <span class="tech-desc">Database</span>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-icon-wrapper">
+                                <span class="tech-emoji">🛡️</span>
+                            </div>
+                            <div class="tech-info">
+                                <span class="tech-name">Spring Security</span>
+                                <span class="tech-desc">Protection</span>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-icon-wrapper">
+                                <span class="tech-emoji">💾</span>
+                            </div>
+                            <div class="tech-info">
+                                <span class="tech-name">Caffeine</span>
+                                <span class="tech-desc">Caching</span>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-icon-wrapper">
+                                <span class="tech-emoji">⚡</span>
+                            </div>
+                            <div class="tech-info">
+                                <span class="tech-name">Bucket4j</span>
+                                <span class="tech-desc">Rate Limit</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="tech-item">
-                    <div class="tech-icon">🔌</div>
-                    <div class="tech-name">WebSocket</div>
-                    <div class="tech-category">Real-time</div>
-                </div>
-
-                <div class="tech-item">
-                    <div class="tech-icon">🐘</div>
-                    <div class="tech-name">PostgreSQL</div>
-                    <div class="tech-category">Database</div>
-                </div>
-
-                <div class="tech-item">
-                    <div class="tech-icon">🔑</div>
-                    <div class="tech-name">JWT</div>
-                    <div class="tech-category">Authentication</div>
-                </div>
-
-                <div class="tech-item">
-                    <div class="tech-icon">🛡️</div>
-                    <div class="tech-name">Spring Security</div>
-                    <div class="tech-category">Security</div>
-                </div>
-
-                <div class="tech-item">
-                    <div class="tech-icon">💾</div>
-                    <div class="tech-name">Caffeine Cache</div>
-                    <div class="tech-category">Caching</div>
-                </div>
-
-                <div class="tech-item">
-                    <div class="tech-icon">⚡</div>
-                    <div class="tech-name">Bucket4j</div>
-                    <div class="tech-category">Rate Limiting</div>
-                </div>
-
-                <div class="tech-item">
-                    <div class="tech-icon">🐳</div>
-                    <div class="tech-name">Docker</div>
-                    <div class="tech-category">Deployment</div>
-                </div>
-
-                <div class="tech-item">
-                    <div class="tech-icon">☁️</div>
-                    <div class="tech-name">Koyeb</div>
-                    <div class="tech-category">Cloud PaaS</div>
-                </div>
-
-                <div class="tech-item">
-                    <div class="tech-icon">📊</div>
-                    <div class="tech-name">Prometheus</div>
-                    <div class="tech-category">Monitoring</div>
-                </div>
-
-                <div class="tech-item">
-                    <div class="tech-icon">📚</div>
-                    <div class="tech-name">Swagger</div>
-                    <div class="tech-category">API Docs</div>
+                <div class="tech-category">
+                    <h3 class="tech-category-title">DevOps</h3>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-icon-wrapper">
+                                <span class="tech-emoji">🐳</span>
+                            </div>
+                            <div class="tech-info">
+                                <span class="tech-name">Docker</span>
+                                <span class="tech-desc">Container</span>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-icon-wrapper">
+                                <span class="tech-emoji">☁️</span>
+                            </div>
+                            <div class="tech-info">
+                                <span class="tech-name">Koyeb</span>
+                                <span class="tech-desc">Cloud PaaS</span>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-icon-wrapper">
+                                <span class="tech-emoji">📊</span>
+                            </div>
+                            <div class="tech-info">
+                                <span class="tech-name">Prometheus</span>
+                                <span class="tech-desc">Monitoring</span>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-icon-wrapper">
+                                <span class="tech-emoji">📚</span>
+                            </div>
+                            <div class="tech-info">
+                                <span class="tech-name">Swagger</span>
+                                <span class="tech-desc">API Docs</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -264,83 +454,181 @@
     <section class="section" id="architecture">
         <div class="container">
             <div class="section-header">
-                <span class="section-badge">ARCHITECTURE</span>
-                <h2 class="section-title">시스템 아키텍처</h2>
+                <span class="section-label">Architecture</span>
+                <h2 class="section-title">Clean & Scalable<br><span class="text-gradient">System Design</span></h2>
                 <p class="section-description">
-                    계층화된 구조로 관심사 분리와 확장성을 확보
+                    Layered architecture ensuring separation of concerns and maintainability
                 </p>
             </div>
 
-            <div class="architecture-diagram">
-                <div class="arch-layers">
-                    <div class="arch-layer">
-                        <div class="arch-layer-title">
-                            <span>🌐</span>
-                            <span>Presentation Layer</span>
+            <div class="architecture-visual">
+                <div class="arch-layer">
+                    <div class="layer-header">
+                        <div class="layer-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                            </svg>
                         </div>
-                        <div class="arch-layer-items">
-                            <span class="arch-item">REST Controllers (9개)</span>
-                            <span class="arch-item">WebSocket Handler</span>
-                            <span class="arch-item">DTO Validation</span>
-                            <span class="arch-item">Exception Handling</span>
-                        </div>
+                        <h4>Presentation Layer</h4>
                     </div>
+                    <div class="layer-items">
+                        <span class="layer-item">REST Controllers</span>
+                        <span class="layer-item">WebSocket Handler</span>
+                        <span class="layer-item">DTO Validation</span>
+                        <span class="layer-item">Exception Handling</span>
+                    </div>
+                </div>
 
-                    <div class="arch-layer">
-                        <div class="arch-layer-title">
-                            <span>🔒</span>
-                            <span>Security Layer</span>
-                        </div>
-                        <div class="arch-layer-items">
-                            <span class="arch-item">JWT Filter</span>
-                            <span class="arch-item">Rate Limiting</span>
-                            <span class="arch-item">CORS Configuration</span>
-                            <span class="arch-item">Authentication Manager</span>
-                        </div>
-                    </div>
+                <div class="arch-connector">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12l7 7 7-7"/>
+                    </svg>
+                </div>
 
-                    <div class="arch-layer">
-                        <div class="arch-layer-title">
-                            <span>⚙️</span>
-                            <span>Business Logic Layer</span>
+                <div class="arch-layer">
+                    <div class="layer-header">
+                        <div class="layer-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
                         </div>
-                        <div class="arch-layer-items">
-                            <span class="arch-item">AuthService</span>
-                            <span class="arch-item">RoomService</span>
-                            <span class="arch-item">MessageService</span>
-                            <span class="arch-item">DirectMessageService</span>
-                            <span class="arch-item">FriendService</span>
-                            <span class="arch-item">FileStorageService</span>
-                            <span class="arch-item">EmailService</span>
-                            <span class="arch-item">MonitoringService</span>
-                        </div>
+                        <h4>Security Layer</h4>
                     </div>
+                    <div class="layer-items">
+                        <span class="layer-item">JWT Filter</span>
+                        <span class="layer-item">Rate Limiting</span>
+                        <span class="layer-item">CORS Config</span>
+                        <span class="layer-item">Auth Manager</span>
+                    </div>
+                </div>
 
-                    <div class="arch-layer">
-                        <div class="arch-layer-title">
-                            <span>💾</span>
-                            <span>Data Access Layer</span>
-                        </div>
-                        <div class="arch-layer-items">
-                            <span class="arch-item">Spring Data JPA</span>
-                            <span class="arch-item">Repository Pattern</span>
-                            <span class="arch-item">Custom Queries</span>
-                            <span class="arch-item">Caffeine Cache</span>
-                        </div>
-                    </div>
+                <div class="arch-connector">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12l7 7 7-7"/>
+                    </svg>
+                </div>
 
-                    <div class="arch-layer">
-                        <div class="arch-layer-title">
-                            <span>🗄️</span>
-                            <span>Persistence Layer</span>
+                <div class="arch-layer">
+                    <div class="layer-header">
+                        <div class="layer-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+                            </svg>
                         </div>
-                        <div class="arch-layer-items">
-                            <span class="arch-item">PostgreSQL</span>
-                            <span class="arch-item">Flyway Migration</span>
-                            <span class="arch-item">Entity Models (13개)</span>
-                            <span class="arch-item">Indexed Queries</span>
-                        </div>
+                        <h4>Business Logic Layer</h4>
                     </div>
+                    <div class="layer-items">
+                        <span class="layer-item">AuthService</span>
+                        <span class="layer-item">RoomService</span>
+                        <span class="layer-item">MessageService</span>
+                        <span class="layer-item">FriendService</span>
+                        <span class="layer-item">FileService</span>
+                        <span class="layer-item">EmailService</span>
+                    </div>
+                </div>
+
+                <div class="arch-connector">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12l7 7 7-7"/>
+                    </svg>
+                </div>
+
+                <div class="arch-layer">
+                    <div class="layer-header">
+                        <div class="layer-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                            </svg>
+                        </div>
+                        <h4>Data Access Layer</h4>
+                    </div>
+                    <div class="layer-items">
+                        <span class="layer-item">Spring Data JPA</span>
+                        <span class="layer-item">Repository Pattern</span>
+                        <span class="layer-item">Custom Queries</span>
+                        <span class="layer-item">Caffeine Cache</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security Section -->
+    <section class="section section-alt" id="security">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">Security</span>
+                <h2 class="section-title">Enterprise-grade<br><span class="text-gradient">Protection</span></h2>
+                <p class="section-description">
+                    Your privacy is our priority. Built with security-first mindset.
+                </p>
+            </div>
+
+            <div class="security-grid">
+                <div class="security-card">
+                    <div class="security-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0110 0v4"/>
+                        </svg>
+                    </div>
+                    <h3>AES-256 Encryption</h3>
+                    <p>Military-grade encryption for all messages and files in transit and at rest.</p>
+                </div>
+
+                <div class="security-card">
+                    <div class="security-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <path d="M9 12l2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <h3>JWT Authentication</h3>
+                    <p>Secure token-based authentication with automatic refresh and session management.</p>
+                </div>
+
+                <div class="security-card">
+                    <div class="security-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <h3>Rate Limiting</h3>
+                    <p>Intelligent request throttling to prevent abuse and ensure fair usage.</p>
+                </div>
+
+                <div class="security-card">
+                    <div class="security-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </div>
+                    <h3>Audit Logging</h3>
+                    <p>Comprehensive activity logging for compliance and security monitoring.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="section cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to experience<br><span class="text-gradient">secure messaging?</span></h2>
+                <p>Start messaging in seconds. No credit card required.</p>
+                <div class="cta-buttons">
+                    <button class="btn btn-primary btn-lg" onclick="quickStart()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                        <span>Get Started Free</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -348,45 +636,50 @@
 
     <!-- Footer -->
     <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>⚡ BEAM</h3>
-                <p style="color: var(--text-secondary); margin-top: 0.5rem;">
-                    Secure messaging platform for modern teams
-                </p>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="#" class="footer-logo">
+                        <div class="logo-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                            </svg>
+                        </div>
+                        <span>BEAM</span>
+                    </a>
+                    <p>Enterprise-grade secure messaging platform for modern teams.</p>
+                </div>
+
+                <div class="footer-links-group">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#security">Security</a></li>
+                        <li><a href="#technology">Technology</a></li>
+                        <li><a href="#architecture">Architecture</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links-group">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="/swagger-ui/index.html">API Documentation</a></li>
+                        <li><a href="/actuator/health">System Status</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links-group">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="footer-section">
-                <h3>Product</h3>
-                <ul class="footer-links">
-                    <li><a href="#features">Features</a></li>
-                    <li><a href="#tech">Technology</a></li>
-                    <li><a href="#architecture">Architecture</a></li>
-                </ul>
+            <div class="footer-bottom">
+                <p>&copy; 2025 BEAM. All rights reserved.</p>
             </div>
-
-            <div class="footer-section">
-                <h3>Features</h3>
-                <ul class="footer-links">
-                    <li><a href="#features">Real-time Messaging</a></li>
-                    <li><a href="#features">File Sharing</a></li>
-                    <li><a href="#features">Friend System</a></li>
-                    <li><a href="#features">Secure Auth</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-section">
-                <h3>Security</h3>
-                <ul class="footer-links">
-                    <li><a href="#features">End-to-End Encryption</a></li>
-                    <li><a href="#features">JWT Authentication</a></li>
-                    <li><a href="#features">Rate Limiting</a></li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="footer-bottom">
-            <p>&copy; 2025 BEAM. All rights reserved.</p>
         </div>
     </footer>
 
