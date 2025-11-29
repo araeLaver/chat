@@ -59,8 +59,8 @@
             </ul>
 
             <div class="nav-actions">
-                <button class="btn btn-ghost" onclick="quickStart()">Sign In</button>
-                <button class="btn btn-primary" onclick="quickStart()">
+                <button class="btn btn-ghost" onclick="openLoginModal()">Sign In</button>
+                <button class="btn btn-primary" onclick="openRegisterModal()">
                     <span>Get Started</span>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -85,7 +85,8 @@
             <li><a href="#security" onclick="toggleMobileMenu()">Security</a></li>
         </ul>
         <div class="mobile-nav-actions">
-            <button class="btn btn-primary btn-block" onclick="quickStart()">Get Started Free</button>
+            <button class="btn btn-ghost btn-block" onclick="openLoginModal(); toggleMobileMenu();">Sign In</button>
+            <button class="btn btn-primary btn-block" onclick="openRegisterModal(); toggleMobileMenu();">Get Started Free</button>
         </div>
     </div>
 
@@ -108,7 +109,7 @@
             </p>
 
             <div class="hero-cta animate-fade-in-up delay-2">
-                <button class="btn btn-primary btn-lg" id="quickStartBtn" onclick="quickStart()">
+                <button class="btn btn-primary btn-lg" id="quickStartBtn" onclick="openRegisterModal()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
                     </svg>
@@ -623,16 +624,115 @@
                 <h2>Ready to experience<br><span class="text-gradient">secure messaging?</span></h2>
                 <p>Start messaging in seconds. No credit card required.</p>
                 <div class="cta-buttons">
-                    <button class="btn btn-primary btn-lg" onclick="quickStart()">
+                    <button class="btn btn-primary btn-lg" onclick="openRegisterModal()">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
                         </svg>
                         <span>Get Started Free</span>
                     </button>
+                    <button class="btn btn-outline btn-lg" onclick="openLoginModal()">
+                        <span>Sign In</span>
+                    </button>
                 </div>
             </div>
         </div>
     </section>
+
+    <!-- Auth Modal -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-container">
+            <button class="modal-close" onclick="closeAuthModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+
+            <!-- Login Form -->
+            <div class="auth-form" id="loginForm">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                    </div>
+                    <h2>Welcome Back</h2>
+                    <p>Sign in to continue to BEAM</p>
+                </div>
+
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" name="username" placeholder="Enter your username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" name="password" placeholder="Enter your password" required>
+                    </div>
+                    <div class="form-error" id="loginError"></div>
+                    <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                        <span>Sign In</span>
+                    </button>
+                </form>
+
+                <div class="auth-divider">
+                    <span>or</span>
+                </div>
+
+                <button class="btn btn-outline btn-block" onclick="guestLogin()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                    <span>Quick Start as Guest</span>
+                </button>
+
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="#" onclick="showRegisterForm(event)">Sign Up</a></p>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div class="auth-form" id="registerForm" style="display: none;">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                    </div>
+                    <h2>Create Account</h2>
+                    <p>Join BEAM and start messaging securely</p>
+                </div>
+
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label for="registerUsername">Username</label>
+                        <input type="text" id="registerUsername" name="username" placeholder="Choose a username" required minlength="3" maxlength="20">
+                        <span class="form-hint">3-20 characters, letters and numbers only</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerDisplayName">Display Name</label>
+                        <input type="text" id="registerDisplayName" name="displayName" placeholder="Your display name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Password</label>
+                        <input type="password" id="registerPassword" name="password" placeholder="Create a password" required minlength="6">
+                        <span class="form-hint">At least 6 characters</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerConfirmPassword">Confirm Password</label>
+                        <input type="password" id="registerConfirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
+                    </div>
+                    <div class="form-error" id="registerError"></div>
+                    <button type="submit" class="btn btn-primary btn-block" id="registerBtn">
+                        <span>Create Account</span>
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="#" onclick="showLoginForm(event)">Sign In</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
