@@ -36,10 +36,15 @@ public class AuthService {
             throw new RuntimeException("Phone number already registered");
         }
 
+        String phoneNumber = request.getPhoneNumber();
+        if (phoneNumber == null || phoneNumber.isBlank()) {
+            phoneNumber = "user_" + System.currentTimeMillis();
+        }
+
         UserEntity user = UserEntity.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .phoneNumber(request.getPhoneNumber())
+                .phoneNumber(phoneNumber)
                 .displayName(request.getDisplayName() != null ? request.getDisplayName() : request.getUsername())
                 .isActive(true)
                 .isPhoneVerified(false)
