@@ -179,6 +179,30 @@ class ChatApp {
                 }, 300);
             });
         }
+
+        // Settings button
+        const settingsBtn = document.getElementById('settingsBtn');
+        if (settingsBtn) {
+            settingsBtn.addEventListener('click', () => this.openSettings());
+        }
+
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('active');
+                }
+            });
+        });
+
+        // Close modals on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        });
     }
 
     autoResizeTextarea(textarea) {
@@ -577,6 +601,97 @@ class ChatApp {
     startDirectMessage(friendId) {
         this.showToast('Direct messaging coming soon', 'info');
         // TODO: Implement direct messaging
+    }
+
+    openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('active');
+        }
+    }
+
+    closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('active');
+        }
+    }
+
+    openSettings() {
+        // Populate settings with current user info
+        const displayNameInput = document.getElementById('settingsDisplayName');
+        const usernameSpan = document.getElementById('settingsUsername');
+        const emailSpan = document.getElementById('settingsEmail');
+
+        if (displayNameInput) displayNameInput.value = this.displayName;
+        if (usernameSpan) usernameSpan.textContent = this.username;
+
+        // Get user info from localStorage
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (emailSpan) emailSpan.textContent = user.email || '-';
+
+        this.openModal('settingsModal');
+    }
+
+    async createRoom(event) {
+        event.preventDefault();
+
+        const roomName = document.getElementById('roomName').value.trim();
+        const description = document.getElementById('roomDescription').value.trim();
+        const roomType = document.getElementById('roomType').value;
+        const maxMembers = parseInt(document.getElementById('maxMembers').value) || 100;
+
+        if (!roomName) {
+            this.showToast('Please enter a room name', 'error');
+            return;
+        }
+
+        const createBtn = document.querySelector('#createRoomForm button[type="submit"]');
+        if (createBtn) {
+            createBtn.disabled = true;
+            createBtn.textContent = 'Creating...';
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/api/rooms`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.token}`
+                },
+                body: JSON.stringify({
+                    roomName,
+                    description,
+                    roomType,
+                    maxMembers
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to create room');
+            }
+
+            const room = await response.json();
+            this.showToast('Room created successfully', 'success');
+            this.closeModal('createRoomModal');
+
+            // Reset form
+            document.getElementById('createRoomForm').reset();
+
+            // Reload conversations and join new room
+            await this.loadConversations();
+            this.joinRoom(room.roomId);
+
+        } catch (error) {
+            console.error('Create room error:', error);
+            this.showToast(error.message || 'Failed to create room', 'error');
+        } finally {
+            if (createBtn) {
+                createBtn.disabled = false;
+                createBtn.textContent = 'Create Room';
+            }
+        }
     }
 
     async handleSearch(query) {
