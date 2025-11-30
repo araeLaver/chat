@@ -94,54 +94,6 @@ public class ChatController {
         }
     }
 
-    // 이메일 인증 확인
-    @PostMapping("/auth/email/verify")
-    public ResponseEntity<?> verifyEmail(@RequestBody Map<String, Object> request) {
-        try {
-            String email = request.get("email").toString();
-            String code = request.get("verificationCode").toString();
-
-            UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("등록되지 않은 이메일입니다"));
-
-            // 인증번호 확인
-            if (!code.equals(user.getVerificationCode())) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "인증번호가 일치하지 않습니다");
-                return ResponseEntity.badRequest().body(error);
-            }
-
-            // 인증번호 만료 확인
-            if (user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "인증번호가 만료되었습니다");
-                return ResponseEntity.badRequest().body(error);
-            }
-
-            // 인증 완료 처리
-            user.setIsPhoneVerified(true);
-            user.setIsActive(true);
-            user.setVerificationCode(null);
-            user.setVerificationCodeExpiresAt(null);
-            userRepository.save(user);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "이메일 인증이 완료되었습니다");
-            response.put("email", email);
-            response.put("userId", user.getId());
-
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("success", false);
-            error.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
-    }
-
     // 이메일로 회원가입 완료
     @PostMapping("/auth/email/register")
     public ResponseEntity<?> completeEmailRegistration(@RequestBody Map<String, Object> request) {
