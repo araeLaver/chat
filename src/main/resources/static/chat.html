@@ -75,6 +75,14 @@
 
             <!-- Conversation List -->
             <div class="sidebar-content">
+                <div class="sidebar-actions">
+                    <button class="btn btn-primary btn-sm" id="createRoomBtn" onclick="chatApp.openModal('createRoomModal')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        New Room
+                    </button>
+                </div>
                 <div class="conversation-list" id="conversationList">
                     <!-- Populated by JavaScript -->
                 </div>
@@ -198,6 +206,89 @@
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button class="icon-btn modal-close" onclick="chatApp.closeModal('settingsModal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h4>Profile</h4>
+                    <div class="settings-item">
+                        <label>Display Name</label>
+                        <input type="text" id="settingsDisplayName" placeholder="Your display name">
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4>Account</h4>
+                    <div class="settings-item">
+                        <span>Username</span>
+                        <span class="settings-value" id="settingsUsername">-</span>
+                    </div>
+                    <div class="settings-item">
+                        <span>Email</span>
+                        <span class="settings-value" id="settingsEmail">-</span>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <button class="btn btn-danger" onclick="chatApp.logout()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+                        </svg>
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Room Modal -->
+    <div class="modal-overlay" id="createRoomModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Create Chat Room</h3>
+                <button class="icon-btn modal-close" onclick="chatApp.closeModal('createRoomModal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createRoomForm" onsubmit="chatApp.createRoom(event)">
+                    <div class="form-group">
+                        <label for="roomName">Room Name *</label>
+                        <input type="text" id="roomName" placeholder="Enter room name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="roomDescription">Description</label>
+                        <textarea id="roomDescription" placeholder="What's this room about?" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="roomType">Room Type</label>
+                        <select id="roomType">
+                            <option value="PUBLIC">Public - Anyone can join</option>
+                            <option value="PRIVATE">Private - Invite only</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="maxMembers">Max Members</label>
+                        <input type="number" id="maxMembers" value="100" min="2" max="1000">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="chatApp.closeModal('createRoomModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="createRoomBtn">Create Room</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script src="/js/chat.js"></script>
 </body>
