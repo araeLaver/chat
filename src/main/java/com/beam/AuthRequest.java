@@ -1,5 +1,6 @@
 package com.beam;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -29,6 +30,9 @@ public class AuthRequest {
     @Size(max = 50, message = "표시 이름은 최대 50자까지 가능합니다")
     private String displayName;
 
+    @Email(message = "올바른 이메일 형식이 아닙니다")
+    private String email;
+
     public AuthRequest() {
     }
 
@@ -56,6 +60,10 @@ public class AuthRequest {
         return displayName;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
     // Setters
     public void setUsername(String username) {
         this.username = username;
@@ -71,6 +79,10 @@ public class AuthRequest {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     @Override

@@ -6,6 +6,8 @@ public class AuthResponse {
     private Long userId;
     private String displayName;
     private String phoneNumber;
+    private String email;
+    private Boolean emailVerified;
     private String message;
 
     public AuthResponse() {
@@ -45,6 +47,14 @@ public class AuthResponse {
         return message;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public Boolean getEmailVerified() {
+        return emailVerified;
+    }
+
     // Setters
     public void setToken(String token) {
         this.token = token;
@@ -68,6 +78,14 @@ public class AuthResponse {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
     }
 
     @Override
@@ -111,6 +129,8 @@ public class AuthResponse {
         private Long userId;
         private String displayName;
         private String phoneNumber;
+        private String email;
+        private Boolean emailVerified;
         private String message;
 
         public Builder token(String token) {
@@ -143,6 +163,16 @@ public class AuthResponse {
             return this;
         }
 
+        public Builder email(String email) {
+            this.email = email;
+            return this;
+        }
+
+        public Builder emailVerified(Boolean emailVerified) {
+            this.emailVerified = emailVerified;
+            return this;
+        }
+
         public AuthResponse build() {
             AuthResponse response = new AuthResponse();
             response.token = this.token;
@@ -150,6 +180,8 @@ public class AuthResponse {
             response.userId = this.userId;
             response.displayName = this.displayName;
             response.phoneNumber = this.phoneNumber;
+            response.email = this.email;
+            response.emailVerified = this.emailVerified;
             response.message = this.message;
             return response;
         }

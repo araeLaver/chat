@@ -165,10 +165,14 @@ async function handleLogin(e) {
     }
 }
 
+// Pending verification email
+let pendingVerificationEmail = '';
+
 // Handle Register
 async function handleRegister(e) {
     e.preventDefault();
 
+    const email = document.getElementById('registerEmail').value.trim();
     const username = document.getElementById('registerUsername').value.trim();
     const displayName = document.getElementById('registerDisplayName').value.trim();
     const password = document.getElementById('registerPassword').value;
@@ -177,8 +181,13 @@ async function handleRegister(e) {
     const btn = document.getElementById('registerBtn');
 
     // Validation
-    if (!username || !displayName || !password || !confirmPassword) {
+    if (!email || !username || !displayName || !password || !confirmPassword) {
         errorDiv.textContent = 'Please fill in all fields';
+        return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errorDiv.textContent = 'Please enter a valid email address';
         return;
     }
 
@@ -211,13 +220,73 @@ async function handleRegister(e) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ username, displayName, password })
+            body: JSON.stringify({ email, username, displayName, password })
         });
 
         const data = await response.json();
 
         if (!response.ok) {
             throw new Error(data.error || data.message || 'Registration failed');
+        }
+
+        // Store email for verification
+        pendingVerificationEmail = email;
+
+        // Show verification form
+        showVerifyEmailForm(email);
+
+    } catch (err) {
+        console.error('Register error:', err);
+        errorDiv.textContent = err.message || 'Registration failed. Please try again.';
+        btn.disabled = false;
+        btn.innerHTML = '<span>Create Account</span>';
+    }
+}
+
+// Show email verification form
+function showVerifyEmailForm(email) {
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const verifyForm = document.getElementById('verifyEmailForm');
+    const verifyMessage = document.getElementById('verifyEmailMessage');
+
+    if (loginForm) loginForm.style.display = 'none';
+    if (registerForm) registerForm.style.display = 'none';
+    if (verifyForm) verifyForm.style.display = 'block';
+    if (verifyMessage) verifyMessage.textContent = `Enter the 6-digit code sent to ${email}`;
+
+    clearAuthErrors();
+}
+
+// Handle email verification
+async function handleVerifyEmail(e) {
+    e.preventDefault();
+
+    const code = document.getElementById('verificationCode').value.trim();
+    const errorDiv = document.getElementById('verifyError');
+    const btn = document.getElementById('verifyBtn');
+
+    if (!code || code.length !== 6) {
+        errorDiv.textContent = 'Please enter a 6-digit code';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span>Verifying...</span>';
+
+    try {
+        const response = await fetch(`${API_URL}/api/auth/email/verify`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: pendingVerificationEmail, code })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || data.message || 'Verification failed');
         }
 
         // Store auth data
@@ -229,18 +298,47 @@ async function handleRegister(e) {
         }));
         localStorage.setItem('username', data.username);
         localStorage.setItem('displayName', data.displayName);
-        if (data.defaultRoomId) {
-            localStorage.setItem('defaultRoomId', data.defaultRoomId);
-        }
 
         // Redirect to chat
         window.location.href = '/chat.html';
 
     } catch (err) {
-        console.error('Register error:', err);
-        errorDiv.textContent = err.message || 'Registration failed. Please try again.';
+        console.error('Verification error:', err);
+        errorDiv.textContent = err.message || 'Verification failed. Please try again.';
         btn.disabled = false;
-        btn.innerHTML = '<span>Create Account</span>';
+        btn.innerHTML = '<span>Verify</span>';
+    }
+}
+
+// Resend verification code
+async function resendVerificationCode() {
+    const errorDiv = document.getElementById('verifyError');
+
+    try {
+        const response = await fetch(`${API_URL}/api/auth/email/resend`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: pendingVerificationEmail })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || data.message || 'Failed to resend code');
+        }
+
+        errorDiv.style.color = 'var(--success)';
+        errorDiv.textContent = 'Verification code sent!';
+        setTimeout(() => {
+            errorDiv.style.color = '';
+            errorDiv.textContent = '';
+        }, 3000);
+
+    } catch (err) {
+        console.error('Resend error:', err);
+        errorDiv.textContent = err.message || 'Failed to resend code';
     }
 }
 
@@ -349,6 +447,8 @@ window.showLoginForm = showLoginForm;
 window.showRegisterForm = showRegisterForm;
 window.handleLogin = handleLogin;
 window.handleRegister = handleRegister;
+window.handleVerifyEmail = handleVerifyEmail;
+window.resendVerificationCode = resendVerificationCode;
 window.guestLogin = guestLogin;
 
 // Close modal on outside click
