@@ -10,9 +10,11 @@ class ChatApp {
         this.currentRoom = localStorage.getItem('defaultRoomId') || null;
         this.token = localStorage.getItem('token');
         this.username = localStorage.getItem('username') || 'Guest';
-        this.displayName = localStorage.getItem('displayName') || '게스트';
+        this.displayName = localStorage.getItem('displayName') || 'Guest';
         this.isTyping = false;
         this.typingTimeout = null;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
 
         this.init();
     }
@@ -38,9 +40,14 @@ class ChatApp {
     }
 
     updateUserInfo() {
-        const userInfoEl = document.getElementById('currentUser');
-        if (userInfoEl) {
-            userInfoEl.textContent = this.displayName;
+        const userAvatarEl = document.getElementById('userAvatar');
+        const userNameEl = document.getElementById('userName');
+
+        if (userAvatarEl) {
+            userAvatarEl.textContent = this.getInitial(this.displayName);
+        }
+        if (userNameEl) {
+            userNameEl.textContent = this.displayName;
         }
     }
 
@@ -52,8 +59,11 @@ class ChatApp {
 
         this.ws.onopen = () => {
             console.log('WebSocket connected');
-            this.showNotification('연결되었습니다', 'success');
-            this.joinRoom(this.currentRoom);
+            this.reconnectAttempts = 0;
+            this.showToast('Connected', 'success');
+            if (this.currentRoom) {
+                this.joinRoom(this.currentRoom);
+            }
         };
 
         this.ws.onmessage = (event) => {
@@ -63,13 +73,18 @@ class ChatApp {
 
         this.ws.onerror = (error) => {
             console.error('WebSocket error:', error);
-            this.showNotification('연결 오류가 발생했습니다', 'error');
+            this.showToast('Connection error', 'error');
         };
 
         this.ws.onclose = () => {
             console.log('WebSocket disconnected');
-            this.showNotification('연결이 끊어졌습니다. 재연결 중...', 'warning');
-            setTimeout(() => this.connectWebSocket(), 3000);
+            if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                this.reconnectAttempts++;
+                this.showToast(`Reconnecting... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`, 'warning');
+                setTimeout(() => this.connectWebSocket(), 3000);
+            } else {
+                this.showToast('Connection lost. Please refresh the page.', 'error');
+            }
         };
     }
 
@@ -79,10 +94,10 @@ class ChatApp {
                 this.displayMessage(message);
                 break;
             case 'JOIN':
-                this.addStatusMessage(`${message.sender}님이 입장했습니다`);
+                this.addStatusMessage(`${message.sender} joined the room`);
                 break;
             case 'LEAVE':
-                this.addStatusMessage(`${message.sender}님이 퇴장했습니다`);
+                this.addStatusMessage(`${message.sender} left the room`);
                 break;
             case 'TYPING':
                 this.showTypingIndicator(message.sender);
@@ -106,12 +121,7 @@ class ChatApp {
             // Typing indicator
             messageInput.addEventListener('input', () => {
                 this.handleTyping();
-            });
-
-            // Auto-resize textarea
-            messageInput.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+                this.autoResizeTextarea(messageInput);
             });
         }
 
@@ -121,22 +131,28 @@ class ChatApp {
             sendBtn.addEventListener('click', () => this.sendMessage());
         }
 
-        // Sidebar toggle (mobile)
+        // Mobile menu toggle
         const menuBtn = document.getElementById('menuBtn');
         if (menuBtn) {
             menuBtn.addEventListener('click', () => this.toggleSidebar());
         }
 
+        // Sidebar close button
+        const sidebarClose = document.getElementById('sidebarClose');
+        if (sidebarClose) {
+            sidebarClose.addEventListener('click', () => this.closeSidebar());
+        }
+
         // Mobile overlay
         const overlay = document.getElementById('mobileOverlay');
         if (overlay) {
-            overlay.addEventListener('click', () => this.toggleSidebar());
+            overlay.addEventListener('click', () => this.closeSidebar());
         }
 
         // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                this.switchTab(e.target.dataset.tab);
+                this.switchTab(e.currentTarget.dataset.tab);
             });
         });
 
@@ -163,6 +179,35 @@ class ChatApp {
                 }, 300);
             });
         }
+
+        // Settings button
+        const settingsBtn = document.getElementById('settingsBtn');
+        if (settingsBtn) {
+            settingsBtn.addEventListener('click', () => this.openSettings());
+        }
+
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('active');
+                }
+            });
+        });
+
+        // Close modals on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        });
+    }
+
+    autoResizeTextarea(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 140) + 'px';
     }
 
     sendMessage() {
@@ -170,6 +215,12 @@ class ChatApp {
         const text = input.value.trim();
 
         if (!text || !this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+
+        // Hide welcome state if visible
+        const welcomeState = document.getElementById('welcomeState');
+        if (welcomeState) {
+            welcomeState.style.display = 'none';
+        }
 
         const message = {
             type: 'CHAT',
@@ -191,12 +242,18 @@ class ChatApp {
         const container = document.getElementById('messagesContainer');
         if (!container) return;
 
+        // Hide welcome state
+        const welcomeState = document.getElementById('welcomeState');
+        if (welcomeState) {
+            welcomeState.style.display = 'none';
+        }
+
         const isSent = message.sender === this.username;
 
         const messageGroup = document.createElement('div');
         messageGroup.className = `message-group ${isSent ? 'sent' : 'received'}`;
 
-        const time = new Date(message.timestamp).toLocaleTimeString('ko-KR', {
+        const time = new Date(message.timestamp).toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit'
         });
@@ -204,7 +261,7 @@ class ChatApp {
         messageGroup.innerHTML = `
             <div class="message-avatar">${this.getInitial(message.sender)}</div>
             <div class="message-content">
-                ${!isSent ? `<div class="message-sender">${message.sender}</div>` : ''}
+                ${!isSent ? `<div class="message-sender">${this.escapeHtml(message.sender)}</div>` : ''}
                 <div class="message-bubble">${this.escapeHtml(message.content)}</div>
                 <div class="message-time">${time}</div>
             </div>
@@ -302,13 +359,11 @@ class ChatApp {
             container.innerHTML = '';
         }
 
-        this.addStatusMessage(`${roomId} 방에 입장했습니다`);
+        this.addStatusMessage(`Joined ${roomId}`);
 
         // Update header
-        const headerName = document.getElementById('chatHeaderName');
-        const headerStatus = document.getElementById('chatHeaderStatus');
-        if (headerName) headerName.textContent = roomId;
-        if (headerStatus) headerStatus.textContent = '온라인';
+        const chatName = document.getElementById('chatName');
+        if (chatName) chatName.textContent = roomId;
 
         // Close sidebar on mobile
         this.closeSidebar();
@@ -323,13 +378,11 @@ class ChatApp {
         // Load data based on tab
         switch (tabName) {
             case 'chats':
+            case 'rooms':
                 this.loadConversations();
                 break;
             case 'friends':
                 this.loadFriends();
-                break;
-            case 'rooms':
-                this.loadRooms();
                 break;
         }
     }
@@ -337,6 +390,8 @@ class ChatApp {
     async loadConversations() {
         const conversationList = document.getElementById('conversationList');
         if (!conversationList) return;
+
+        conversationList.innerHTML = '<div class="loading-spinner"></div>';
 
         try {
             const response = await fetch(`${API_URL}/api/rooms/my-rooms`, {
@@ -353,7 +408,7 @@ class ChatApp {
                 conversationList.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">💬</div>
-                        <div class="empty-state-text">아직 참여한 채팅방이 없습니다</div>
+                        <div class="empty-state-text">No conversations yet</div>
                     </div>
                 `;
                 return;
@@ -374,7 +429,7 @@ class ChatApp {
                                 <span>${this.escapeHtml(room.roomName)}</span>
                                 <span class="conversation-time">${timeAgo}</span>
                             </div>
-                            <div class="conversation-preview">${this.escapeHtml(room.lastMessage || '메시지가 없습니다')}</div>
+                            <div class="conversation-preview">${this.escapeHtml(room.lastMessage || 'No messages')}</div>
                         </div>
                         ${room.unreadCount > 0 ? `<div class="unread-badge">${room.unreadCount}</div>` : ''}
                     </div>
@@ -386,7 +441,7 @@ class ChatApp {
             conversationList.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-state-icon">⚠️</div>
-                    <div class="empty-state-text">채팅방을 불러올 수 없습니다</div>
+                    <div class="empty-state-text">Failed to load conversations</div>
                 </div>
             `;
         }
@@ -395,6 +450,8 @@ class ChatApp {
     async loadFriends() {
         const conversationList = document.getElementById('conversationList');
         if (!conversationList) return;
+
+        conversationList.innerHTML = '<div class="loading-spinner"></div>';
 
         try {
             const response = await fetch(`${API_URL}/api/friends/list`, {
@@ -411,7 +468,7 @@ class ChatApp {
                 conversationList.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">👥</div>
-                        <div class="empty-state-text">아직 친구가 없습니다</div>
+                        <div class="empty-state-text">No friends yet</div>
                     </div>
                 `;
                 return;
@@ -426,7 +483,7 @@ class ChatApp {
                     <div class="conversation-info">
                         <div class="conversation-name">
                             <span>${this.escapeHtml(friend.displayName)}</span>
-                            <span class="conversation-time">${friend.isOnline ? '온라인' : '오프라인'}</span>
+                            <span class="conversation-time">${friend.isOnline ? 'Online' : 'Offline'}</span>
                         </div>
                         <div class="conversation-preview">@${this.escapeHtml(friend.username)}</div>
                     </div>
@@ -438,18 +495,14 @@ class ChatApp {
             conversationList.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-state-icon">⚠️</div>
-                    <div class="empty-state-text">친구 목록을 불러올 수 없습니다</div>
+                    <div class="empty-state-text">Failed to load friends</div>
                 </div>
             `;
         }
     }
 
-    loadRooms() {
-        this.loadConversations();
-    }
-
     toggleSidebar() {
-        const sidebar = document.querySelector('.sidebar');
+        const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('mobileOverlay');
 
         if (sidebar) sidebar.classList.toggle('active');
@@ -457,7 +510,7 @@ class ChatApp {
     }
 
     closeSidebar() {
-        const sidebar = document.querySelector('.sidebar');
+        const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('mobileOverlay');
 
         if (sidebar) sidebar.classList.remove('active');
@@ -468,12 +521,12 @@ class ChatApp {
         const file = event.target.files[0];
         if (!file) return;
 
+        this.showToast(`File upload: ${file.name}`, 'info');
         // TODO: Implement file upload to server
-        this.showNotification(`파일 업로드: ${file.name}`, 'info');
     }
 
     logout() {
-        if (confirm('정말 로그아웃 하시겠습니까?')) {
+        if (confirm('Are you sure you want to logout?')) {
             if (this.ws) this.ws.close();
             localStorage.clear();
             window.location.href = '/';
@@ -497,29 +550,29 @@ class ChatApp {
         return div.innerHTML;
     }
 
-    showNotification(message, type = 'info') {
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 90px;
-            right: 20px;
-            background: ${type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#667eea'};
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-            z-index: 10000;
-            animation: slideIn 0.3s ease;
-            max-width: 300px;
-        `;
-        notification.textContent = message;
+    showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
 
-        document.body.appendChild(notification);
+        const icons = {
+            success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>',
+            error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>',
+            warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
+            info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>'
+        };
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <div class="toast-icon">${icons[type]}</div>
+            <span class="toast-message">${message}</span>
+        `;
+
+        container.appendChild(toast);
 
         setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
+            toast.classList.add('toast-out');
+            setTimeout(() => toast.remove(), 300);
         }, 3000);
     }
 
@@ -535,24 +588,114 @@ class ChatApp {
     getTimeAgo(timestamp) {
         const now = new Date();
         const time = new Date(timestamp);
-        const diff = Math.floor((now - time) / 1000); // seconds
+        const diff = Math.floor((now - time) / 1000);
 
-        if (diff < 60) return '방금';
-        if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
-        if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
-        if (diff < 604800) return `${Math.floor(diff / 86400)}일 전`;
+        if (diff < 60) return 'Just now';
+        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+        if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
 
-        return time.toLocaleDateString('ko-KR');
+        return time.toLocaleDateString('en-US');
     }
 
     startDirectMessage(friendId) {
-        this.showNotification('1:1 채팅 기능은 준비 중입니다', 'info');
+        this.showToast('Direct messaging coming soon', 'info');
         // TODO: Implement direct messaging
+    }
+
+    openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('active');
+        }
+    }
+
+    closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('active');
+        }
+    }
+
+    openSettings() {
+        // Populate settings with current user info
+        const displayNameInput = document.getElementById('settingsDisplayName');
+        const usernameSpan = document.getElementById('settingsUsername');
+        const emailSpan = document.getElementById('settingsEmail');
+
+        if (displayNameInput) displayNameInput.value = this.displayName;
+        if (usernameSpan) usernameSpan.textContent = this.username;
+
+        // Get user info from localStorage
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (emailSpan) emailSpan.textContent = user.email || '-';
+
+        this.openModal('settingsModal');
+    }
+
+    async createRoom(event) {
+        event.preventDefault();
+
+        const roomName = document.getElementById('roomName').value.trim();
+        const description = document.getElementById('roomDescription').value.trim();
+        const roomType = document.getElementById('roomType').value;
+        const maxMembers = parseInt(document.getElementById('maxMembers').value) || 100;
+
+        if (!roomName) {
+            this.showToast('Please enter a room name', 'error');
+            return;
+        }
+
+        const createBtn = document.querySelector('#createRoomForm button[type="submit"]');
+        if (createBtn) {
+            createBtn.disabled = true;
+            createBtn.textContent = 'Creating...';
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/api/rooms`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.token}`
+                },
+                body: JSON.stringify({
+                    roomName,
+                    description,
+                    roomType,
+                    maxMembers
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to create room');
+            }
+
+            const room = await response.json();
+            this.showToast('Room created successfully', 'success');
+            this.closeModal('createRoomModal');
+
+            // Reset form
+            document.getElementById('createRoomForm').reset();
+
+            // Reload conversations and join new room
+            await this.loadConversations();
+            this.joinRoom(room.roomId);
+
+        } catch (error) {
+            console.error('Create room error:', error);
+            this.showToast(error.message || 'Failed to create room', 'error');
+        } finally {
+            if (createBtn) {
+                createBtn.disabled = false;
+                createBtn.textContent = 'Create Room';
+            }
+        }
     }
 
     async handleSearch(query) {
         if (!query || query.trim().length < 2) {
-            // Reload current tab data if search is cleared
             const activeTab = document.querySelector('.tab-btn.active');
             if (activeTab) {
                 this.switchTab(activeTab.dataset.tab);
@@ -588,7 +731,7 @@ class ChatApp {
                 conversationList.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">🔍</div>
-                        <div class="empty-state-text">검색 결과가 없습니다</div>
+                        <div class="empty-state-text">No results found</div>
                     </div>
                 `;
                 return;
@@ -604,7 +747,7 @@ class ChatApp {
                         <div class="conversation-info">
                             <div class="conversation-name">
                                 <span>${this.escapeHtml(user.displayName)}</span>
-                                <span class="conversation-time">${user.isOnline ? '온라인' : '오프라인'}</span>
+                                <span class="conversation-time">${user.isOnline ? 'Online' : 'Offline'}</span>
                             </div>
                             <div class="conversation-preview">@${this.escapeHtml(user.username)}</div>
                         </div>
@@ -621,7 +764,7 @@ class ChatApp {
                                 <span>${this.escapeHtml(room.roomName)}</span>
                                 <span class="conversation-time">${room.currentMembers}/${room.maxMembers}</span>
                             </div>
-                            <div class="conversation-preview">${this.escapeHtml(room.description || '설명 없음')}</div>
+                            <div class="conversation-preview">${this.escapeHtml(room.description || 'No description')}</div>
                         </div>
                     </div>
                 `).join('');
@@ -632,39 +775,12 @@ class ChatApp {
             conversationList.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-state-icon">⚠️</div>
-                    <div class="empty-state-text">검색 중 오류가 발생했습니다</div>
+                    <div class="empty-state-text">Search failed</div>
                 </div>
             `;
         }
     }
 }
-
-// Animation styles
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);
 
 // Initialize chat app
 let chatApp;

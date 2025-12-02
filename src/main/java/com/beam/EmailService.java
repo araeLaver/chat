@@ -28,8 +28,11 @@ public class EmailService {
 
     @Async
     public void sendVerificationEmail(String toEmail, String code) {
+        logger.info("Attempting to send verification email to {} with code {}", toEmail, code);
+
         if (mailSender == null) {
-            logger.warn("Mail sender not configured. Email not sent to {}", toEmail);
+            logger.error("Mail sender is NULL. Check MAIL_USERNAME and MAIL_PASSWORD environment variables.");
+            logger.error("Current fromEmail config: {}", fromEmail);
             return;
         }
 
@@ -45,10 +48,12 @@ public class EmailService {
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
-            logger.info("Verification email sent to {}", toEmail);
+            logger.info("Verification email sent successfully to {}", toEmail);
 
         } catch (MessagingException e) {
-            logger.error("Failed to send verification email to {}: {}", toEmail, e.getMessage());
+            logger.error("Failed to send verification email to {}: {}", toEmail, e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Unexpected error sending email to {}: {}", toEmail, e.getMessage(), e);
         }
     }
 
