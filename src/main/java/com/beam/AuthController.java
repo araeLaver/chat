@@ -214,4 +214,43 @@ public class AuthController {
             return ResponseEntity.badRequest().body(error);
         }
     }
+
+    @Operation(summary = "이메일 인증 확인", description = "이메일로 받은 인증 코드를 확인합니다")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "이메일 인증 성공"),
+        @ApiResponse(responseCode = "400", description = "잘못되거나 만료된 인증 코드")
+    })
+    @PostMapping("/email/verify")
+    public ResponseEntity<?> verifyEmail(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            String code = request.get("code");
+            AuthResponse response = authService.verifyEmail(email, code);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @Operation(summary = "인증 코드 재발송", description = "이메일 인증 코드를 다시 발송합니다")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "인증 코드 재발송 성공"),
+        @ApiResponse(responseCode = "400", description = "이메일을 찾을 수 없음")
+    })
+    @PostMapping("/email/resend")
+    public ResponseEntity<?> resendVerificationEmail(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            authService.resendVerificationEmail(email);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Verification code sent");
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
 }
