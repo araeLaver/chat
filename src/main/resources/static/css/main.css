@@ -1638,3 +1638,314 @@ a:focus-visible {
         font-size: 1.25rem;
     }
 }
+
+/* ===========================
+   TUTORIAL / TOUR STYLES
+   =========================== */
+.tour-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 9998;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-slow), visibility var(--transition-slow);
+}
+
+.tour-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.tour-spotlight {
+    position: fixed;
+    z-index: 9999;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85);
+    border-radius: var(--radius-lg);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+.tour-spotlight::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border: 2px solid var(--primary);
+    border-radius: inherit;
+    animation: tour-pulse 2s ease-in-out infinite;
+}
+
+@keyframes tour-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.02);
+    }
+}
+
+.tour-tooltip {
+    position: fixed;
+    z-index: 10000;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    max-width: 380px;
+    width: calc(100vw - 2rem);
+    box-shadow: var(--shadow-xl), var(--shadow-glow);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all var(--transition-slow);
+}
+
+.tour-tooltip.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.tour-tooltip-arrow {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    transform: rotate(45deg);
+}
+
+.tour-tooltip-arrow.top {
+    top: -7px;
+    left: 50%;
+    margin-left: -6px;
+    border-right: none;
+    border-bottom: none;
+}
+
+.tour-tooltip-arrow.bottom {
+    bottom: -7px;
+    left: 50%;
+    margin-left: -6px;
+    border-left: none;
+    border-top: none;
+}
+
+.tour-tooltip-arrow.left {
+    left: -7px;
+    top: 50%;
+    margin-top: -6px;
+    border-right: none;
+    border-top: none;
+}
+
+.tour-tooltip-arrow.right {
+    right: -7px;
+    top: 50%;
+    margin-top: -6px;
+    border-left: none;
+    border-bottom: none;
+}
+
+.tour-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.tour-step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+}
+
+.tour-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.tour-content {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+}
+
+.tour-progress {
+    display: flex;
+    gap: 0.375rem;
+    margin-bottom: 1rem;
+}
+
+.tour-progress-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--gray-700);
+    border-radius: 50%;
+    transition: var(--transition-fast);
+}
+
+.tour-progress-dot.active {
+    background: var(--primary);
+}
+
+.tour-progress-dot.completed {
+    background: var(--success);
+}
+
+.tour-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+}
+
+.tour-actions .btn {
+    flex: 1;
+}
+
+.tour-skip {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: color var(--transition-fast);
+}
+
+.tour-skip:hover {
+    color: var(--text-secondary);
+}
+
+/* Tour Welcome Modal */
+.tour-welcome {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    padding: 1rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-slow), visibility var(--transition-slow);
+}
+
+.tour-welcome.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.tour-welcome-content {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-2xl);
+    padding: 2.5rem;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    box-shadow: var(--shadow-xl), var(--shadow-glow);
+    transform: scale(0.95);
+    transition: transform var(--transition-slow);
+}
+
+.tour-welcome.active .tour-welcome-content {
+    transform: scale(1);
+}
+
+.tour-welcome-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    box-shadow: var(--shadow-glow);
+}
+
+.tour-welcome-icon svg {
+    width: 40px;
+    height: 40px;
+    color: white;
+}
+
+.tour-welcome h2 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+
+.tour-welcome p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+}
+
+.tour-welcome-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.tour-feature-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: var(--radius-full);
+    font-size: 0.8125rem;
+    color: var(--primary-light);
+}
+
+.tour-feature-tag svg {
+    width: 14px;
+    height: 14px;
+}
+
+.tour-welcome-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.tour-welcome-actions .btn {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Responsive Tour */
+@media (max-width: 640px) {
+    .tour-tooltip {
+        max-width: calc(100vw - 2rem);
+        left: 1rem !important;
+        right: 1rem !important;
+    }
+
+    .tour-welcome-content {
+        padding: 2rem 1.5rem;
+    }
+
+    .tour-welcome h2 {
+        font-size: 1.5rem;
+    }
+}

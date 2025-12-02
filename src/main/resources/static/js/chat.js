@@ -786,6 +786,13 @@ class ChatApp {
 let chatApp;
 document.addEventListener('DOMContentLoaded', () => {
     chatApp = new ChatApp();
+
+    // Check if tour mode is active
+    if (localStorage.getItem('tourMode') === 'true' || window.location.search.includes('tour=true')) {
+        setTimeout(() => {
+            chatApp.startTour();
+        }, 1000); // Wait for UI to load
+    }
 });
 
 // Cleanup on page unload
@@ -794,3 +801,293 @@ window.addEventListener('beforeunload', () => {
         chatApp.ws.close();
     }
 });
+
+// ===========================
+// Tour / Tutorial System
+// ===========================
+class TourGuide {
+    constructor(chatApp) {
+        this.chatApp = chatApp;
+        this.currentStep = 0;
+        this.overlay = null;
+        this.spotlight = null;
+        this.tooltip = null;
+
+        this.steps = [
+            {
+                target: '.sidebar',
+                title: 'Sidebar Navigation',
+                content: 'This is your main navigation area. Here you can browse your chats, friends list, and chat rooms.',
+                position: 'right'
+            },
+            {
+                target: '.sidebar-search',
+                title: 'Search',
+                content: 'Quickly find conversations, friends, or rooms using the search bar.',
+                position: 'right'
+            },
+            {
+                target: '.sidebar-tabs',
+                title: 'Tab Navigation',
+                content: 'Switch between Chats, Friends, and Rooms tabs to organize your conversations.',
+                position: 'right'
+            },
+            {
+                target: '#createRoomBtn',
+                title: 'Create New Room',
+                content: 'Click here to create a new chat room. You can make it public, private, or secret!',
+                position: 'right'
+            },
+            {
+                target: '.user-profile',
+                title: 'Your Profile',
+                content: 'View your profile status and access settings from here.',
+                position: 'top'
+            },
+            {
+                target: '.chat-header',
+                title: 'Chat Header',
+                content: 'See who you\'re chatting with and access call features and room settings.',
+                position: 'bottom'
+            },
+            {
+                target: '.messages-container',
+                title: 'Message Area',
+                content: 'All your messages appear here. Scroll up to see older messages.',
+                position: 'left'
+            },
+            {
+                target: '.input-area',
+                title: 'Send Messages',
+                content: 'Type your message here and press Enter to send. Use Shift+Enter for new lines. You can also attach files!',
+                position: 'top'
+            },
+            {
+                target: '#settingsBtn',
+                title: 'Settings',
+                content: 'Access your account settings, change display name, and manage your profile.',
+                position: 'top'
+            },
+            {
+                target: '#logoutBtn',
+                title: 'Logout',
+                content: 'When you\'re done, click here to safely log out of your account.',
+                position: 'bottom'
+            }
+        ];
+    }
+
+    start() {
+        this.createTourElements();
+        this.addTourBadge();
+        this.showStep(0);
+    }
+
+    createTourElements() {
+        // Remove existing elements
+        this.cleanup();
+
+        // Create overlay
+        this.overlay = document.createElement('div');
+        this.overlay.className = 'tour-overlay';
+        this.overlay.id = 'tourOverlay';
+        document.body.appendChild(this.overlay);
+
+        // Create spotlight
+        this.spotlight = document.createElement('div');
+        this.spotlight.className = 'tour-spotlight';
+        this.spotlight.id = 'tourSpotlight';
+        document.body.appendChild(this.spotlight);
+
+        // Create tooltip
+        this.tooltip = document.createElement('div');
+        this.tooltip.className = 'tour-tooltip';
+        this.tooltip.id = 'tourTooltip';
+        document.body.appendChild(this.tooltip);
+    }
+
+    addTourBadge() {
+        const chatName = document.getElementById('chatName');
+        if (chatName && !document.querySelector('.tour-mode-badge')) {
+            const badge = document.createElement('span');
+            badge.className = 'tour-mode-badge';
+            badge.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polygon points="10,8 16,12 10,16 10,8"/>
+                </svg>
+                Tour Mode
+            `;
+            chatName.parentElement.appendChild(badge);
+        }
+    }
+
+    showStep(stepIndex) {
+        if (stepIndex < 0 || stepIndex >= this.steps.length) {
+            this.endTour();
+            return;
+        }
+
+        this.currentStep = stepIndex;
+        const step = this.steps[stepIndex];
+        const target = document.querySelector(step.target);
+
+        if (!target) {
+            // Skip to next step if target not found
+            this.showStep(stepIndex + 1);
+            return;
+        }
+
+        // Show overlay
+        this.overlay.classList.add('active');
+
+        // Position spotlight
+        const rect = target.getBoundingClientRect();
+        const padding = 8;
+
+        this.spotlight.style.top = (rect.top - padding) + 'px';
+        this.spotlight.style.left = (rect.left - padding) + 'px';
+        this.spotlight.style.width = (rect.width + padding * 2) + 'px';
+        this.spotlight.style.height = (rect.height + padding * 2) + 'px';
+
+        // Build tooltip content
+        this.tooltip.innerHTML = `
+            <div class="tour-tooltip-arrow ${this.getArrowPosition(step.position)}"></div>
+            <div class="tour-header">
+                <span class="tour-step-badge">${stepIndex + 1}</span>
+                <span class="tour-title">${step.title}</span>
+            </div>
+            <div class="tour-content">${step.content}</div>
+            <div class="tour-progress">
+                ${this.steps.map((_, i) => `
+                    <span class="tour-progress-dot ${i < stepIndex ? 'completed' : ''} ${i === stepIndex ? 'active' : ''}"></span>
+                `).join('')}
+            </div>
+            <div class="tour-actions">
+                ${stepIndex > 0 ? `
+                    <button class="btn btn-secondary" onclick="chatApp.tour.showStep(${stepIndex - 1})">
+                        Previous
+                    </button>
+                ` : `
+                    <button class="btn btn-secondary tour-skip" onclick="chatApp.tour.endTour()">
+                        Skip Tour
+                    </button>
+                `}
+                <button class="btn btn-primary" onclick="chatApp.tour.${stepIndex === this.steps.length - 1 ? 'endTour' : `showStep(${stepIndex + 1})`}()">
+                    ${stepIndex === this.steps.length - 1 ? 'Finish' : 'Next'}
+                </button>
+            </div>
+        `;
+
+        // Position tooltip
+        this.positionTooltip(rect, step.position);
+
+        // Show tooltip
+        setTimeout(() => {
+            this.tooltip.classList.add('active');
+        }, 100);
+    }
+
+    getArrowPosition(position) {
+        const opposite = {
+            'top': 'bottom',
+            'bottom': 'top',
+            'left': 'right',
+            'right': 'left'
+        };
+        return opposite[position] || 'top';
+    }
+
+    positionTooltip(targetRect, position) {
+        const tooltipWidth = 360;
+        const tooltipHeight = this.tooltip.offsetHeight || 250;
+        const margin = 16;
+
+        let top, left;
+
+        switch (position) {
+            case 'top':
+                top = targetRect.top - tooltipHeight - margin;
+                left = targetRect.left + (targetRect.width / 2) - (tooltipWidth / 2);
+                break;
+            case 'bottom':
+                top = targetRect.bottom + margin;
+                left = targetRect.left + (targetRect.width / 2) - (tooltipWidth / 2);
+                break;
+            case 'left':
+                top = targetRect.top + (targetRect.height / 2) - (tooltipHeight / 2);
+                left = targetRect.left - tooltipWidth - margin;
+                break;
+            case 'right':
+                top = targetRect.top + (targetRect.height / 2) - (tooltipHeight / 2);
+                left = targetRect.right + margin;
+                break;
+            default:
+                top = targetRect.bottom + margin;
+                left = targetRect.left;
+        }
+
+        // Keep tooltip within viewport
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        if (left < margin) left = margin;
+        if (left + tooltipWidth > viewportWidth - margin) left = viewportWidth - tooltipWidth - margin;
+        if (top < margin) top = margin;
+        if (top + tooltipHeight > viewportHeight - margin) top = viewportHeight - tooltipHeight - margin;
+
+        this.tooltip.style.top = top + 'px';
+        this.tooltip.style.left = left + 'px';
+    }
+
+    endTour() {
+        // Cleanup tour mode
+        localStorage.removeItem('tourMode');
+        localStorage.removeItem('tourStep');
+
+        // Remove URL parameter
+        if (window.location.search.includes('tour=true')) {
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+
+        // Hide elements with animation
+        if (this.tooltip) this.tooltip.classList.remove('active');
+
+        setTimeout(() => {
+            if (this.overlay) this.overlay.classList.remove('active');
+            this.cleanup();
+
+            // Show completion message
+            this.chatApp.showToast('Tour completed! Enjoy BEAM!', 'success');
+        }, 300);
+    }
+
+    cleanup() {
+        // Remove tour elements
+        const overlay = document.getElementById('tourOverlay');
+        const spotlight = document.getElementById('tourSpotlight');
+        const tooltip = document.getElementById('tourTooltip');
+        const badge = document.querySelector('.tour-mode-badge');
+
+        if (overlay) overlay.remove();
+        if (spotlight) spotlight.remove();
+        if (tooltip) tooltip.remove();
+        if (badge) badge.remove();
+
+        this.overlay = null;
+        this.spotlight = null;
+        this.tooltip = null;
+    }
+}
+
+// Add tour method to ChatApp
+ChatApp.prototype.startTour = function() {
+    this.tour = new TourGuide(this);
+    this.tour.start();
+};
+
+ChatApp.prototype.endTour = function() {
+    if (this.tour) {
+        this.tour.endTour();
+    }
+};

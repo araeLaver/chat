@@ -463,5 +463,148 @@ document.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closeAuthModal();
+        closeTourWelcome();
     }
 });
+
+// ===========================
+// Tour / Tutorial Functions
+// ===========================
+
+// Start tour - shows welcome modal first
+function startTour() {
+    // Create and show tour welcome modal
+    showTourWelcome();
+}
+
+// Show tour welcome modal
+function showTourWelcome() {
+    // Remove existing tour welcome if any
+    const existing = document.getElementById('tourWelcome');
+    if (existing) existing.remove();
+
+    const welcomeHTML = `
+        <div class="tour-welcome active" id="tourWelcome">
+            <div class="tour-overlay active"></div>
+            <div class="tour-welcome-content">
+                <div class="tour-welcome-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polygon points="10,8 16,12 10,16 10,8"/>
+                    </svg>
+                </div>
+                <h2>Welcome to BEAM Tour!</h2>
+                <p>Take a quick tour to discover all the powerful features of our secure messaging platform.</p>
+                <div class="tour-welcome-features">
+                    <span class="tour-feature-tag">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                        </svg>
+                        Real-time Chat
+                    </span>
+                    <span class="tour-feature-tag">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0110 0v4"/>
+                        </svg>
+                        Secure & Encrypted
+                    </span>
+                    <span class="tour-feature-tag">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                        </svg>
+                        Team Collaboration
+                    </span>
+                    <span class="tour-feature-tag">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                        Lightning Fast
+                    </span>
+                </div>
+                <div class="tour-welcome-actions">
+                    <button class="btn btn-primary btn-lg" onclick="beginTour()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polygon points="10,8 16,12 10,16 10,8"/>
+                        </svg>
+                        Start Tour
+                    </button>
+                    <button class="btn btn-ghost" onclick="closeTourWelcome()">
+                        Maybe Later
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', welcomeHTML);
+    document.body.style.overflow = 'hidden';
+}
+
+// Close tour welcome modal
+function closeTourWelcome() {
+    const welcome = document.getElementById('tourWelcome');
+    if (welcome) {
+        welcome.classList.remove('active');
+        setTimeout(() => welcome.remove(), 300);
+        document.body.style.overflow = '';
+    }
+}
+
+// Begin the actual tour - enters as guest and starts tutorial
+async function beginTour() {
+    closeTourWelcome();
+
+    const loading = document.getElementById('loading');
+    if (loading) loading.classList.add('active');
+
+    try {
+        // Login as guest
+        const response = await fetch(`${API_URL}/api/auth/guest`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to start tour');
+        }
+
+        const data = await response.json();
+
+        // Store auth data
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('username', data.user.username);
+        localStorage.setItem('displayName', data.user.displayName);
+        localStorage.setItem('defaultRoomId', data.defaultRoomId);
+
+        // Set tour mode flag
+        localStorage.setItem('tourMode', 'true');
+        localStorage.setItem('tourStep', '0');
+
+        // Redirect to chat with tour mode
+        window.location.href = '/chat.html?tour=true';
+
+    } catch (err) {
+        console.error('Tour start error:', err);
+        if (loading) loading.classList.remove('active');
+
+        const error = document.getElementById('error');
+        if (error) {
+            error.querySelector('span').textContent = 'Failed to start tour. Please try again.';
+            error.classList.add('active');
+            setTimeout(() => error.classList.remove('active'), 5000);
+        }
+    }
+}
+
+// Expose tour functions
+window.startTour = startTour;
+window.showTourWelcome = showTourWelcome;
+window.closeTourWelcome = closeTourWelcome;
+window.beginTour = beginTour;
