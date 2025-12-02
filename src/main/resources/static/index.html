@@ -59,6 +59,13 @@
             </ul>
 
             <div class="nav-actions">
+                <button class="btn btn-ghost" onclick="startTour()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polygon points="10,8 16,12 10,16 10,8"/>
+                    </svg>
+                    <span>Tour</span>
+                </button>
                 <button class="btn btn-ghost" onclick="openLoginModal()">Sign In</button>
                 <button class="btn btn-primary" onclick="openRegisterModal()">
                     <span>Get Started</span>
@@ -87,6 +94,13 @@
         <div class="mobile-nav-actions">
             <button class="btn btn-ghost btn-block" onclick="openLoginModal(); toggleMobileMenu();">Sign In</button>
             <button class="btn btn-primary btn-block" onclick="openRegisterModal(); toggleMobileMenu();">Get Started Free</button>
+            <button class="btn btn-outline btn-block" onclick="startTour(); toggleMobileMenu();" style="margin-top: 0.5rem;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polygon points="10,8 16,12 10,16 10,8"/>
+                </svg>
+                Take a Tour
+            </button>
         </div>
     </div>
 
@@ -115,12 +129,13 @@
                     </svg>
                     <span>Start Messaging</span>
                 </button>
-                <a href="#features" class="btn btn-outline btn-lg">
-                    <span>Explore Features</span>
+                <button class="btn btn-outline btn-lg" onclick="startTour()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 9l-7 7-7-7"/>
+                        <circle cx="12" cy="12" r="10"/>
+                        <polygon points="10,8 16,12 10,16 10,8"/>
                     </svg>
-                </a>
+                    <span>Take a Tour</span>
+                </button>
             </div>
 
             <div class="hero-stats animate-fade-in-up delay-3">
@@ -683,6 +698,14 @@
                         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
                     </svg>
                     <span>Quick Start as Guest</span>
+                </button>
+
+                <button class="btn btn-ghost btn-block" onclick="closeAuthModal(); startTour();" style="margin-top: 0.5rem;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polygon points="10,8 16,12 10,16 10,8"/>
+                    </svg>
+                    <span>Take a Tour First</span>
                 </button>
 
                 <div class="auth-footer">
