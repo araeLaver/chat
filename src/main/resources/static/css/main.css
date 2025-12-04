@@ -1859,6 +1859,8 @@ a:focus-visible {
     box-shadow: var(--shadow-xl), var(--shadow-glow);
     transform: scale(0.95);
     transition: transform var(--transition-slow);
+    position: relative;
+    z-index: 10002;
 }
 
 .tour-welcome.active .tour-welcome-content {
