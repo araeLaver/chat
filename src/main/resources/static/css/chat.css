@@ -1493,3 +1493,56 @@ button:focus-visible {
         right: 1rem !important;
     }
 }
+
+/* Friend Add Button Styles */
+.search-result-item {
+    display: flex;
+    align-items: center;
+}
+
+.add-friend-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.add-friend-btn:hover {
+    background: var(--primary-hover);
+    transform: scale(1.02);
+}
+
+.add-friend-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.add-friend-btn.sent {
+    background: #10b981;
+    cursor: default;
+}
+
+.add-friend-btn.sent:hover {
+    background: #10b981;
+    transform: none;
+}
+
+.loading-spinner-small {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
