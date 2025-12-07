@@ -447,6 +447,49 @@ class ChatApp {
         }
     }
 
+    async sendFriendRequest(userId, buttonElement) {
+        try {
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = '<span class="loading-spinner-small"></span>';
+
+            const response = await fetch(`${API_URL}/api/friends/request`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ friendId: userId })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to send friend request');
+            }
+
+            buttonElement.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Sent
+            `;
+            buttonElement.classList.add('sent');
+
+        } catch (error) {
+            console.error('Send friend request error:', error);
+            buttonElement.disabled = false;
+            buttonElement.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="8.5" cy="7" r="4"/>
+                    <line x1="20" y1="8" x2="20" y2="14"/>
+                    <line x1="23" y1="11" x2="17" y2="11"/>
+                </svg>
+                Add
+            `;
+            alert(error.message || 'Failed to send friend request');
+        }
+    }
+
     async loadFriends() {
         const conversationList = document.getElementById('conversationList');
         if (!conversationList) return;
@@ -739,7 +782,7 @@ class ChatApp {
 
             if (tabName === 'friends') {
                 conversationList.innerHTML = results.map(user => `
-                    <div class="conversation-item">
+                    <div class="conversation-item search-result-item" data-user-id="${user.userId}">
                         <div class="conversation-avatar">
                             ${this.getInitial(user.displayName)}
                             ${user.isOnline ? '<div class="online-indicator"></div>' : ''}
@@ -751,6 +794,15 @@ class ChatApp {
                             </div>
                             <div class="conversation-preview">@${this.escapeHtml(user.username)}</div>
                         </div>
+                        <button class="add-friend-btn" onclick="event.stopPropagation(); chatApp.sendFriendRequest(${user.userId}, this)">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="8.5" cy="7" r="4"/>
+                                <line x1="20" y1="8" x2="20" y2="14"/>
+                                <line x1="23" y1="11" x2="17" y2="11"/>
+                            </svg>
+                            Add
+                        </button>
                     </div>
                 `).join('');
             } else {
