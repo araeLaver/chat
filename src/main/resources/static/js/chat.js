@@ -250,8 +250,36 @@ class ChatApp {
 
         const isSent = message.sender === this.username;
 
+        // Get previous message to determine grouping
+        const allMessages = container.querySelectorAll('.message-group');
+        const prevMessage = allMessages[allMessages.length - 1];
+        const prevSender = prevMessage?.dataset.sender;
+        const isNewSender = prevSender !== message.sender;
+
+        // Update previous message bubble position if same sender
+        if (!isNewSender && prevMessage) {
+            const prevBubbleClass = this.getBubblePosition(prevMessage);
+            if (prevBubbleClass === 'bubble-single') {
+                prevMessage.classList.remove('bubble-single');
+                prevMessage.classList.add('bubble-first');
+            } else if (prevBubbleClass === 'bubble-last') {
+                prevMessage.classList.remove('bubble-last');
+                prevMessage.classList.add('bubble-middle');
+            }
+        }
+
         const messageGroup = document.createElement('div');
         messageGroup.className = `message-group ${isSent ? 'sent' : 'received'}`;
+        messageGroup.dataset.sender = message.sender;
+
+        // Determine bubble position
+        const bubblePosition = isNewSender ? 'bubble-single' : 'bubble-last';
+        messageGroup.classList.add(bubblePosition);
+
+        // Show avatar only for new sender (received messages)
+        if (!isSent && isNewSender) {
+            messageGroup.classList.add('show-avatar');
+        }
 
         const time = new Date(message.timestamp).toLocaleTimeString('en-US', {
             hour: '2-digit',
@@ -275,6 +303,14 @@ class ChatApp {
 
         container.appendChild(messageGroup);
         this.scrollToBottom();
+    }
+
+    getBubblePosition(element) {
+        if (element.classList.contains('bubble-first')) return 'bubble-first';
+        if (element.classList.contains('bubble-middle')) return 'bubble-middle';
+        if (element.classList.contains('bubble-last')) return 'bubble-last';
+        if (element.classList.contains('bubble-single')) return 'bubble-single';
+        return 'bubble-single';
     }
 
     addStatusMessage(text) {

@@ -31,8 +31,10 @@
     --border-color-hover: rgba(148, 163, 184, 0.2);
 
     /* Messages */
-    --msg-sent-bg: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    --msg-received-bg: rgba(17, 24, 39, 0.8);
+    --msg-sent-bg: #3797f0;
+    --msg-sent-hover: #1877f2;
+    --msg-received-bg: #262626;
+    --msg-received-border: #363636;
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
@@ -547,10 +549,10 @@ svg {
 .messages-container {
     flex: 1;
     overflow-y: auto;
-    padding: 1.5rem;
+    padding: 1rem 1rem;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 2px;
 }
 
 .messages-container::-webkit-scrollbar {
@@ -609,14 +611,20 @@ svg {
 /* Message Group */
 .message-group {
     display: flex;
-    gap: 0.75rem;
-    animation: messageIn 0.3s ease;
+    gap: 0.5rem;
+    padding: 0 0.5rem;
+    animation: messageIn 0.2s ease-out;
+}
+
+.message-group:first-child,
+.message-group.new-sender {
+    margin-top: 0.75rem;
 }
 
 @keyframes messageIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(4px);
     }
     to {
         opacity: 1;
@@ -629,29 +637,43 @@ svg {
 }
 
 .message-avatar {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.875rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: white;
     flex-shrink: 0;
+    align-self: flex-end;
+    margin-bottom: 2px;
+}
+
+.message-group.sent .message-avatar {
+    display: none;
+}
+
+.message-group.received .message-avatar {
+    visibility: hidden;
+}
+
+.message-group.received.show-avatar .message-avatar {
+    visibility: visible;
 }
 
 .message-content {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
-    max-width: 65%;
+    gap: 1px;
+    max-width: 60%;
 }
 
 @media (max-width: 768px) {
     .message-content {
-        max-width: 85%;
+        max-width: 75%;
     }
 }
 
@@ -660,36 +682,92 @@ svg {
 }
 
 .message-sender {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--primary-light);
-    padding: 0 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    padding: 0 0.75rem;
+    margin-bottom: 2px;
+    display: none;
+}
+
+.message-group.received.show-avatar .message-sender {
+    display: block;
 }
 
 .message-bubble {
-    padding: 0.875rem 1.125rem;
-    border-radius: var(--radius-lg);
-    line-height: 1.5;
+    padding: 0.5rem 0.875rem;
+    border-radius: 22px;
+    line-height: 1.4;
     word-wrap: break-word;
+    font-size: 0.9375rem;
+    position: relative;
 }
 
 .message-group.sent .message-bubble {
     background: var(--msg-sent-bg);
     color: white;
-    border-bottom-right-radius: var(--radius-sm);
+}
+
+.message-group.sent .message-bubble:hover {
+    background: var(--msg-sent-hover);
 }
 
 .message-group.received .message-bubble {
     background: var(--msg-received-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--msg-received-border);
     color: var(--text-primary);
-    border-bottom-left-radius: var(--radius-sm);
+}
+
+/* Bubble tail styling for grouped messages */
+.message-group.sent.bubble-first .message-bubble {
+    border-top-right-radius: 22px;
+    border-bottom-right-radius: 4px;
+}
+
+.message-group.sent.bubble-middle .message-bubble {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.message-group.sent.bubble-last .message-bubble {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 22px;
+}
+
+.message-group.sent.bubble-single .message-bubble {
+    border-radius: 22px;
+}
+
+.message-group.received.bubble-first .message-bubble {
+    border-top-left-radius: 22px;
+    border-bottom-left-radius: 4px;
+}
+
+.message-group.received.bubble-middle .message-bubble {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+.message-group.received.bubble-last .message-bubble {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 22px;
+}
+
+.message-group.received.bubble-single .message-bubble {
+    border-radius: 22px;
 }
 
 .message-time {
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
     color: var(--text-muted);
-    padding: 0 0.25rem;
+    padding: 0 0.75rem;
+    margin-top: 4px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.message-group:hover .message-time {
+    opacity: 1;
 }
 
 /* Status Message */
@@ -765,20 +843,33 @@ svg {
    INPUT AREA
    =========================== */
 .input-area {
-    padding: 1rem 1.5rem 1.5rem;
-    background: var(--bg-secondary);
+    padding: 0.75rem 1rem;
+    background: var(--bg-primary);
     border-top: 1px solid var(--border-color);
 }
 
 .input-container {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     gap: 0.75rem;
+    background: var(--msg-received-bg);
+    border: 1px solid var(--msg-received-border);
+    border-radius: 22px;
+    padding: 0.25rem 0.5rem 0.25rem 1rem;
 }
 
 .input-actions {
     display: flex;
     gap: 0.25rem;
+}
+
+.input-actions .icon-btn {
+    color: var(--text-muted);
+}
+
+.input-actions .icon-btn:hover {
+    color: var(--text-primary);
+    background: transparent;
 }
 
 .message-input-wrapper {
@@ -787,12 +878,11 @@ svg {
 
 .message-input {
     width: 100%;
-    min-height: 44px;
-    max-height: 140px;
-    padding: 0.75rem 1rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-xl);
+    min-height: 36px;
+    max-height: 120px;
+    padding: 0.5rem 0;
+    background: transparent;
+    border: none;
     color: var(--text-primary);
     font-size: 0.9375rem;
     resize: none;
@@ -800,8 +890,9 @@ svg {
 }
 
 .message-input:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    outline: none;
+    border: none;
+    box-shadow: none;
 }
 
 .message-input::placeholder {
@@ -809,26 +900,27 @@ svg {
 }
 
 .send-btn {
-    width: 44px;
-    height: 44px;
-    background: var(--gradient-primary);
+    width: 36px;
+    height: 36px;
+    background: transparent;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: #3797f0;
     transition: var(--transition-fast);
-    box-shadow: var(--shadow-glow);
+    box-shadow: none;
 }
 
 .send-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
 }
 
 .send-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 40px rgba(99, 102, 241, 0.4);
+    transform: scale(1.1);
+    color: #1877f2;
+    box-shadow: none;
 }
 
 .send-btn:active {
