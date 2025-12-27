@@ -32,5 +32,9 @@ public interface FriendRepository extends JpaRepository<FriendEntity, Long> {
            "f.friendId = :userId AND f.status = 'PENDING'")
     Integer countPendingRequests(@Param("userId") Long userId);
 
+    // 전체 대기 중인 친구 요청 수 (모니터링용, N+1 쿼리 방지)
+    @Query("SELECT COUNT(f) FROM FriendEntity f WHERE f.status = 'PENDING'")
+    long countAllPendingRequests();
+
     boolean existsByUserIdAndFriendId(Long userId, Long friendId);
 }

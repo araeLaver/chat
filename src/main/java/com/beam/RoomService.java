@@ -1,6 +1,8 @@
 package com.beam;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -32,6 +34,9 @@ public class RoomService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired(required = false)
+    private CacheManager cacheManager;
 
     @Transactional
     @CacheEvict(value = "chatRooms", key = "'userRooms:' + #creatorId")
@@ -92,7 +97,6 @@ public class RoomService {
     }
 
     @Transactional
-    @CacheEvict(value = "chatRooms", allEntries = true)
     public void deleteRoom(Long roomId, Long userId) {
         RoomEntity room = roomRepository.findByIdAndIsActiveTrue(roomId)
             .orElseThrow(() -> new RuntimeException("Room not found"));
@@ -107,12 +111,48 @@ public class RoomService {
         room.setIsActive(false);
         roomRepository.save(room);
 
+        // 멤버 목록 조회 및 비활성화
         List<RoomMemberEntity> members = roomMemberRepository.findByRoomIdAndIsActiveTrue(roomId);
+        List<Long> affectedUserIds = members.stream()
+            .map(RoomMemberEntity::getUserId)
+            .toList();
+
         members.forEach(m -> {
             m.setIsActive(false);
             m.setLeftAt(LocalDateTime.now());
         });
         roomMemberRepository.saveAll(members);
+
+        // 영향받는 사용자의 캐시만 선택적으로 삭제 (thundering herd 방지)
+        evictRoomCaches(roomId, affectedUserIds);
+    }
+
+    /**
+     * 방 관련 캐시를 선택적으로 삭제 (allEntries=true 대신 사용)
+     * Cache stampede (thundering herd) 방지를 위해 영향받는 키만 삭제
+     */
+    private void evictRoomCaches(Long roomId, List<Long> userIds) {
+        if (cacheManager == null) {
+            return;
+        }
+
+        // chatRooms 캐시에서 관련 키만 삭제
+        Cache chatRoomsCache = cacheManager.getCache("chatRooms");
+        if (chatRoomsCache != null) {
+            // 방 멤버 캐시 삭제
+            chatRoomsCache.evict("members:" + roomId);
+
+            // 영향받는 사용자의 방 목록 캐시만 삭제
+            for (Long userId : userIds) {
+                chatRoomsCache.evict("userRooms:" + userId);
+            }
+        }
+
+        // messages 캐시에서 해당 방 메시지 캐시 삭제
+        Cache messagesCache = cacheManager.getCache("messages");
+        if (messagesCache != null) {
+            messagesCache.evict(roomId);
+        }
     }
 
     @Transactional

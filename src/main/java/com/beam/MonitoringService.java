@@ -3,6 +3,8 @@ package com.beam;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Service
 public class MonitoringService {
+
+    private static final Logger logger = LoggerFactory.getLogger(MonitoringService.class);
 
     @Autowired(required = false)
     private DirectMessageRepository directMessageRepository;
@@ -97,9 +101,8 @@ public class MonitoringService {
             }
 
             if (userRepository != null) {
-                long onlineUsers = userRepository.findAll().stream()
-                    .filter(user -> user.getIsOnline() != null && user.getIsOnline())
-                    .count();
+                // N+1 쿼리 방지: 전용 count 쿼리 사용
+                long onlineUsers = userRepository.countOnlineUsers();
                 activeUsers.set(onlineUsers);
             }
 
@@ -109,22 +112,16 @@ public class MonitoringService {
             }
 
             if (friendRepository != null) {
-                long pending = friendRepository.findAll().stream()
-                    .filter(f -> f.getStatus() == FriendEntity.FriendStatus.PENDING)
-                    .count();
+                // N+1 쿼리 방지: 전용 count 쿼리 사용
+                long pending = friendRepository.countAllPendingRequests();
                 friendRequests.set(pending);
             }
 
-            System.out.println("=== BEAM 메신저 모니터링 ===");
-            System.out.println("시간: " + LocalDateTime.now());
-            System.out.println("총 메시지: " + totalMessages.get());
-            System.out.println("온라인 사용자: " + activeUsers.get());
-            System.out.println("활성 채팅방: " + activeRooms.get());
-            System.out.println("대기 중인 친구 요청: " + friendRequests.get());
-            System.out.println("==========================");
+            logger.info("BEAM Monitoring - Messages: {}, Online Users: {}, Active Rooms: {}, Pending Friend Requests: {}",
+                    totalMessages.get(), activeUsers.get(), activeRooms.get(), friendRequests.get());
 
         } catch (Exception e) {
-            System.err.println("모니터링 업데이트 실패: " + e.getMessage());
+            logger.error("Monitoring update failed: {}", e.getMessage(), e);
         }
     }
 

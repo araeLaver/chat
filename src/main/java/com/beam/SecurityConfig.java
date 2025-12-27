@@ -37,6 +37,9 @@ public class SecurityConfig {
     @Value("${cors.allowed-origins:http://localhost:8080,http://localhost:3000}")
     private String allowedOrigins;
 
+    @Value("${spring.profiles.active:prod}")
+    private String activeProfile;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -68,13 +71,19 @@ public class SecurityConfig {
                     "/*.js",
                     "/static/**"
                 ).permitAll()
-                // H2 콘솔 (개발 환경만)
-                .requestMatchers("/h2-console/**").permitAll()
                 // 나머지 모든 요청은 인증 필요
                 .anyRequest().authenticated()
-            )
-            .headers(headers -> headers
-                .frameOptions(frameOptions -> frameOptions.disable()))  // H2 콘솔용
+            );
+
+        // H2 콘솔은 개발 환경(dev, local)에서만 허용
+        if (isDevEnvironment()) {
+            http.authorizeHttpRequests(auth -> auth
+                .requestMatchers("/h2-console/**").permitAll()
+            ).headers(headers -> headers
+                .frameOptions(frameOptions -> frameOptions.disable()));
+        }
+
+        http
             // Rate Limiting 필터 추가 (가장 먼저)
             .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
             // JWT 필터 추가
@@ -92,11 +101,12 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 모든 오리진 허용 (프로덕션에서는 특정 도메인으로 제한 필요)
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        // 환경변수에서 허용된 오리진 목록 파싱 (쉼표로 구분)
+        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        configuration.setAllowedOrigins(origins.stream().map(String::trim).toList());
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
 
         configuration.setAllowCredentials(true);
@@ -105,5 +115,14 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    /**
+     * 개발 환경 여부 확인
+     */
+    private boolean isDevEnvironment() {
+        return "dev".equalsIgnoreCase(activeProfile) ||
+               "local".equalsIgnoreCase(activeProfile) ||
+               "development".equalsIgnoreCase(activeProfile);
     }
 }

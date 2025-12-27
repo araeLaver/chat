@@ -1,5 +1,7 @@
 package com.beam;
 
+import com.beam.dto.*;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,16 +33,9 @@ public class ChatController {
 
     // 이메일 인증 코드 발송
     @PostMapping("/auth/email/send-code")
-    public ResponseEntity<?> sendEmailVerificationCode(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> sendEmailVerificationCode(@Valid @RequestBody EmailSendCodeRequest request) {
         try {
-            String email = request.get("email").toString();
-
-            if (!isValidEmail(email)) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "올바른 이메일 주소를 입력해주세요");
-                return ResponseEntity.badRequest().body(error);
-            }
+            String email = request.getEmail();
 
             // 이미 가입된 이메일인지 확인
             if (userRepository.existsByEmail(email)) {
@@ -51,7 +46,7 @@ public class ChatController {
             }
 
             // 6자리 랜덤 인증번호 생성
-            String verificationCode = String.format("%06d", (int)(Math.random() * 1000000));
+            String verificationCode = VerificationCodeGenerator.generate();
 
             // 기존 사용자가 있으면 업데이트, 없으면 생성
             Optional<UserEntity> existingUser = userRepository.findByEmail(email);
@@ -96,11 +91,11 @@ public class ChatController {
 
     // 이메일로 회원가입 완료
     @PostMapping("/auth/email/register")
-    public ResponseEntity<?> completeEmailRegistration(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> completeEmailRegistration(@Valid @RequestBody EmailRegisterRequest request) {
         try {
-            String email = request.get("email").toString();
-            String displayName = request.get("displayName").toString();
-            String username = request.get("username").toString();
+            String email = request.getEmail();
+            String displayName = request.getDisplayName();
+            String username = request.getUsername();
 
             UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("등록되지 않은 이메일입니다"));
@@ -154,9 +149,9 @@ public class ChatController {
 
     // 이메일로 로그인
     @PostMapping("/auth/email/login")
-    public ResponseEntity<?> emailLogin(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> emailLogin(@Valid @RequestBody EmailSendCodeRequest request) {
         try {
-            String email = request.get("email").toString();
+            String email = request.getEmail();
 
             UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("등록되지 않은 이메일입니다"));
@@ -169,7 +164,7 @@ public class ChatController {
             }
 
             // 로그인 시에도 인증번호 발송 (OTP 방식)
-            String verificationCode = String.format("%06d", (int)(Math.random() * 1000000));
+            String verificationCode = VerificationCodeGenerator.generate();
             user.setVerificationCode(verificationCode);
             user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(5));
             userRepository.save(user);
@@ -191,10 +186,10 @@ public class ChatController {
 
     // 이메일 로그인 인증 확인
     @PostMapping("/auth/email/login/verify")
-    public ResponseEntity<?> verifyEmailLogin(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> verifyEmailLogin(@Valid @RequestBody EmailVerifyRequest request) {
         try {
-            String email = request.get("email").toString();
-            String code = request.get("verificationCode").toString();
+            String email = request.getEmail();
+            String code = request.getVerificationCode();
 
             UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("등록되지 않은 이메일입니다"));
@@ -244,22 +239,10 @@ public class ChatController {
         }
     }
 
-    private boolean isValidEmail(String email) {
-        if (email == null) return false;
-        return email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
-    }
-
     @PostMapping("/auth/phone/send-code")
-    public ResponseEntity<?> sendVerificationCode(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> sendVerificationCode(@Valid @RequestBody PhoneSendCodeRequest request) {
         try {
-            String phoneNumber = request.get("phoneNumber").toString();
-
-            if (!isValidKoreanPhoneNumber(phoneNumber)) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "올바른 한국 휴대폰 번호를 입력해주세요");
-                return ResponseEntity.badRequest().body(error);
-            }
+            String phoneNumber = request.getPhoneNumber().replaceAll("-", "");
 
             // 이미 가입된 번호인지 확인
             if (userRepository.existsByPhoneNumber(phoneNumber)) {
@@ -270,7 +253,7 @@ public class ChatController {
             }
 
             // 6자리 랜덤 인증번호 생성
-            String verificationCode = String.format("%06d", (int)(Math.random() * 1000000));
+            String verificationCode = VerificationCodeGenerator.generate();
 
             // 기존 사용자가 있으면 업데이트, 없으면 생성
             Optional<UserEntity> existingUser = userRepository.findByPhoneNumber(phoneNumber);
@@ -313,10 +296,10 @@ public class ChatController {
     }
 
     @PostMapping("/auth/phone/verify")
-    public ResponseEntity<?> verifyPhone(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> verifyPhone(@Valid @RequestBody PhoneVerifyRequest request) {
         try {
-            String phoneNumber = request.get("phoneNumber").toString();
-            String code = request.get("verificationCode").toString();
+            String phoneNumber = request.getPhoneNumber().replaceAll("-", "");
+            String code = request.getVerificationCode();
 
             UserEntity user = userRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new RuntimeException("등록되지 않은 휴대폰 번호입니다"));
@@ -360,11 +343,11 @@ public class ChatController {
     }
 
     @PostMapping("/auth/phone/register")
-    public ResponseEntity<?> completeRegistration(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> completeRegistration(@Valid @RequestBody PhoneRegisterRequest request) {
         try {
-            String phoneNumber = request.get("phoneNumber").toString();
-            String displayName = request.get("displayName").toString();
-            String username = request.get("username").toString();
+            String phoneNumber = request.getPhoneNumber().replaceAll("-", "");
+            String displayName = request.getDisplayName();
+            String username = request.getUsername();
 
             UserEntity user = userRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new RuntimeException("등록되지 않은 휴대폰 번호입니다"));
@@ -414,9 +397,9 @@ public class ChatController {
     }
 
     @PostMapping("/auth/phone/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> login(@Valid @RequestBody PhoneSendCodeRequest request) {
         try {
-            String phoneNumber = request.get("phoneNumber").toString();
+            String phoneNumber = request.getPhoneNumber().replaceAll("-", "");
 
             UserEntity user = userRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new RuntimeException("등록되지 않은 휴대폰 번호입니다"));
@@ -453,11 +436,5 @@ public class ChatController {
             error.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(error);
         }
-    }
-
-    private boolean isValidKoreanPhoneNumber(String phoneNumber) {
-        if (phoneNumber == null) return false;
-        String cleaned = phoneNumber.replaceAll("-", "");
-        return cleaned.matches("^01[016789]\\d{7,8}$");
     }
 }

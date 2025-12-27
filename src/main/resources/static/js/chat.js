@@ -53,9 +53,11 @@ class ChatApp {
 
     connectWebSocket() {
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${wsProtocol}//${window.location.host}/ws?token=${this.token}`;
+        const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
 
-        this.ws = new WebSocket(wsUrl);
+        // 보안: URL 쿼리 파라미터 대신 Sec-WebSocket-Protocol 헤더로 토큰 전송
+        // URL에 토큰을 포함하면 서버 로그에 노출될 수 있음
+        this.ws = new WebSocket(wsUrl, [`access_token,${this.token}`]);
 
         this.ws.onopen = () => {
             console.log('WebSocket connected');

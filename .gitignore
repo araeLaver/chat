@@ -112,4 +112,4 @@ apache-maven-3.9.6/
 apache-maven.zip
 
 # Environment variables
-.env
+.env.claude/

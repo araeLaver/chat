@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Random;
 
 @Service
 public class AuthService {
@@ -47,7 +46,7 @@ public class AuthService {
             phoneNumber = "user_" + System.currentTimeMillis();
         }
 
-        String verificationCode = String.format("%06d", new Random().nextInt(999999));
+        String verificationCode = VerificationCodeGenerator.generate();
 
         UserEntity user = UserEntity.builder()
                 .username(request.getUsername())
@@ -120,7 +119,7 @@ public class AuthService {
         UserEntity user = userRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new RuntimeException("Phone number not found"));
 
-        String code = String.format("%06d", new Random().nextInt(999999));
+        String code = VerificationCodeGenerator.generate();
 
         user.setVerificationCode(code);
         user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(5));
@@ -194,7 +193,7 @@ public class AuthService {
             throw new RuntimeException("Email already verified");
         }
 
-        String verificationCode = String.format("%06d", new Random().nextInt(999999));
+        String verificationCode = VerificationCodeGenerator.generate();
         user.setVerificationCode(verificationCode);
         user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(5));
         userRepository.save(user);

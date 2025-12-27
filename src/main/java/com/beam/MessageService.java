@@ -1,9 +1,14 @@
 package com.beam;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -14,7 +19,10 @@ public class MessageService {
 
     @Autowired
     private MessageReadReceiptRepository readReceiptRepository;
-    
+
+    private static final int DEFAULT_PAGE_SIZE = 100;
+    private static final int MAX_PAGE_SIZE = 500;
+
     public MessageEntity saveMessage(ChatMessage chatMessage) {
         MessageEntity entity = new MessageEntity(
             chatMessage.getSender(),
@@ -27,13 +35,27 @@ public class MessageService {
 
         return messageRepository.save(entity);
     }
-    
+
     public List<MessageEntity> getRecentMessages(String roomId) {
         return messageRepository.findTop50ByRoomIdOrderByTimestampDesc(roomId);
     }
-    
+
+    /**
+     * 채팅방의 모든 메시지 조회 (페이징 없음 - 하위 호환성 유지)
+     * @deprecated 대용량 채팅방에서는 getAllRoomMessages(roomId, page, size) 사용 권장
+     */
+    @Deprecated
     public List<MessageEntity> getAllRoomMessages(String roomId) {
         return messageRepository.findByRoomIdOrderByTimestampAsc(roomId);
+    }
+
+    /**
+     * 채팅방 메시지 조회 (페이징 지원)
+     */
+    public Page<MessageEntity> getAllRoomMessages(String roomId, int page, int size) {
+        int pageSize = Math.min(size, MAX_PAGE_SIZE);
+        Pageable pageable = PageRequest.of(page, pageSize);
+        return messageRepository.findByRoomIdOrderByTimestampAsc(roomId, pageable);
     }
 
     /**
@@ -52,20 +74,29 @@ public class MessageService {
     }
 
     /**
-     * 채팅방의 모든 메시지를 읽음 처리
+     * 채팅방의 모든 메시지를 읽음 처리 (배치 처리로 N+1 쿼리 방지)
      */
+    @Transactional
     public void markRoomMessagesAsRead(String roomId, Long userId, String username) {
-        List<MessageEntity> messages = messageRepository.findByRoomIdOrderByTimestampAsc(roomId);
+        // 1. 읽지 않은 메시지 ID 목록을 한 번의 쿼리로 조회
+        List<Long> unreadMessageIds = messageRepository.findUnreadMessageIds(roomId, userId, username);
 
-        for (MessageEntity message : messages) {
-            // 내가 보낸 메시지는 제외
-            if (!message.getSender().equals(username)) {
-                // 아직 읽지 않은 메시지만 읽음 처리
-                if (!readReceiptRepository.existsByMessageIdAndUserId(message.getId(), userId)) {
-                    markMessageAsRead(message.getId(), userId);
-                }
-            }
+        if (unreadMessageIds.isEmpty()) {
+            return;
         }
+
+        // 2. 배치로 읽음 표시 생성
+        List<MessageReadReceipt> receipts = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+
+        for (Long messageId : unreadMessageIds) {
+            MessageReadReceipt receipt = new MessageReadReceipt(messageId, userId);
+            receipt.setReadAt(now);
+            receipts.add(receipt);
+        }
+
+        // 3. 한 번에 저장 (배치 insert)
+        readReceiptRepository.saveAll(receipts);
     }
 
     /**

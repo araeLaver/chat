@@ -4,7 +4,13 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "messages")
+@Table(name = "messages", indexes = {
+    @Index(name = "idx_messages_room_id", columnList = "room_id"),
+    @Index(name = "idx_messages_timestamp", columnList = "timestamp"),
+    @Index(name = "idx_messages_sender", columnList = "sender"),
+    @Index(name = "idx_messages_room_timestamp", columnList = "room_id, timestamp DESC"),
+    @Index(name = "idx_messages_user_id", columnList = "user_id")
+})
 public class MessageEntity {
     
     @Id

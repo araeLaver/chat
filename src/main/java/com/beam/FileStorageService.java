@@ -1,5 +1,7 @@
 package com.beam;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -22,6 +24,8 @@ import java.util.UUID;
 
 @Service
 public class FileStorageService {
+
+    private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
 
     @Value("${file.upload-dir:uploads}")
     private String uploadDir;
@@ -88,7 +92,7 @@ public class FileStorageService {
                     String thumbnailPath = generateThumbnail(targetLocation.toString(), uniqueFileName);
                     metadata.setThumbnailPath(thumbnailPath);
                 } catch (Exception e) {
-                    System.err.println("Failed to generate thumbnail: " + e.getMessage());
+                    logger.warn("Failed to generate thumbnail: {}", e.getMessage());
                 }
             }
 
@@ -165,7 +169,7 @@ public class FileStorageService {
                 Files.deleteIfExists(thumbnailPath);
             }
         } catch (IOException ex) {
-            System.err.println("Failed to delete physical file: " + ex.getMessage());
+            logger.warn("Failed to delete physical file: {}", ex.getMessage());
         }
     }
 
