@@ -112,4 +112,9 @@ apache-maven-3.9.6/
 apache-maven.zip
 
 # Environment variables
-.env.claude/
+.env
+
+# AI Tool configs
+.ai/
+.agent/
+.assistant/
