@@ -8,11 +8,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Authentication Controller
@@ -25,6 +27,12 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 @Tag(name = "Authentication", description = "사용자 인증 및 회원가입 API")
 public class AuthController {
+
+    private static final int MAX_GUEST_ID = 10000;
+    private static final int DEFAULT_ROOM_MAX_MEMBERS = 1000;
+
+    @Value("${guest.default-room-name:일반 채팅}")
+    private String defaultRoomName;
 
     @Autowired
     private AuthService authService;
@@ -109,7 +117,7 @@ public class AuthController {
         try {
             // 랜덤 게스트 사용자명 생성
             String guestUsername = "guest_" + System.currentTimeMillis();
-            String guestDisplayName = "게스트" + (int)(Math.random() * 10000);
+            String guestDisplayName = "게스트" + ThreadLocalRandom.current().nextInt(MAX_GUEST_ID);
 
             // 게스트 사용자 생성
             UserEntity guestUser = UserEntity.builder()
@@ -124,18 +132,15 @@ public class AuthController {
 
             userRepository.save(guestUser);
 
-            // 기본 "일반 채팅" 방 찾기 또는 생성
-            RoomEntity defaultRoom = roomRepository.findByRoomNameAndRoomType("일반 채팅", RoomEntity.RoomType.PUBLIC)
-                .orElseGet(() -> {
-                    RoomEntity newRoom = roomService.createRoom(
-                        guestUser.getId(),
-                        "일반 채팅",
-                        "누구나 참여 가능한 일반 채팅방입니다",
-                        RoomEntity.RoomType.PUBLIC,
-                        1000
-                    );
-                    return newRoom;
-                });
+            // 기본 채팅방 찾기 또는 생성
+            RoomEntity defaultRoom = roomRepository.findByRoomNameAndRoomType(defaultRoomName, RoomEntity.RoomType.PUBLIC)
+                .orElseGet(() -> roomService.createRoom(
+                    guestUser.getId(),
+                    defaultRoomName,
+                    "누구나 참여 가능한 일반 채팅방입니다",
+                    RoomEntity.RoomType.PUBLIC,
+                    DEFAULT_ROOM_MAX_MEMBERS
+                ));
 
             // 사용자를 방에 추가 (이미 있으면 무시)
             try {

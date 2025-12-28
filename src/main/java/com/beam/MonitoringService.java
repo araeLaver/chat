@@ -89,9 +89,9 @@ public class MonitoringService {
     }
 
     /**
-     * Updates metrics every 5 minutes
+     * Updates metrics periodically (default: 5 minutes)
      */
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRateString = "${monitoring.update-interval-ms:300000}")
     public void updateMetrics() {
         try {
             if (directMessageRepository != null && groupMessageRepository != null) {
