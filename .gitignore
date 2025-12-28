@@ -12,6 +12,8 @@ buildNumber.properties
 
 # Eclipse
 .metadata
+.classpath
+.project
 bin/
 tmp/
 *.tmp
