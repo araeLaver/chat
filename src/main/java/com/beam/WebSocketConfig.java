@@ -1,5 +1,6 @@
 package com.beam;
 
+import com.beam.websocket.TokenHandshakeInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -54,12 +55,14 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        // Register handler for both native WebSocket and SockJS
+        // Register handler for native WebSocket with token interceptor
         registry.addHandler(chatWebSocketHandler, "/ws")
+                .addInterceptors(new TokenHandshakeInterceptor())
                 .setAllowedOrigins(allowedOrigins.split(","));
 
         // Keep /chat endpoint with SockJS for backward compatibility
         registry.addHandler(chatWebSocketHandler, "/chat")
+                .addInterceptors(new TokenHandshakeInterceptor())
                 .setAllowedOrigins(allowedOrigins.split(","))
                 .withSockJS();
     }

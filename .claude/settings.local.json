@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git rm:*)",
+      "WebFetch(domain:homeless-elyn-untab-5dcfc664.koyeb.app)"
+    ]
+  }
+}
