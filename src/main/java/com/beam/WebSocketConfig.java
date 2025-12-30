@@ -58,12 +58,12 @@ public class WebSocketConfig implements WebSocketConfigurer {
         // Register handler for native WebSocket with token interceptor
         registry.addHandler(chatWebSocketHandler, "/ws")
                 .addInterceptors(new TokenHandshakeInterceptor())
-                .setAllowedOrigins(allowedOrigins.split(","));
+                .setAllowedOriginPatterns("*");
 
         // Keep /chat endpoint with SockJS for backward compatibility
         registry.addHandler(chatWebSocketHandler, "/chat")
                 .addInterceptors(new TokenHandshakeInterceptor())
-                .setAllowedOrigins(allowedOrigins.split(","))
+                .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
 }
