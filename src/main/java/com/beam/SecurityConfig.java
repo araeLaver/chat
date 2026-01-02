@@ -47,9 +47,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
+            .authorizeHttpRequests(auth -> {
                 // 공개 엔드포인트 (인증 불필요)
-                .requestMatchers(
+                auth.requestMatchers(
                     "/api/auth/**",  // 모든 인증 관련 엔드포인트 허용
                     "/actuator/health",
                     "/actuator/prometheus",
@@ -70,16 +70,20 @@ public class SecurityConfig {
                     "/*.css",
                     "/*.js",
                     "/static/**"
-                ).permitAll()
-                // 나머지 모든 요청은 인증 필요
-                .anyRequest().authenticated()
-            );
+                ).permitAll();
 
-        // H2 콘솔은 개발 환경(dev, local)에서만 허용
+                // H2 콘솔은 개발 환경(dev, local)에서만 허용
+                if (isDevEnvironment()) {
+                    auth.requestMatchers("/h2-console/**").permitAll();
+                }
+
+                // 나머지 모든 요청은 인증 필요
+                auth.anyRequest().authenticated();
+            });
+
+        // H2 콘솔 iframe 허용 (개발 환경에서만)
         if (isDevEnvironment()) {
-            http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/h2-console/**").permitAll()
-            ).headers(headers -> headers
+            http.headers(headers -> headers
                 .frameOptions(frameOptions -> frameOptions.disable()));
         }
 

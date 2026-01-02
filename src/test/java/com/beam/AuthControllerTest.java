@@ -1,32 +1,26 @@
 package com.beam;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = AuthController.class,
-    excludeAutoConfiguration = {org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class})
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
+@ActiveProfiles("test")
+@Transactional
 @DisplayName("AuthController Integration Tests")
-@org.junit.jupiter.api.Disabled("Temporarily disabled - needs refactoring to @SpringBootTest for proper integration testing")
 class AuthControllerTest {
 
     @Autowired
@@ -35,32 +29,22 @@ class AuthControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
-    private AuthService authService;
-
-    @MockBean
+    @Autowired
     private UserRepository userRepository;
 
-    @MockBean
+    @Autowired
     private JwtUtil jwtUtil;
 
     @MockBean
-    private PasswordEncoder passwordEncoder;
+    private EmailService emailService;
 
     @MockBean
-    private RoomService roomService;
-
-    @MockBean
-    private RoomRepository roomRepository;
+    private SmsService smsService;
 
     @MockBean
     private RateLimitService rateLimitService;
 
-    @MockBean
-    private RateLimitInterceptor rateLimitInterceptor;
-
     private AuthRequest validRequest;
-    private AuthResponse successResponse;
 
     @BeforeEach
     void setUp() {
@@ -69,33 +53,12 @@ class AuthControllerTest {
         validRequest.setPassword("password123");
         validRequest.setEmail("test@example.com");
 
-        successResponse = AuthResponse.builder()
-                .token("jwt-token")
-                .username("testuser")
-                .userId(1L)
-                .displayName("Test User")
-                .message("Success")
-                .build();
+        // Mock email service
+        doNothing().when(emailService).sendVerificationEmail(anyString(), anyString());
 
-        // Rate limit mock - always allow
+        // Mock rate limit service to always allow
         when(rateLimitService.isApiRequestAllowed(anyString())).thenReturn(true);
         when(rateLimitService.getApiRemainingTokens(anyString())).thenReturn(100L);
-
-        // Default mock for userRepository.save - returns entity with ID
-        when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> {
-            UserEntity user = invocation.getArgument(0);
-            if (user.getId() == null) {
-                // 리플렉션으로 ID 설정 (빌더 패턴의 한계)
-                try {
-                    java.lang.reflect.Field idField = UserEntity.class.getDeclaredField("id");
-                    idField.setAccessible(true);
-                    idField.set(user, 1L);
-                } catch (Exception e) {
-                    // ignore
-                }
-            }
-            return user;
-        });
     }
 
     @Nested
@@ -104,32 +67,28 @@ class AuthControllerTest {
 
         @Test
         @DisplayName("Should register successfully with valid request")
-        @WithMockUser
         void shouldRegisterSuccessfully() throws Exception {
-            // Given
-            when(authService.register(any(AuthRequest.class))).thenReturn(successResponse);
-
-            // When & Then
             mockMvc.perform(post("/api/auth/register")
-                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.username").value("testuser"))
-                    .andExpect(jsonPath("$.userId").value(1));
+                    .andExpect(jsonPath("$.message").exists());
+
+            verify(emailService).sendVerificationEmail(eq("test@example.com"), anyString());
         }
 
         @Test
         @DisplayName("Should return 400 when username already exists")
-        @WithMockUser
         void shouldReturn400WhenUsernameExists() throws Exception {
-            // Given
-            when(authService.register(any(AuthRequest.class)))
-                    .thenThrow(new RuntimeException("Username already exists"));
-
-            // When & Then
+            // First registration
             mockMvc.perform(post("/api/auth/register")
-                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(validRequest)))
+                    .andExpect(status().isOk());
+
+            // Second registration with same username
+            mockMvc.perform(post("/api/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isBadRequest())
@@ -137,22 +96,21 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Should return 400 for invalid username format")
-        @WithMockUser
-        void shouldReturn400ForInvalidUsername() throws Exception {
-            // Given - mock service to throw validation error
-            when(authService.register(any(AuthRequest.class)))
-                    .thenThrow(new RuntimeException("사용자명은 3-20자 사이여야 합니다"));
-
-            validRequest.setUsername("ab"); // Too short
-
-            // When & Then
+        @DisplayName("Should return 400 when email already exists")
+        void shouldReturn400WhenEmailExists() throws Exception {
+            // First registration
             mockMvc.perform(post("/api/auth/register")
-                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(validRequest)))
+                    .andExpect(status().isOk());
+
+            // Second registration with different username but same email
+            validRequest.setUsername("anotheruser");
+            mockMvc.perform(post("/api/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.error").exists());
+                    .andExpect(jsonPath("$.error").value("Email already registered"));
         }
     }
 
@@ -160,43 +118,60 @@ class AuthControllerTest {
     @DisplayName("Login Endpoint Tests")
     class LoginTests {
 
-        @Test
-        @DisplayName("Should login successfully with valid credentials")
-        @WithMockUser
-        void shouldLoginSuccessfully() throws Exception {
-            // Given
-            AuthResponse loginResponse = AuthResponse.builder()
-                    .token("jwt-token")
-                    .username("testuser")
-                    .userId(1L)
-                    .message("Login successful")
-                    .build();
-
-            when(authService.login(any(AuthRequest.class))).thenReturn(loginResponse);
-
-            // When & Then
-            mockMvc.perform(post("/api/auth/login")
-                            .with(csrf())
+        @BeforeEach
+        void createUser() throws Exception {
+            // Register and verify user first
+            mockMvc.perform(post("/api/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
+                    .andExpect(status().isOk());
+
+            // Manually activate user for login test
+            UserEntity user = userRepository.findByUsername("testuser").orElseThrow();
+            user.setIsActive(true);
+            userRepository.save(user);
+        }
+
+        @Test
+        @DisplayName("Should login successfully with valid credentials")
+        void shouldLoginSuccessfully() throws Exception {
+            AuthRequest loginRequest = new AuthRequest();
+            loginRequest.setUsername("testuser");
+            loginRequest.setPassword("password123");
+
+            mockMvc.perform(post("/api/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(loginRequest)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.token").value("jwt-token"))
+                    .andExpect(jsonPath("$.token").exists())
+                    .andExpect(jsonPath("$.username").value("testuser"))
                     .andExpect(jsonPath("$.message").value("Login successful"));
         }
 
         @Test
-        @DisplayName("Should return 400 for invalid credentials")
-        @WithMockUser
-        void shouldReturn400ForInvalidCredentials() throws Exception {
-            // Given
-            when(authService.login(any(AuthRequest.class)))
-                    .thenThrow(new RuntimeException("Invalid username or password"));
+        @DisplayName("Should return 400 for wrong password")
+        void shouldReturn400ForWrongPassword() throws Exception {
+            AuthRequest loginRequest = new AuthRequest();
+            loginRequest.setUsername("testuser");
+            loginRequest.setPassword("wrongpassword");
 
-            // When & Then
             mockMvc.perform(post("/api/auth/login")
-                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(validRequest)))
+                            .content(objectMapper.writeValueAsString(loginRequest)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("Invalid username or password"));
+        }
+
+        @Test
+        @DisplayName("Should return 400 for non-existent user")
+        void shouldReturn400ForNonExistentUser() throws Exception {
+            AuthRequest loginRequest = new AuthRequest();
+            loginRequest.setUsername("nonexistent");
+            loginRequest.setPassword("password123");
+
+            mockMvc.perform(post("/api/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(loginRequest)))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.error").value("Invalid username or password"));
         }
@@ -206,16 +181,29 @@ class AuthControllerTest {
     @DisplayName("Logout Endpoint Tests")
     class LogoutTests {
 
+        private String token;
+
+        @BeforeEach
+        void loginUser() throws Exception {
+            // Register and activate user
+            mockMvc.perform(post("/api/auth/register")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(validRequest)));
+
+            UserEntity user = userRepository.findByUsername("testuser").orElseThrow();
+            user.setIsActive(true);
+            userRepository.save(user);
+
+            token = jwtUtil.generateToken("testuser", user.getId());
+        }
+
         @Test
         @DisplayName("Should logout successfully")
-        @WithMockUser
         void shouldLogoutSuccessfully() throws Exception {
-            // When & Then - note: controller returns "Logout successful" not "Logout successful"
             mockMvc.perform(post("/api/auth/logout")
-                            .with(csrf())
-                            .header("Authorization", "Bearer jwt-token"))
+                            .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").exists());
+                    .andExpect(jsonPath("$.message").value("Logout successful"));
         }
     }
 
@@ -225,87 +213,37 @@ class AuthControllerTest {
 
         @Test
         @DisplayName("Should create guest user and return token")
-        @WithMockUser
         void shouldCreateGuestUserSuccessfully() throws Exception {
-            // Given
-            UserEntity guestUser = UserEntity.builder()
-                    .id(1L)
-                    .username("guest_123")
-                    .displayName("Guest123")
-                    .build();
-
-            RoomEntity defaultRoom = RoomEntity.builder()
-                    .id(1L)
-                    .roomName("General Chat")
-                    .build();
-
-            when(passwordEncoder.encode(anyString())).thenReturn("encoded");
-            when(userRepository.save(any(UserEntity.class))).thenReturn(guestUser);
-            when(roomRepository.findByRoomNameAndRoomType(anyString(), any()))
-                    .thenReturn(Optional.of(defaultRoom));
-            when(jwtUtil.generateToken(anyString(), anyLong())).thenReturn("guest-jwt-token");
-
-            // When & Then
-            mockMvc.perform(post("/api/auth/guest")
-                            .with(csrf()))
+            mockMvc.perform(post("/api/auth/guest"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.token").exists())
+                    .andExpect(jsonPath("$.user.displayName").exists())
                     .andExpect(jsonPath("$.defaultRoomId").exists());
         }
-    }
-
-    @Nested
-    @DisplayName("Phone Verification Endpoint Tests")
-    class PhoneVerificationTests {
 
         @Test
-        @DisplayName("Should send verification code")
-        @WithMockUser
-        void shouldSendVerificationCode() throws Exception {
-            // Given
-            when(authService.sendVerificationCode("010-1234-5678"))
-                    .thenReturn("Verification code sent");
-
-            // When & Then
-            mockMvc.perform(post("/api/auth/verify/send")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"phoneNumber\": \"010-1234-5678\"}"))
+        @DisplayName("Multiple guests should have different usernames")
+        void multipleGuestsShouldHaveDifferentUsernames() throws Exception {
+            String response1 = mockMvc.perform(post("/api/auth/guest"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").value("Verification code sent"));
-        }
+                    .andReturn().getResponse().getContentAsString();
 
-        @Test
-        @DisplayName("Should verify phone number successfully")
-        @WithMockUser
-        void shouldVerifyPhoneNumberSuccessfully() throws Exception {
-            // Given
-            when(authService.verifyPhoneNumber("010-1234-5678", "123456")).thenReturn(true);
+            Thread.sleep(10); // Ensure different timestamp
 
-            // When & Then
-            mockMvc.perform(post("/api/auth/verify/confirm")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"phoneNumber\": \"010-1234-5678\", \"code\": \"123456\"}"))
+            String response2 = mockMvc.perform(post("/api/auth/guest"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.verified").value(true));
-        }
+                    .andReturn().getResponse().getContentAsString();
 
-        @Test
-        @DisplayName("Should return 400 for invalid verification code")
-        @WithMockUser
-        void shouldReturn400ForInvalidCode() throws Exception {
-            // Given
-            when(authService.verifyPhoneNumber("010-1234-5678", "wrong")).thenReturn(false);
+            // Parse and compare usernames
+            var mapper = new ObjectMapper();
+            var json1 = mapper.readTree(response1);
+            var json2 = mapper.readTree(response2);
 
-            // When & Then
-            mockMvc.perform(post("/api/auth/verify/confirm")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"phoneNumber\": \"010-1234-5678\", \"code\": \"wrong\"}"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.verified").value(false));
+            Assertions.assertNotEquals(
+                json1.get("user").get("username").asText(),
+                json2.get("user").get("username").asText()
+            );
         }
     }
 
@@ -313,59 +251,51 @@ class AuthControllerTest {
     @DisplayName("Email Verification Endpoint Tests")
     class EmailVerificationTests {
 
-        @Test
-        @DisplayName("Should verify email successfully")
-        @WithMockUser
-        void shouldVerifyEmailSuccessfully() throws Exception {
-            // Given
-            AuthResponse response = AuthResponse.builder()
-                    .token("jwt-token")
-                    .username("testuser")
-                    .emailVerified(true)
-                    .build();
-
-            when(authService.verifyEmail("test@example.com", "123456")).thenReturn(response);
-
-            // When & Then
-            mockMvc.perform(post("/api/auth/email/verify")
-                            .with(csrf())
+        @BeforeEach
+        void registerUser() throws Exception {
+            mockMvc.perform(post("/api/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"email\": \"test@example.com\", \"code\": \"123456\"}"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.emailVerified").value(true));
+                            .content(objectMapper.writeValueAsString(validRequest)));
         }
 
         @Test
-        @DisplayName("Should return 400 for invalid email code")
-        @WithMockUser
-        void shouldReturn400ForInvalidEmailCode() throws Exception {
-            // Given
-            when(authService.verifyEmail("test@example.com", "wrong"))
-                    .thenThrow(new RuntimeException("Invalid verification code"));
+        @DisplayName("Should verify email with correct code")
+        void shouldVerifyEmailSuccessfully() throws Exception {
+            UserEntity user = userRepository.findByEmail("test@example.com").orElseThrow();
+            String code = user.getVerificationCode();
 
-            // When & Then
             mockMvc.perform(post("/api/auth/email/verify")
-                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"email\": \"test@example.com\", \"code\": \"wrong\"}"))
+                            .content("{\"email\": \"test@example.com\", \"code\": \"" + code + "\"}"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.emailVerified").value(true))
+                    .andExpect(jsonPath("$.token").exists());
+
+            // Verify user is now active
+            UserEntity verifiedUser = userRepository.findByEmail("test@example.com").orElseThrow();
+            Assertions.assertTrue(verifiedUser.getIsActive());
+        }
+
+        @Test
+        @DisplayName("Should return 400 for invalid verification code")
+        void shouldReturn400ForInvalidCode() throws Exception {
+            mockMvc.perform(post("/api/auth/email/verify")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"email\": \"test@example.com\", \"code\": \"wrongcode\"}"))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.error").value("Invalid verification code"));
         }
 
         @Test
         @DisplayName("Should resend verification email")
-        @WithMockUser
         void shouldResendVerificationEmail() throws Exception {
-            // Given
-            doNothing().when(authService).resendVerificationEmail("test@example.com");
-
-            // When & Then
             mockMvc.perform(post("/api/auth/email/resend")
-                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"email\": \"test@example.com\"}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value("Verification code sent"));
+
+            verify(emailService, times(2)).sendVerificationEmail(eq("test@example.com"), anyString());
         }
     }
 }
