@@ -20,24 +20,49 @@ public class MessageService {
     @Autowired
     private MessageReadReceiptRepository readReceiptRepository;
 
+    @Autowired
+    private MessageEncryptionService encryptionService;
+
     private static final int DEFAULT_PAGE_SIZE = 100;
     private static final int MAX_PAGE_SIZE = 500;
 
     public MessageEntity saveMessage(ChatMessage chatMessage) {
+        String content = chatMessage.getContent();
+        boolean isEncrypted = false;
+
+        // 암호화 활성화 시 메시지 암호화
+        if (encryptionService.isEncryptionEnabled() && content != null) {
+            content = encryptionService.encryptRoomMessage(content, chatMessage.getRoomId());
+            isEncrypted = true;
+        }
+
         MessageEntity entity = new MessageEntity(
             chatMessage.getSender(),
-            chatMessage.getContent(),
+            content,
             chatMessage.getRoomId(),
             chatMessage.getType() != null ? chatMessage.getType() : "message"
         );
 
         entity.setSecurityType(chatMessage.getSecurityType());
+        entity.setIsEncrypted(isEncrypted);
 
         return messageRepository.save(entity);
     }
 
     public List<MessageEntity> getRecentMessages(String roomId) {
-        return messageRepository.findTop50ByRoomIdOrderByTimestampDesc(roomId);
+        List<MessageEntity> messages = messageRepository.findTop50ByRoomIdOrderByTimestampDesc(roomId);
+        return decryptMessages(messages, roomId);
+    }
+
+    private List<MessageEntity> decryptMessages(List<MessageEntity> messages, String roomId) {
+        for (MessageEntity msg : messages) {
+            if (Boolean.TRUE.equals(msg.getIsEncrypted())) {
+                String decrypted = encryptionService.decryptRoomMessage(
+                    msg.getContent(), roomId, true);
+                msg.setContent(decrypted);
+            }
+        }
+        return messages;
     }
 
     /**
@@ -46,7 +71,8 @@ public class MessageService {
      */
     @Deprecated
     public List<MessageEntity> getAllRoomMessages(String roomId) {
-        return messageRepository.findByRoomIdOrderByTimestampAsc(roomId);
+        List<MessageEntity> messages = messageRepository.findByRoomIdOrderByTimestampAsc(roomId);
+        return decryptMessages(messages, roomId);
     }
 
     /**
@@ -55,7 +81,10 @@ public class MessageService {
     public Page<MessageEntity> getAllRoomMessages(String roomId, int page, int size) {
         int pageSize = Math.min(size, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, pageSize);
-        return messageRepository.findByRoomIdOrderByTimestampAsc(roomId, pageable);
+        Page<MessageEntity> messagePage = messageRepository.findByRoomIdOrderByTimestampAsc(roomId, pageable);
+        // Page 내용 복호화
+        decryptMessages(messagePage.getContent(), roomId);
+        return messagePage;
     }
 
     /**

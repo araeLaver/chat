@@ -35,6 +35,9 @@ class RoomServiceTest {
     private UserRepository userRepository;
 
     @Mock
+    private MessageEncryptionService encryptionService;
+
+    @Mock
     private CacheManager cacheManager;
 
     @InjectMocks

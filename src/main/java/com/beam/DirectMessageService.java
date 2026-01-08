@@ -20,6 +20,9 @@ public class DirectMessageService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private MessageEncryptionService encryptionService;
+
     @Transactional
     public DirectMessageEntity sendMessage(Long senderId, Long receiverId, String content) {
         UserEntity sender = userRepository.findById(senderId)
@@ -33,19 +36,33 @@ public class DirectMessageService {
             .findByConversationId(conversationId)
             .orElseGet(() -> createConversation(senderId, receiverId, conversationId));
 
+        // 암호화 적용
+        String messageContent = content;
+        boolean isEncrypted = false;
+        if (encryptionService.isEncryptionEnabled() && content != null) {
+            messageContent = encryptionService.encryptDirectMessage(content, conversationId);
+            isEncrypted = true;
+        }
+
         DirectMessageEntity message = DirectMessageEntity.builder()
             .conversationId(conversationId)
             .senderId(senderId)
             .receiverId(receiverId)
-            .content(content)
+            .content(messageContent)
             .messageType(DirectMessageEntity.MessageType.TEXT)
             .timestamp(LocalDateTime.now())
             .isRead(false)
+            .isEncrypted(isEncrypted)
+            .securityType(MessageSecurityType.NORMAL)
             .build();
 
         message = directMessageRepository.save(message);
 
-        conversation.setLastMessage(content);
+        // 대화 미리보기는 원본 저장 (UI 표시용)
+        String preview = content != null && content.length() > 50
+            ? content.substring(0, 50) + "..."
+            : content;
+        conversation.setLastMessage(preview);
         conversation.setLastMessageTime(message.getTimestamp());
         conversation.setLastMessageSenderId(senderId);
         conversation.incrementUnreadCount(receiverId);
@@ -59,9 +76,22 @@ public class DirectMessageService {
         List<DirectMessageEntity> messages = directMessageRepository
             .findByConversationIdOrderByTimestampAsc(conversationId);
 
+        // 메시지 복호화
+        decryptMessages(messages, conversationId);
+
         markMessagesAsRead(conversationId, userId);
 
         return messages;
+    }
+
+    private void decryptMessages(List<DirectMessageEntity> messages, String conversationId) {
+        for (DirectMessageEntity msg : messages) {
+            if (Boolean.TRUE.equals(msg.getIsEncrypted())) {
+                String decrypted = encryptionService.decryptDirectMessage(
+                    msg.getContent(), conversationId, true);
+                msg.setContent(decrypted);
+            }
+        }
     }
 
     @Transactional

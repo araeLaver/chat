@@ -38,7 +38,10 @@ public class MessageEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "security_type", nullable = false, length = 20)
     private MessageSecurityType securityType = MessageSecurityType.NORMAL;
-    
+
+    @Column(name = "is_encrypted", nullable = false)
+    private Boolean isEncrypted = false;
+
     @Column(name = "file_url", length = 500)
     private String fileUrl;
     
@@ -118,6 +121,14 @@ public class MessageEntity {
 
     public void setSecurityType(MessageSecurityType securityType) {
         this.securityType = securityType;
+    }
+
+    public Boolean getIsEncrypted() {
+        return isEncrypted;
+    }
+
+    public void setIsEncrypted(Boolean isEncrypted) {
+        this.isEncrypted = isEncrypted;
     }
 
     public Long getUserId() {

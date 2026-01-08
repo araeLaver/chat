@@ -42,6 +42,13 @@ public class GroupMessageEntity {
     @Column
     private LocalDateTime deletedAt;
 
+    @Column(name = "is_encrypted", nullable = false)
+    private Boolean isEncrypted = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "security_type", nullable = false, length = 20)
+    private MessageSecurityType securityType = MessageSecurityType.NORMAL;
+
     public enum MessageType {
         TEXT,
         IMAGE,
@@ -171,6 +178,22 @@ public class GroupMessageEntity {
         this.deletedAt = deletedAt;
     }
 
+    public Boolean getIsEncrypted() {
+        return isEncrypted;
+    }
+
+    public void setIsEncrypted(Boolean isEncrypted) {
+        this.isEncrypted = isEncrypted;
+    }
+
+    public MessageSecurityType getSecurityType() {
+        return securityType;
+    }
+
+    public void setSecurityType(MessageSecurityType securityType) {
+        this.securityType = securityType;
+    }
+
     // Builder
     public static Builder builder() {
         return new Builder();
@@ -187,6 +210,8 @@ public class GroupMessageEntity {
         private Integer readCount = 0;
         private Boolean isDeleted = false;
         private LocalDateTime deletedAt;
+        private Boolean isEncrypted = false;
+        private MessageSecurityType securityType = MessageSecurityType.NORMAL;
 
         public Builder id(Long id) {
             this.id = id;
@@ -238,6 +263,16 @@ public class GroupMessageEntity {
             return this;
         }
 
+        public Builder isEncrypted(Boolean isEncrypted) {
+            this.isEncrypted = isEncrypted;
+            return this;
+        }
+
+        public Builder securityType(MessageSecurityType securityType) {
+            this.securityType = securityType;
+            return this;
+        }
+
         public GroupMessageEntity build() {
             GroupMessageEntity entity = new GroupMessageEntity();
             entity.id = this.id;
@@ -250,6 +285,8 @@ public class GroupMessageEntity {
             entity.readCount = this.readCount;
             entity.isDeleted = this.isDeleted;
             entity.deletedAt = this.deletedAt;
+            entity.isEncrypted = this.isEncrypted;
+            entity.securityType = this.securityType;
             return entity;
         }
     }

@@ -30,6 +30,9 @@ class DirectMessageServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private MessageEncryptionService encryptionService;
+
     @InjectMocks
     private DirectMessageService directMessageService;
 

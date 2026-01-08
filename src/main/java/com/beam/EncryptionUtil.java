@@ -92,4 +92,47 @@ public class EncryptionUtil {
             throw new RuntimeException("방 키 생성 실패", e);
         }
     }
+
+    /**
+     * DM 대화용 키 파생
+     */
+    public static String deriveConversationKey(String masterKey, String conversationId) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            String input = masterKey + ":dm:" + conversationId;
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (Exception e) {
+            throw new RuntimeException("대화 키 파생 실패", e);
+        }
+    }
+
+    /**
+     * 그룹 메시지용 키 파생
+     */
+    public static String deriveGroupRoomKey(String masterKey, Long roomId) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            String input = masterKey + ":group:" + roomId;
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (Exception e) {
+            throw new RuntimeException("그룹 룸 키 파생 실패", e);
+        }
+    }
+
+    /**
+     * 안전한 복호화 (실패 시 원본 반환 - 하위 호환성)
+     */
+    public static String decryptSafe(String encryptedText, String keyString) {
+        if (encryptedText == null || encryptedText.isEmpty()) {
+            return encryptedText;
+        }
+        try {
+            return decrypt(encryptedText, keyString);
+        } catch (Exception e) {
+            // 복호화 실패 시 원본 반환 (암호화되지 않은 레거시 메시지)
+            return encryptedText;
+        }
+    }
 }

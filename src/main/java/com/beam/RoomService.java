@@ -35,6 +35,9 @@ public class RoomService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private MessageEncryptionService encryptionService;
+
     @Autowired(required = false)
     private CacheManager cacheManager;
 
@@ -260,18 +263,32 @@ public class RoomService {
             }
         }
 
+        // 암호화 적용
+        String messageContent = content;
+        boolean isEncrypted = false;
+        if (encryptionService.isEncryptionEnabled() && content != null) {
+            messageContent = encryptionService.encryptGroupMessage(content, roomId);
+            isEncrypted = true;
+        }
+
         GroupMessageEntity message = GroupMessageEntity.builder()
             .roomId(roomId)
             .senderId(senderId)
-            .content(content)
+            .content(messageContent)
             .messageType(messageType != null ? messageType : GroupMessageEntity.MessageType.TEXT)
             .timestamp(LocalDateTime.now())
             .readCount(0)
+            .isEncrypted(isEncrypted)
+            .securityType(MessageSecurityType.NORMAL)
             .build();
 
         message = groupMessageRepository.save(message);
 
-        room.setLastMessage(content);
+        // 미리보기는 원본 저장 (UI 표시용)
+        String preview = content != null && content.length() > 50
+            ? content.substring(0, 50) + "..."
+            : content;
+        room.setLastMessage(preview);
         room.setLastMessageTime(message.getTimestamp());
         room.setLastMessageSenderId(senderId);
         roomRepository.save(room);
@@ -293,7 +310,23 @@ public class RoomService {
         roomMemberRepository.findByRoomIdAndUserIdAndIsActiveTrue(roomId, userId)
             .orElseThrow(() -> new RuntimeException("Not a member of this room"));
 
-        return groupMessageRepository.findTop100ByRoomIdAndIsDeletedFalseOrderByTimestampDesc(roomId);
+        List<GroupMessageEntity> messages = groupMessageRepository
+            .findTop100ByRoomIdAndIsDeletedFalseOrderByTimestampDesc(roomId);
+
+        // 메시지 복호화
+        decryptGroupMessages(messages, roomId);
+
+        return messages;
+    }
+
+    private void decryptGroupMessages(List<GroupMessageEntity> messages, Long roomId) {
+        for (GroupMessageEntity msg : messages) {
+            if (Boolean.TRUE.equals(msg.getIsEncrypted())) {
+                String decrypted = encryptionService.decryptGroupMessage(
+                    msg.getContent(), roomId, true);
+                msg.setContent(decrypted);
+            }
+        }
     }
 
     @Transactional

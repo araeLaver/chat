@@ -1,7 +1,9 @@
 package com.beam;
 
 public enum MessageSecurityType {
-    NORMAL("일반");
+    NORMAL("일반"),
+    SECRET("비밀"),
+    VOLATILE("휘발성");
 
     private final String displayName;
 
@@ -11,5 +13,9 @@ public enum MessageSecurityType {
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    public boolean requiresEncryption() {
+        return this == SECRET;
     }
 }
