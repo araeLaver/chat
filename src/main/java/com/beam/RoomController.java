@@ -1,6 +1,8 @@
 package com.beam;
 
 import com.beam.dto.*;
+import com.beam.util.AuthUtil;
+import com.beam.util.ResponseHelper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -47,8 +49,7 @@ public class RoomController {
     public ResponseEntity<?> createRoom(
             @RequestHeader("Authorization") String token,
             @Valid @RequestBody CreateRoomRequest request) {
-        String jwtToken = token.replace("Bearer ", "");
-        Long userId = jwtUtil.getUserIdFromToken(jwtToken);
+        Long userId = AuthUtil.extractUserId(token, jwtUtil);
 
         RoomEntity.RoomType roomType = RoomEntity.RoomType.valueOf(request.getRoomType());
 
@@ -60,14 +61,12 @@ public class RoomController {
             request.getMaxMembers()
         );
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("roomId", room.getId());
-        response.put("roomName", room.getRoomName());
-        response.put("roomType", room.getRoomType().toString());
-        response.put("message", "방이 생성되었습니다");
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ResponseHelper.builder()
+            .message("방이 생성되었습니다")
+            .put("roomId", room.getId())
+            .put("roomName", room.getRoomName())
+            .put("roomType", room.getRoomType().toString())
+            .build());
     }
 
 
@@ -81,8 +80,7 @@ public class RoomController {
             @RequestHeader("Authorization") String token,
             @Parameter(description = "채팅방 ID") @PathVariable Long roomId,
             @Valid @RequestBody UpdateRoomRequest request) {
-        String jwtToken = token.replace("Bearer ", "");
-        Long userId = jwtUtil.getUserIdFromToken(jwtToken);
+        Long userId = AuthUtil.extractUserId(token, jwtUtil);
 
         RoomEntity room = roomService.updateRoom(
             roomId,
@@ -92,13 +90,11 @@ public class RoomController {
             request.getMaxMembers()
         );
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("roomId", room.getId());
-        response.put("roomName", room.getRoomName());
-        response.put("message", "Room updated successfully");
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ResponseHelper.builder()
+            .message("Room updated successfully")
+            .put("roomId", room.getId())
+            .put("roomName", room.getRoomName())
+            .build());
     }
 
     @Operation(summary = "채팅방 삭제", description = "채팅방을 삭제합니다 (방장만 가능)")
@@ -107,20 +103,11 @@ public class RoomController {
             @RequestHeader("Authorization") String token,
             @Parameter(description = "채팅방 ID") @PathVariable Long roomId) {
         try {
-            String jwtToken = token.replace("Bearer ", "");
-            Long userId = jwtUtil.getUserIdFromToken(jwtToken);
-
+            Long userId = AuthUtil.extractUserId(token, jwtUtil);
             roomService.deleteRoom(roomId, userId);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Room deleted successfully");
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseHelper.success("Room deleted successfully"));
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
@@ -130,16 +117,9 @@ public class RoomController {
             @RequestHeader("Authorization") String token,
             @Parameter(description = "채팅방 ID") @PathVariable Long roomId,
             @Valid @RequestBody AddMemberRequest request) {
-        String jwtToken = token.replace("Bearer ", "");
-        Long inviterId = jwtUtil.getUserIdFromToken(jwtToken);
-
+        Long inviterId = AuthUtil.extractUserId(token, jwtUtil);
         roomService.addMember(roomId, request.getUserId(), inviterId);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("message", "Member added successfully");
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ResponseHelper.success("Member added successfully"));
     }
 
     @Operation(summary = "멤버 제거", description = "채팅방에서 멤버를 강제 퇴장시킵니다 (관리자/방장만 가능)")
@@ -149,20 +129,11 @@ public class RoomController {
             @Parameter(description = "채팅방 ID") @PathVariable Long roomId,
             @Parameter(description = "제거할 사용자 ID") @PathVariable Long userId) {
         try {
-            String jwtToken = token.replace("Bearer ", "");
-            Long removerId = jwtUtil.getUserIdFromToken(jwtToken);
-
+            Long removerId = AuthUtil.extractUserId(token, jwtUtil);
             roomService.removeMember(roomId, userId, removerId);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Member removed successfully");
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseHelper.success("Member removed successfully"));
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
@@ -172,20 +143,11 @@ public class RoomController {
             @RequestHeader("Authorization") String token,
             @Parameter(description = "채팅방 ID") @PathVariable Long roomId) {
         try {
-            String jwtToken = token.replace("Bearer ", "");
-            Long userId = jwtUtil.getUserIdFromToken(jwtToken);
-
+            Long userId = AuthUtil.extractUserId(token, jwtUtil);
             roomService.leaveRoom(roomId, userId);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Left room successfully");
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseHelper.success("Left room successfully"));
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
@@ -195,20 +157,17 @@ public class RoomController {
             @RequestHeader("Authorization") String token,
             @Parameter(description = "채팅방 ID") @PathVariable Long roomId,
             @Valid @RequestBody SendMessageRequest request) {
-        String jwtToken = token.replace("Bearer ", "");
-        Long userId = jwtUtil.getUserIdFromToken(jwtToken);
+        Long userId = AuthUtil.extractUserId(token, jwtUtil);
 
         GroupMessageEntity.MessageType messageType = GroupMessageEntity.MessageType.valueOf(request.getMessageType());
 
         GroupMessageEntity message = roomService.sendMessage(roomId, userId, request.getContent(), messageType);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("messageId", message.getId());
-        response.put("content", message.getContent());
-        response.put("timestamp", message.getTimestamp().toString());
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ResponseHelper.builder()
+            .put("messageId", message.getId())
+            .put("content", message.getContent())
+            .put("timestamp", message.getTimestamp().toString())
+            .build());
     }
 
     @Operation(summary = "메시지 조회", description = "채팅방의 최근 메시지 100개를 조회합니다")
@@ -217,8 +176,7 @@ public class RoomController {
             @RequestHeader("Authorization") String token,
             @Parameter(description = "채팅방 ID") @PathVariable Long roomId) {
         try {
-            String jwtToken = token.replace("Bearer ", "");
-            Long userId = jwtUtil.getUserIdFromToken(jwtToken);
+            Long userId = AuthUtil.extractUserId(token, jwtUtil);
 
             List<GroupMessageEntity> messages = roomService.getRoomMessages(roomId, userId);
 
@@ -242,9 +200,7 @@ public class RoomController {
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
@@ -254,20 +210,11 @@ public class RoomController {
             @RequestHeader("Authorization") String token,
             @Parameter(description = "채팅방 ID") @PathVariable Long roomId) {
         try {
-            String jwtToken = token.replace("Bearer ", "");
-            Long userId = jwtUtil.getUserIdFromToken(jwtToken);
-
+            Long userId = AuthUtil.extractUserId(token, jwtUtil);
             roomService.markAsRead(roomId, userId);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Messages marked as read");
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseHelper.success("Messages marked as read"));
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
@@ -275,8 +222,7 @@ public class RoomController {
     @GetMapping("/my-rooms")
     public ResponseEntity<?> getMyRooms(@RequestHeader("Authorization") String token) {
         try {
-            String jwtToken = token.replace("Bearer ", "");
-            Long userId = jwtUtil.getUserIdFromToken(jwtToken);
+            Long userId = AuthUtil.extractUserId(token, jwtUtil);
 
             List<RoomEntity> rooms = roomService.getUserRooms(userId);
 
@@ -302,9 +248,7 @@ public class RoomController {
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
@@ -314,8 +258,7 @@ public class RoomController {
             @RequestHeader("Authorization") String token,
             @Parameter(description = "채팅방 ID") @PathVariable Long roomId) {
         try {
-            String jwtToken = token.replace("Bearer ", "");
-            Long userId = jwtUtil.getUserIdFromToken(jwtToken);
+            Long userId = AuthUtil.extractUserId(token, jwtUtil);
 
             List<RoomMemberEntity> members = roomService.getRoomMembers(roomId, userId);
 
@@ -335,9 +278,7 @@ public class RoomController {
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
@@ -363,9 +304,7 @@ public class RoomController {
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 }

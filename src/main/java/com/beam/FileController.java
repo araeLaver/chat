@@ -1,5 +1,8 @@
 package com.beam;
 
+import com.beam.util.AuthUtil;
+import com.beam.util.FileMetadataMapper;
+import com.beam.util.ResponseHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -35,26 +38,11 @@ public class FileController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("conversationId") String conversationId) {
         try {
-            String jwtToken = token.replace("Bearer ", "");
-            Long userId = jwtUtil.getUserIdFromToken(jwtToken);
-
+            Long userId = AuthUtil.extractUserId(token, jwtUtil);
             FileMetadataEntity metadata = fileStorageService.storeFile(file, userId, conversationId, null);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("fileId", metadata.getId());
-            response.put("fileName", metadata.getFileName());
-            response.put("fileSize", metadata.getFileSize());
-            response.put("fileType", metadata.getFileType());
-            response.put("category", metadata.getCategory().toString());
-            response.put("hasThumbnail", metadata.getThumbnailPath() != null);
-            response.put("message", "File uploaded successfully");
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(FileMetadataMapper.toUploadResponse(metadata));
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
@@ -64,26 +52,11 @@ public class FileController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("roomId") Long roomId) {
         try {
-            String jwtToken = token.replace("Bearer ", "");
-            Long userId = jwtUtil.getUserIdFromToken(jwtToken);
-
+            Long userId = AuthUtil.extractUserId(token, jwtUtil);
             FileMetadataEntity metadata = fileStorageService.storeFile(file, userId, null, roomId);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("fileId", metadata.getId());
-            response.put("fileName", metadata.getFileName());
-            response.put("fileSize", metadata.getFileSize());
-            response.put("fileType", metadata.getFileType());
-            response.put("category", metadata.getCategory().toString());
-            response.put("hasThumbnail", metadata.getThumbnailPath() != null);
-            response.put("message", "File uploaded successfully");
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(FileMetadataMapper.toUploadResponse(metadata));
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
@@ -97,17 +70,7 @@ public class FileController {
                 .orElseThrow(() -> new RuntimeException("File not found"));
 
             Resource resource = fileStorageService.loadFileAsResource(fileId);
-
-            String contentType = null;
-            try {
-                contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
-            } catch (IOException ex) {
-                contentType = "application/octet-stream";
-            }
-
-            if (contentType == null) {
-                contentType = "application/octet-stream";
-            }
+            String contentType = determineContentType(resource, request);
 
             return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
@@ -124,7 +87,6 @@ public class FileController {
             @PathVariable Long fileId) {
         try {
             Resource resource = fileStorageService.loadThumbnailAsResource(fileId);
-
             return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(resource);
@@ -141,29 +103,13 @@ public class FileController {
             List<FileMetadataEntity> files = fileMetadataRepository
                 .findByConversationIdAndIsDeletedFalseOrderByUploadedAtDesc(conversationId);
 
-            List<Map<String, Object>> result = files.stream().map(file -> {
-                Optional<UserEntity> uploaderOpt = userRepository.findById(file.getUploaderId());
-
-                Map<String, Object> fileMap = new HashMap<>();
-                fileMap.put("fileId", file.getId());
-                fileMap.put("fileName", file.getFileName());
-                fileMap.put("fileSize", file.getFileSize());
-                fileMap.put("fileType", file.getFileType());
-                fileMap.put("category", file.getCategory().toString());
-                fileMap.put("uploaderId", file.getUploaderId());
-                fileMap.put("uploaderName", uploaderOpt.map(UserEntity::getDisplayName).orElse("Unknown"));
-                fileMap.put("uploadedAt", file.getUploadedAt().toString());
-                fileMap.put("downloadCount", file.getDownloadCount());
-                fileMap.put("hasThumbnail", file.getThumbnailPath() != null);
-
-                return fileMap;
-            }).collect(Collectors.toList());
+            List<Map<String, Object>> result = files.stream()
+                .map(file -> buildFileListItem(file))
+                .collect(Collectors.toList());
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
@@ -175,58 +121,29 @@ public class FileController {
             List<FileMetadataEntity> files = fileMetadataRepository
                 .findByRoomIdAndIsDeletedFalseOrderByUploadedAtDesc(roomId);
 
-            List<Map<String, Object>> result = files.stream().map(file -> {
-                Optional<UserEntity> uploaderOpt = userRepository.findById(file.getUploaderId());
-
-                Map<String, Object> fileMap = new HashMap<>();
-                fileMap.put("fileId", file.getId());
-                fileMap.put("fileName", file.getFileName());
-                fileMap.put("fileSize", file.getFileSize());
-                fileMap.put("fileType", file.getFileType());
-                fileMap.put("category", file.getCategory().toString());
-                fileMap.put("uploaderId", file.getUploaderId());
-                fileMap.put("uploaderName", uploaderOpt.map(UserEntity::getDisplayName).orElse("Unknown"));
-                fileMap.put("uploadedAt", file.getUploadedAt().toString());
-                fileMap.put("downloadCount", file.getDownloadCount());
-                fileMap.put("hasThumbnail", file.getThumbnailPath() != null);
-
-                return fileMap;
-            }).collect(Collectors.toList());
+            List<Map<String, Object>> result = files.stream()
+                .map(file -> buildFileListItem(file))
+                .collect(Collectors.toList());
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
     @GetMapping("/my-files")
     public ResponseEntity<?> getMyFiles(@RequestHeader("Authorization") String token) {
         try {
-            String jwtToken = token.replace("Bearer ", "");
-            Long userId = jwtUtil.getUserIdFromToken(jwtToken);
+            Long userId = AuthUtil.extractUserId(token, jwtUtil);
 
             List<FileMetadataEntity> files = fileMetadataRepository
                 .findByUploaderIdAndIsDeletedFalseOrderByUploadedAtDesc(userId);
 
             Long totalSize = fileMetadataRepository.getTotalFileSizeByUser(userId);
 
-            List<Map<String, Object>> fileList = files.stream().map(file -> {
-                Map<String, Object> fileMap = new HashMap<>();
-                fileMap.put("fileId", file.getId());
-                fileMap.put("fileName", file.getFileName());
-                fileMap.put("fileSize", file.getFileSize());
-                fileMap.put("fileType", file.getFileType());
-                fileMap.put("category", file.getCategory().toString());
-                fileMap.put("uploadedAt", file.getUploadedAt().toString());
-                fileMap.put("downloadCount", file.getDownloadCount());
-                fileMap.put("conversationId", file.getConversationId());
-                fileMap.put("roomId", file.getRoomId());
-                fileMap.put("hasThumbnail", file.getThumbnailPath() != null);
-
-                return fileMap;
-            }).collect(Collectors.toList());
+            List<Map<String, Object>> fileList = files.stream()
+                .map(file -> buildMyFileListItem(file))
+                .collect(Collectors.toList());
 
             Map<String, Object> response = new HashMap<>();
             response.put("files", fileList);
@@ -235,9 +152,7 @@ public class FileController {
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
@@ -246,20 +161,11 @@ public class FileController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long fileId) {
         try {
-            String jwtToken = token.replace("Bearer ", "");
-            Long userId = jwtUtil.getUserIdFromToken(jwtToken);
-
+            Long userId = AuthUtil.extractUserId(token, jwtUtil);
             fileStorageService.deleteFile(fileId, userId);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "File deleted successfully");
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseHelper.success("File deleted successfully"));
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
@@ -271,27 +177,57 @@ public class FileController {
             FileMetadataEntity file = fileMetadataRepository.findByIdAndIsDeletedFalse(fileId)
                 .orElseThrow(() -> new RuntimeException("File not found"));
 
-            Optional<UserEntity> uploaderOpt = userRepository.findById(file.getUploaderId());
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("fileId", file.getId());
-            response.put("fileName", file.getFileName());
-            response.put("fileSize", file.getFileSize());
-            response.put("fileType", file.getFileType());
-            response.put("category", file.getCategory().toString());
-            response.put("uploaderId", file.getUploaderId());
-            response.put("uploaderName", uploaderOpt.map(UserEntity::getDisplayName).orElse("Unknown"));
-            response.put("uploadedAt", file.getUploadedAt().toString());
-            response.put("downloadCount", file.getDownloadCount());
+            Map<String, Object> response = buildFileListItem(file);
             response.put("conversationId", file.getConversationId());
             response.put("roomId", file.getRoomId());
-            response.put("hasThumbnail", file.getThumbnailPath() != null);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
+    }
+
+    // Helper methods
+    private String determineContentType(Resource resource, HttpServletRequest request) {
+        try {
+            String contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+            return contentType != null ? contentType : "application/octet-stream";
+        } catch (IOException ex) {
+            return "application/octet-stream";
+        }
+    }
+
+    private Map<String, Object> buildFileListItem(FileMetadataEntity file) {
+        Optional<UserEntity> uploaderOpt = userRepository.findById(file.getUploaderId());
+
+        Map<String, Object> fileMap = new HashMap<>();
+        fileMap.put("fileId", file.getId());
+        fileMap.put("fileName", file.getFileName());
+        fileMap.put("fileSize", file.getFileSize());
+        fileMap.put("fileType", file.getFileType());
+        fileMap.put("category", file.getCategory().toString());
+        fileMap.put("uploaderId", file.getUploaderId());
+        fileMap.put("uploaderName", uploaderOpt.map(UserEntity::getDisplayName).orElse("Unknown"));
+        fileMap.put("uploadedAt", file.getUploadedAt().toString());
+        fileMap.put("downloadCount", file.getDownloadCount());
+        fileMap.put("hasThumbnail", file.getThumbnailPath() != null);
+
+        return fileMap;
+    }
+
+    private Map<String, Object> buildMyFileListItem(FileMetadataEntity file) {
+        Map<String, Object> fileMap = new HashMap<>();
+        fileMap.put("fileId", file.getId());
+        fileMap.put("fileName", file.getFileName());
+        fileMap.put("fileSize", file.getFileSize());
+        fileMap.put("fileType", file.getFileType());
+        fileMap.put("category", file.getCategory().toString());
+        fileMap.put("uploadedAt", file.getUploadedAt().toString());
+        fileMap.put("downloadCount", file.getDownloadCount());
+        fileMap.put("conversationId", file.getConversationId());
+        fileMap.put("roomId", file.getRoomId());
+        fileMap.put("hasThumbnail", file.getThumbnailPath() != null);
+
+        return fileMap;
     }
 }

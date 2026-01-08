@@ -1,5 +1,7 @@
 package com.beam;
 
+import com.beam.util.AuthUtil;
+import com.beam.util.ResponseHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,33 +27,27 @@ public class DirectMessageController {
             @RequestHeader("Authorization") String token,
             @RequestBody Map<String, Object> request) {
         try {
-            String jwtToken = token.replace("Bearer ", "");
-            Long senderId = jwtUtil.getUserIdFromToken(jwtToken);
+            Long senderId = AuthUtil.extractUserId(token, jwtUtil);
             Long receiverId = Long.valueOf(request.get("receiverId").toString());
             String content = request.get("content").toString();
 
             DirectMessageEntity message = directMessageService.sendMessage(senderId, receiverId, content);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("messageId", message.getId());
-            response.put("conversationId", message.getConversationId());
-            response.put("content", message.getContent());
-            response.put("timestamp", message.getTimestamp().toString());
-            response.put("success", true);
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseHelper.builder()
+                .put("messageId", message.getId())
+                .put("conversationId", message.getConversationId())
+                .put("content", message.getContent())
+                .put("timestamp", message.getTimestamp().toString())
+                .build());
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
     @GetMapping("/conversations")
     public ResponseEntity<?> getConversations(@RequestHeader("Authorization") String token) {
         try {
-            String jwtToken = token.replace("Bearer ", "");
-            Long userId = jwtUtil.getUserIdFromToken(jwtToken);
+            Long userId = AuthUtil.extractUserId(token, jwtUtil);
 
             List<ConversationEntity> conversations = directMessageService.getUserConversations(userId);
 
@@ -73,9 +69,7 @@ public class DirectMessageController {
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
@@ -84,8 +78,7 @@ public class DirectMessageController {
             @RequestHeader("Authorization") String token,
             @PathVariable String conversationId) {
         try {
-            String jwtToken = token.replace("Bearer ", "");
-            Long userId = jwtUtil.getUserIdFromToken(jwtToken);
+            Long userId = AuthUtil.extractUserId(token, jwtUtil);
 
             List<DirectMessageEntity> messages = directMessageService.getConversationMessages(conversationId, userId);
 
@@ -105,9 +98,7 @@ public class DirectMessageController {
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
@@ -116,25 +107,20 @@ public class DirectMessageController {
             @RequestHeader("Authorization") String token,
             @RequestBody Map<String, Object> request) {
         try {
-            String jwtToken = token.replace("Bearer ", "");
-            Long userId = jwtUtil.getUserIdFromToken(jwtToken);
+            Long userId = AuthUtil.extractUserId(token, jwtUtil);
             Long otherUserId = Long.valueOf(request.get("userId").toString());
 
             ConversationEntity conversation = directMessageService.getOrCreateConversation(userId, otherUserId);
 
             Optional<UserEntity> otherUser = userRepository.findById(otherUserId);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("conversationId", conversation.getConversationId());
-            response.put("otherUserId", otherUserId);
-            response.put("otherUserName", otherUser.map(UserEntity::getDisplayName).orElse("Unknown"));
-            response.put("success", true);
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseHelper.builder()
+                .put("conversationId", conversation.getConversationId())
+                .put("otherUserId", otherUserId)
+                .put("otherUserName", otherUser.map(UserEntity::getDisplayName).orElse("Unknown"))
+                .build());
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 
@@ -143,20 +129,11 @@ public class DirectMessageController {
             @RequestHeader("Authorization") String token,
             @PathVariable String conversationId) {
         try {
-            String jwtToken = token.replace("Bearer ", "");
-            Long userId = jwtUtil.getUserIdFromToken(jwtToken);
-
+            Long userId = AuthUtil.extractUserId(token, jwtUtil);
             directMessageService.markMessagesAsRead(conversationId, userId);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Messages marked as read");
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseHelper.success("Messages marked as read"));
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.errorFromException(e));
         }
     }
 }

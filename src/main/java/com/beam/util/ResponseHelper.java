@@ -45,6 +45,15 @@ public final class ResponseHelper {
         return response;
     }
 
+    /**
+     * Exception에서 에러 응답 생성
+     */
+    public static Map<String, Object> errorFromException(Exception e) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", e.getMessage());
+        return response;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
