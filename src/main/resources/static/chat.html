@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -44,7 +44,7 @@
                         <circle cx="11" cy="11" r="8"/>
                         <path d="M21 21l-4.35-4.35"/>
                     </svg>
-                    <input type="text" placeholder="Search conversations..." id="searchInput">
+                    <input type="text" data-i18n-placeholder="chat.searchConversations" placeholder="Search conversations..." id="searchInput">
                 </div>
             </div>
 
@@ -54,7 +54,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
                     </svg>
-                    <span>Chats</span>
+                    <span data-i18n="chat.chats">Chats</span>
                 </button>
                 <button class="tab-btn" data-tab="friends">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -62,14 +62,14 @@
                         <circle cx="9" cy="7" r="4"/>
                         <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
                     </svg>
-                    <span>Friends</span>
+                    <span data-i18n="chat.friends">Friends</span>
                 </button>
                 <button class="tab-btn" data-tab="rooms">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
                         <polyline points="9,22 9,12 15,12 15,22"/>
                     </svg>
-                    <span>Rooms</span>
+                    <span data-i18n="chat.rooms">Rooms</span>
                 </button>
             </div>
 
@@ -80,7 +80,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 5v14M5 12h14"/>
                         </svg>
-                        New Room
+                        <span data-i18n="chat.newRoom">New Room</span>
                     </button>
                 </div>
                 <div class="conversation-list" id="conversationList">
@@ -93,13 +93,13 @@
                 <div class="user-profile">
                     <div class="user-avatar" id="userAvatar">G</div>
                     <div class="user-info">
-                        <span class="user-name" id="userName">Guest</span>
+                        <span class="user-name" id="userName" data-i18n="chat.guest">Guest</span>
                         <span class="user-status">
                             <span class="status-dot"></span>
-                            Online
+                            <span data-i18n="chat.online">Online</span>
                         </span>
                     </div>
-                    <button class="icon-btn" id="settingsBtn" title="Settings">
+                    <button class="icon-btn" id="settingsBtn" data-i18n-title="settings.title" title="Settings">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="3"/>
                             <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
@@ -127,27 +127,27 @@
                             </svg>
                         </div>
                         <div class="chat-details">
-                            <h2 id="chatName">General</h2>
+                            <h2 id="chatName" data-i18n="chat.general">General</h2>
                             <span class="chat-status" id="chatStatus">
                                 <span class="status-dot"></span>
-                                <span>Online</span>
+                                <span data-i18n="chat.online">Online</span>
                             </span>
                         </div>
                     </div>
                 </div>
                 <div class="header-actions">
-                    <button class="icon-btn" title="Search in chat">
+                    <button class="icon-btn" data-i18n-title="chat.searchInChat" title="Search in chat">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="8"/>
                             <path d="M21 21l-4.35-4.35"/>
                         </svg>
                     </button>
-                    <button class="icon-btn" title="Call">
+                    <button class="icon-btn" data-i18n-title="chat.call" title="Call">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
                         </svg>
                     </button>
-                    <button class="icon-btn" id="logoutBtn" title="Logout">
+                    <button class="icon-btn" id="logoutBtn" data-i18n-title="chat.logout" title="Logout">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
                         </svg>
@@ -164,8 +164,8 @@
                             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
                         </svg>
                     </div>
-                    <h3>Welcome to BEAM</h3>
-                    <p>Select a conversation to start messaging</p>
+                    <h3 data-i18n="chat.welcomeTitle">Welcome to BEAM</h3>
+                    <p data-i18n="chat.welcomeMessage">Select a conversation to start messaging</p>
                 </div>
             </div>
 
@@ -173,7 +173,7 @@
             <div class="input-area">
                 <div class="input-container">
                     <div class="input-actions">
-                        <button class="icon-btn" title="Attach file" onclick="document.getElementById('fileInput').click()">
+                        <button class="icon-btn" data-i18n-title="chat.attachFile" title="Attach file" onclick="document.getElementById('fileInput').click()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
                             </svg>
@@ -184,18 +184,19 @@
                         <textarea
                             id="messageInput"
                             class="message-input"
+                            data-i18n-placeholder="chat.typeMessage"
                             placeholder="Type a message..."
                             rows="1"
                         ></textarea>
                     </div>
-                    <button class="send-btn" id="sendBtn" title="Send message">
+                    <button class="send-btn" id="sendBtn" data-i18n-title="chat.sendMessage" title="Send message">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
                         </svg>
                     </button>
                 </div>
                 <div class="input-hint">
-                    <span>Press <kbd>Enter</kbd> to send, <kbd>Shift + Enter</kbd> for new line</span>
+                    <span data-i18n="chat.inputHint">Press <kbd>Enter</kbd> to send, <kbd>Shift + Enter</kbd> for new line</span>
                 </div>
             </div>
         </main>
@@ -211,7 +212,7 @@
     <div class="modal-overlay" id="settingsModal">
         <div class="modal">
             <div class="modal-header">
-                <h3>Settings</h3>
+                <h3 data-i18n="settings.title">Settings</h3>
                 <button class="icon-btn modal-close" onclick="chatApp.closeModal('settingsModal')">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 6L6 18M6 6l12 12"/>
@@ -220,21 +221,32 @@
             </div>
             <div class="modal-body">
                 <div class="settings-section">
-                    <h4>Profile</h4>
+                    <h4 data-i18n="settings.profile">Profile</h4>
                     <div class="settings-item">
-                        <label>Display Name</label>
-                        <input type="text" id="settingsDisplayName" placeholder="Your display name">
+                        <label data-i18n="settings.displayName">Display Name</label>
+                        <input type="text" id="settingsDisplayName" data-i18n-placeholder="settings.yourDisplayName" placeholder="Your display name">
                     </div>
                 </div>
                 <div class="settings-section">
-                    <h4>Account</h4>
+                    <h4 data-i18n="settings.account">Account</h4>
                     <div class="settings-item">
-                        <span>Username</span>
+                        <span data-i18n="settings.username">Username</span>
                         <span class="settings-value" id="settingsUsername">-</span>
                     </div>
                     <div class="settings-item">
-                        <span>Email</span>
+                        <span data-i18n="settings.email">Email</span>
                         <span class="settings-value" id="settingsEmail">-</span>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4 data-i18n="settings.language">Language</h4>
+                    <div class="settings-item">
+                        <label data-i18n="settings.selectLanguage">Select language</label>
+                        <select id="languageSelect" onchange="i18n.setLocale(this.value)">
+                            <option value="ko">한국어</option>
+                            <option value="en">English</option>
+                            <option value="ja">日本語</option>
+                        </select>
                     </div>
                 </div>
                 <div class="settings-section">
@@ -242,7 +254,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
                         </svg>
-                        Logout
+                        <span data-i18n="settings.logout">Logout</span>
                     </button>
                 </div>
             </div>
@@ -253,7 +265,7 @@
     <div class="modal-overlay" id="createRoomModal">
         <div class="modal">
             <div class="modal-header">
-                <h3>Create Chat Room</h3>
+                <h3 data-i18n="room.createTitle">Create Chat Room</h3>
                 <button class="icon-btn modal-close" onclick="chatApp.closeModal('createRoomModal')">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 6L6 18M6 6l12 12"/>
@@ -263,33 +275,34 @@
             <div class="modal-body">
                 <form id="createRoomForm" onsubmit="chatApp.createRoom(event)">
                     <div class="form-group">
-                        <label for="roomName">Room Name *</label>
-                        <input type="text" id="roomName" placeholder="Enter room name" required>
+                        <label for="roomName" data-i18n="room.roomName">Room Name</label>
+                        <input type="text" id="roomName" data-i18n-placeholder="room.enterRoomName" placeholder="Enter room name" required>
                     </div>
                     <div class="form-group">
-                        <label for="roomDescription">Description</label>
-                        <textarea id="roomDescription" placeholder="What's this room about?" rows="3"></textarea>
+                        <label for="roomDescription" data-i18n="room.description">Description</label>
+                        <textarea id="roomDescription" data-i18n-placeholder="room.descriptionPlaceholder" placeholder="What's this room about?" rows="3"></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="roomType">Room Type</label>
+                        <label for="roomType" data-i18n="room.roomType">Room Type</label>
                         <select id="roomType">
-                            <option value="PUBLIC">Public - Anyone can join</option>
-                            <option value="PRIVATE">Private - Invite only</option>
+                            <option value="PUBLIC" data-i18n="room.public">Public - Anyone can join</option>
+                            <option value="PRIVATE" data-i18n="room.private">Private - Invite only</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="maxMembers">Max Members</label>
+                        <label for="maxMembers" data-i18n="room.maxMembers">Max Members</label>
                         <input type="number" id="maxMembers" value="100" min="2" max="1000">
                     </div>
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="chatApp.closeModal('createRoomModal')">Cancel</button>
-                        <button type="submit" class="btn btn-primary" id="createRoomBtn">Create Room</button>
+                        <button type="button" class="btn btn-secondary" onclick="chatApp.closeModal('createRoomModal')" data-i18n="room.cancel">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="createRoomSubmitBtn" data-i18n="room.create">Create Room</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
+    <script src="/js/i18n/i18n.js"></script>
     <script src="/js/chat.js"></script>
 </body>
 </html>

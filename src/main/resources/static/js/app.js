@@ -119,12 +119,12 @@ async function handleLogin(e) {
     const btn = document.getElementById('loginBtn');
 
     if (!username || !password) {
-        errorDiv.textContent = 'Please fill in all fields';
+        errorDiv.textContent = i18n.t('error.required');
         return;
     }
 
     btn.disabled = true;
-    btn.innerHTML = '<span>Signing in...</span>';
+    btn.innerHTML = `<span>${i18n.t('common.loading')}</span>`;
 
     try {
         const response = await fetch(`${API_URL}/api/auth/login`, {
@@ -138,7 +138,7 @@ async function handleLogin(e) {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.error || data.message || 'Login failed');
+            throw new Error(data.error || data.message || i18n.t('error.loginFailed'));
         }
 
         // Store auth data
@@ -159,9 +159,9 @@ async function handleLogin(e) {
 
     } catch (err) {
         console.error('Login error:', err);
-        errorDiv.textContent = err.message || 'Login failed. Please check your credentials.';
+        errorDiv.textContent = err.message || i18n.t('error.loginFailed');
         btn.disabled = false;
-        btn.innerHTML = '<span>Sign In</span>';
+        btn.innerHTML = `<span>${i18n.t('auth.signIn')}</span>`;
     }
 }
 
@@ -182,37 +182,37 @@ async function handleRegister(e) {
 
     // Validation
     if (!email || !username || !displayName || !password || !confirmPassword) {
-        errorDiv.textContent = 'Please fill in all fields';
+        errorDiv.textContent = i18n.t('error.required');
         return;
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        errorDiv.textContent = 'Please enter a valid email address';
+        errorDiv.textContent = i18n.t('error.invalidEmail');
         return;
     }
 
     if (username.length < 3 || username.length > 20) {
-        errorDiv.textContent = 'Username must be 3-20 characters';
+        errorDiv.textContent = i18n.t('error.usernameTooShort');
         return;
     }
 
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-        errorDiv.textContent = 'Username can only contain letters, numbers, and underscores';
+        errorDiv.textContent = i18n.t('error.usernameInvalid');
         return;
     }
 
     if (password.length < 6) {
-        errorDiv.textContent = 'Password must be at least 6 characters';
+        errorDiv.textContent = i18n.t('error.passwordTooShort');
         return;
     }
 
     if (password !== confirmPassword) {
-        errorDiv.textContent = 'Passwords do not match';
+        errorDiv.textContent = i18n.t('error.passwordMismatch');
         return;
     }
 
     btn.disabled = true;
-    btn.innerHTML = '<span>Creating account...</span>';
+    btn.innerHTML = `<span>${i18n.t('common.loading')}</span>`;
 
     try {
         const response = await fetch(`${API_URL}/api/auth/register`, {
@@ -226,7 +226,7 @@ async function handleRegister(e) {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.error || data.message || 'Registration failed');
+            throw new Error(data.error || data.message || i18n.t('error.registerFailed'));
         }
 
         // Store email for verification
@@ -237,9 +237,9 @@ async function handleRegister(e) {
 
     } catch (err) {
         console.error('Register error:', err);
-        errorDiv.textContent = err.message || 'Registration failed. Please try again.';
+        errorDiv.textContent = err.message || i18n.t('error.registerFailed');
         btn.disabled = false;
-        btn.innerHTML = '<span>Create Account</span>';
+        btn.innerHTML = `<span>${i18n.t('auth.createAccount')}</span>`;
     }
 }
 
@@ -253,7 +253,7 @@ function showVerifyEmailForm(email) {
     if (loginForm) loginForm.style.display = 'none';
     if (registerForm) registerForm.style.display = 'none';
     if (verifyForm) verifyForm.style.display = 'block';
-    if (verifyMessage) verifyMessage.textContent = `Enter the 6-digit code sent to ${email}`;
+    if (verifyMessage) verifyMessage.textContent = i18n.t('auth.enterVerificationCode');
 
     clearAuthErrors();
 }
@@ -267,12 +267,12 @@ async function handleVerifyEmail(e) {
     const btn = document.getElementById('verifyBtn');
 
     if (!code || code.length !== 6) {
-        errorDiv.textContent = 'Please enter a 6-digit code';
+        errorDiv.textContent = i18n.t('error.required');
         return;
     }
 
     btn.disabled = true;
-    btn.innerHTML = '<span>Verifying...</span>';
+    btn.innerHTML = `<span>${i18n.t('common.loading')}</span>`;
 
     try {
         const response = await fetch(`${API_URL}/api/auth/email/verify`, {
@@ -286,7 +286,7 @@ async function handleVerifyEmail(e) {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.error || data.message || 'Verification failed');
+            throw new Error(data.error || data.message || i18n.t('error.verificationFailed'));
         }
 
         // Store auth data
@@ -304,9 +304,9 @@ async function handleVerifyEmail(e) {
 
     } catch (err) {
         console.error('Verification error:', err);
-        errorDiv.textContent = err.message || 'Verification failed. Please try again.';
+        errorDiv.textContent = err.message || i18n.t('error.verificationFailed');
         btn.disabled = false;
-        btn.innerHTML = '<span>Verify</span>';
+        btn.innerHTML = `<span>${i18n.t('auth.verify')}</span>`;
     }
 }
 
@@ -326,11 +326,11 @@ async function resendVerificationCode() {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.error || data.message || 'Failed to resend code');
+            throw new Error(data.error || data.message || i18n.t('error.verificationFailed'));
         }
 
         errorDiv.style.color = 'var(--success)';
-        errorDiv.textContent = 'Verification code sent!';
+        errorDiv.textContent = i18n.t('auth.verificationSent');
         setTimeout(() => {
             errorDiv.style.color = '';
             errorDiv.textContent = '';
@@ -338,7 +338,7 @@ async function resendVerificationCode() {
 
     } catch (err) {
         console.error('Resend error:', err);
-        errorDiv.textContent = err.message || 'Failed to resend code';
+        errorDiv.textContent = err.message || i18n.t('error.verificationFailed');
     }
 }
 
@@ -365,7 +365,7 @@ async function guestLogin() {
         });
 
         if (!response.ok) {
-            throw new Error('Login failed');
+            throw new Error(i18n.t('error.loginFailed'));
         }
 
         const data = await response.json();
@@ -384,7 +384,7 @@ async function guestLogin() {
         console.error('Quick start error:', err);
 
         if (error) {
-            error.querySelector('span').textContent = 'Connection failed. Please try again.';
+            error.querySelector('span').textContent = i18n.t('error.connectionFailed');
             error.classList.add('active');
 
             // Auto-hide error after 5 seconds
@@ -493,21 +493,21 @@ function showTourWelcome() {
                         <polygon points="10,8 16,12 10,16 10,8"/>
                     </svg>
                 </div>
-                <h2>Welcome to BEAM Tour!</h2>
-                <p>Take a quick tour to discover all the powerful features of our secure messaging platform.</p>
+                <h2>${i18n.t('tour.welcomeTitle')}</h2>
+                <p>${i18n.t('tour.welcomeDescription')}</p>
                 <div class="tour-welcome-features">
                     <span class="tour-feature-tag">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
                         </svg>
-                        Real-time Chat
+                        ${i18n.t('tour.realtimeChat')}
                     </span>
                     <span class="tour-feature-tag">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                             <path d="M7 11V7a5 5 0 0110 0v4"/>
                         </svg>
-                        Secure & Encrypted
+                        ${i18n.t('tour.secureEncrypted')}
                     </span>
                     <span class="tour-feature-tag">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -515,13 +515,13 @@ function showTourWelcome() {
                             <circle cx="9" cy="7" r="4"/>
                             <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
                         </svg>
-                        Team Collaboration
+                        ${i18n.t('tour.teamCollaboration')}
                     </span>
                     <span class="tour-feature-tag">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
                         </svg>
-                        Lightning Fast
+                        ${i18n.t('tour.lightningFast')}
                     </span>
                 </div>
                 <div class="tour-welcome-actions">
@@ -530,10 +530,10 @@ function showTourWelcome() {
                             <circle cx="12" cy="12" r="10"/>
                             <polygon points="10,8 16,12 10,16 10,8"/>
                         </svg>
-                        Start Tour
+                        ${i18n.t('tour.startTour')}
                     </button>
                     <button class="btn btn-ghost" onclick="closeTourWelcome()">
-                        Maybe Later
+                        ${i18n.t('tour.maybeLater')}
                     </button>
                 </div>
             </div>
@@ -571,7 +571,7 @@ async function beginTour() {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to start tour');
+            throw new Error(i18n.t('tour.failedToStart'));
         }
 
         const data = await response.json();
@@ -596,7 +596,7 @@ async function beginTour() {
 
         const error = document.getElementById('error');
         if (error) {
-            error.querySelector('span').textContent = 'Failed to start tour. Please try again.';
+            error.querySelector('span').textContent = i18n.t('tour.failedToStart');
             error.classList.add('active');
             setTimeout(() => error.classList.remove('active'), 5000);
         }

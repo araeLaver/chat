@@ -62,7 +62,7 @@ class ChatApp {
         this.ws.onopen = () => {
             console.log('WebSocket connected');
             this.reconnectAttempts = 0;
-            this.showToast('Connected', 'success');
+            this.showToast(i18n.t('status.connected'), 'success');
             if (this.currentRoom) {
                 this.joinRoom(this.currentRoom);
             }
@@ -75,17 +75,17 @@ class ChatApp {
 
         this.ws.onerror = (error) => {
             console.error('WebSocket error:', error);
-            this.showToast('Connection error', 'error');
+            this.showToast(i18n.t('error.connectionError'), 'error');
         };
 
         this.ws.onclose = () => {
             console.log('WebSocket disconnected');
             if (this.reconnectAttempts < this.maxReconnectAttempts) {
                 this.reconnectAttempts++;
-                this.showToast(`Reconnecting... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`, 'warning');
+                this.showToast(`${i18n.t('status.reconnecting')} (${this.reconnectAttempts}/${this.maxReconnectAttempts})`, 'warning');
                 setTimeout(() => this.connectWebSocket(), 3000);
             } else {
-                this.showToast('Connection lost. Please refresh the page.', 'error');
+                this.showToast(i18n.t('error.connectionLost'), 'error');
             }
         };
     }
@@ -96,10 +96,10 @@ class ChatApp {
                 this.displayMessage(message);
                 break;
             case 'JOIN':
-                this.addStatusMessage(`${message.sender} joined the room`);
+                this.addStatusMessage(`${message.sender} ${i18n.t('chat.joined')}`);
                 break;
             case 'LEAVE':
-                this.addStatusMessage(`${message.sender} left the room`);
+                this.addStatusMessage(`${message.sender} ${i18n.t('chat.left')}`);
                 break;
             case 'TYPING':
                 this.showTypingIndicator(message.sender);
@@ -288,12 +288,26 @@ class ChatApp {
             minute: '2-digit'
         });
 
+        const messageId = message.id || `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        messageGroup.dataset.messageId = messageId;
+        messageGroup.dataset.originalContent = message.content;
+
         messageGroup.innerHTML = `
             <div class="message-avatar">${this.getInitial(message.sender)}</div>
             <div class="message-content">
                 ${!isSent ? `<div class="message-sender">${this.escapeHtml(message.sender)}</div>` : ''}
-                <div class="message-bubble">${this.escapeHtml(message.content)}</div>
-                <div class="message-time">${time}</div>
+                <div class="message-bubble">
+                    <span class="message-text">${this.escapeHtml(message.content)}</span>
+                    <span class="translated-text" style="display:none;"></span>
+                </div>
+                <div class="message-meta">
+                    <span class="message-time">${time}</span>
+                    <button class="translate-btn" onclick="chatApp.translateMessage('${messageId}')" title="${i18n.t('translation.translate')}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
         `;
 
@@ -397,7 +411,7 @@ class ChatApp {
             container.innerHTML = '';
         }
 
-        this.addStatusMessage(`Joined ${roomId}`);
+        this.addStatusMessage(i18n.t('chat.joinedRoom', { room: roomId }));
 
         // Update header
         const chatName = document.getElementById('chatName');
@@ -438,7 +452,7 @@ class ChatApp {
                 }
             });
 
-            if (!response.ok) throw new Error('Failed to load rooms');
+            if (!response.ok) throw new Error(i18n.t('error.roomCreateFailed'));
 
             const rooms = await response.json();
 
@@ -446,7 +460,7 @@ class ChatApp {
                 conversationList.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">💬</div>
-                        <div class="empty-state-text">No conversations yet</div>
+                        <div class="empty-state-text">${i18n.t('error.noResults')}</div>
                     </div>
                 `;
                 return;
@@ -479,7 +493,7 @@ class ChatApp {
             conversationList.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-state-icon">⚠️</div>
-                    <div class="empty-state-text">Failed to load conversations</div>
+                    <div class="empty-state-text">${i18n.t('error.connectionFailed')}</div>
                 </div>
             `;
         }
@@ -541,7 +555,7 @@ class ChatApp {
                 }
             });
 
-            if (!response.ok) throw new Error('Failed to load friends');
+            if (!response.ok) throw new Error(i18n.t('error.connectionFailed'));
 
             const friends = await response.json();
 
@@ -549,7 +563,7 @@ class ChatApp {
                 conversationList.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">👥</div>
-                        <div class="empty-state-text">No friends yet</div>
+                        <div class="empty-state-text">${i18n.t('error.noResults')}</div>
                     </div>
                 `;
                 return;
@@ -564,7 +578,7 @@ class ChatApp {
                     <div class="conversation-info">
                         <div class="conversation-name">
                             <span>${this.escapeHtml(friend.displayName)}</span>
-                            <span class="conversation-time">${friend.isOnline ? 'Online' : 'Offline'}</span>
+                            <span class="conversation-time">${friend.isOnline ? i18n.t('chat.online') : i18n.t('chat.offline')}</span>
                         </div>
                         <div class="conversation-preview">@${this.escapeHtml(friend.username)}</div>
                     </div>
@@ -576,7 +590,7 @@ class ChatApp {
             conversationList.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-state-icon">⚠️</div>
-                    <div class="empty-state-text">Failed to load friends</div>
+                    <div class="empty-state-text">${i18n.t('error.connectionFailed')}</div>
                 </div>
             `;
         }
@@ -602,16 +616,14 @@ class ChatApp {
         const file = event.target.files[0];
         if (!file) return;
 
-        this.showToast(`File upload: ${file.name}`, 'info');
+        this.showToast(i18n.t('file.upload', { name: file.name }), 'info');
         // TODO: Implement file upload to server
     }
 
     logout() {
-        if (confirm('Are you sure you want to logout?')) {
-            if (this.ws) this.ws.close();
-            localStorage.clear();
-            window.location.href = '/';
-        }
+        if (this.ws) this.ws.close();
+        localStorage.clear();
+        window.location.href = '/';
     }
 
     scrollToBottom() {
@@ -671,12 +683,12 @@ class ChatApp {
         const time = new Date(timestamp);
         const diff = Math.floor((now - time) / 1000);
 
-        if (diff < 60) return 'Just now';
-        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-        if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-        if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+        if (diff < 60) return i18n.t('time.justNow');
+        if (diff < 3600) return i18n.t('time.minutesAgo', { count: Math.floor(diff / 60) });
+        if (diff < 86400) return i18n.t('time.hoursAgo', { count: Math.floor(diff / 3600) });
+        if (diff < 604800) return i18n.t('time.daysAgo', { count: Math.floor(diff / 86400) });
 
-        return time.toLocaleDateString('en-US');
+        return time.toLocaleDateString(i18n.locale);
     }
 
     startDirectMessage(friendId) {
@@ -723,14 +735,14 @@ class ChatApp {
         const maxMembers = parseInt(document.getElementById('maxMembers').value) || 100;
 
         if (!roomName) {
-            this.showToast('Please enter a room name', 'error');
+            this.showToast(i18n.t('room.pleaseEnterName'), 'error');
             return;
         }
 
         const createBtn = document.querySelector('#createRoomForm button[type="submit"]');
         if (createBtn) {
             createBtn.disabled = true;
-            createBtn.textContent = 'Creating...';
+            createBtn.textContent = i18n.t('common.loading');
         }
 
         try {
@@ -750,11 +762,11 @@ class ChatApp {
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.message || 'Failed to create room');
+                throw new Error(error.message || i18n.t('error.roomCreateFailed'));
             }
 
             const room = await response.json();
-            this.showToast('Room created successfully', 'success');
+            this.showToast(i18n.t('room.createdSuccess'), 'success');
             this.closeModal('createRoomModal');
 
             // Reset form
@@ -766,11 +778,11 @@ class ChatApp {
 
         } catch (error) {
             console.error('Create room error:', error);
-            this.showToast(error.message || 'Failed to create room', 'error');
+            this.showToast(error.message || i18n.t('error.roomCreateFailed'), 'error');
         } finally {
             if (createBtn) {
                 createBtn.disabled = false;
-                createBtn.textContent = 'Create Room';
+                createBtn.textContent = i18n.t('room.create');
             }
         }
     }
@@ -804,7 +816,7 @@ class ChatApp {
                 }
             });
 
-            if (!response.ok) throw new Error('Search failed');
+            if (!response.ok) throw new Error(i18n.t('error.connectionFailed'));
 
             const results = await response.json();
 
@@ -812,7 +824,7 @@ class ChatApp {
                 conversationList.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">🔍</div>
-                        <div class="empty-state-text">No results found</div>
+                        <div class="empty-state-text">${i18n.t('error.noResults')}</div>
                     </div>
                 `;
                 return;
@@ -828,7 +840,7 @@ class ChatApp {
                         <div class="conversation-info">
                             <div class="conversation-name">
                                 <span>${this.escapeHtml(user.displayName)}</span>
-                                <span class="conversation-time">${user.isOnline ? 'Online' : 'Offline'}</span>
+                                <span class="conversation-time">${user.isOnline ? i18n.t('chat.online') : i18n.t('chat.offline')}</span>
                             </div>
                             <div class="conversation-preview">@${this.escapeHtml(user.username)}</div>
                         </div>
@@ -839,7 +851,7 @@ class ChatApp {
                                 <line x1="20" y1="8" x2="20" y2="14"/>
                                 <line x1="23" y1="11" x2="17" y2="11"/>
                             </svg>
-                            Add
+                            ${i18n.t('chat.friends')}
                         </button>
                     </div>
                 `).join('');
@@ -865,9 +877,78 @@ class ChatApp {
             conversationList.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-state-icon">⚠️</div>
-                    <div class="empty-state-text">Search failed</div>
+                    <div class="empty-state-text">${i18n.t('error.connectionFailed')}</div>
                 </div>
             `;
+        }
+    }
+
+    async translateMessage(messageId) {
+        const messageGroup = document.querySelector(`[data-message-id="${messageId}"]`);
+        if (!messageGroup) return;
+
+        const translateBtn = messageGroup.querySelector('.translate-btn');
+        const messageText = messageGroup.querySelector('.message-text');
+        const translatedText = messageGroup.querySelector('.translated-text');
+        const originalContent = messageGroup.dataset.originalContent;
+
+        // Toggle between original and translated
+        if (translatedText.style.display !== 'none' && translatedText.textContent) {
+            // Show original
+            messageText.style.display = '';
+            translatedText.style.display = 'none';
+            translateBtn.classList.remove('translated');
+            translateBtn.title = i18n.t('translation.translate');
+            return;
+        }
+
+        // If already translated, just show it
+        if (translatedText.textContent) {
+            messageText.style.display = 'none';
+            translatedText.style.display = '';
+            translateBtn.classList.add('translated');
+            translateBtn.title = i18n.t('translation.original');
+            return;
+        }
+
+        // Start translation
+        translateBtn.disabled = true;
+        translateBtn.classList.add('translating');
+        translateBtn.title = i18n.t('translation.translating');
+
+        try {
+            const targetLanguage = i18n.locale || 'ko';
+
+            const response = await fetch(`${API_URL}/api/translate/message`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.token}`
+                },
+                body: JSON.stringify({
+                    text: originalContent,
+                    targetLanguage: targetLanguage
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                translatedText.textContent = result.translatedText;
+                messageText.style.display = 'none';
+                translatedText.style.display = '';
+                translateBtn.classList.add('translated');
+                translateBtn.title = i18n.t('translation.original');
+            } else {
+                const errorMsg = result.error || i18n.t('translation.failed');
+                this.showToast(errorMsg, 'error');
+            }
+        } catch (error) {
+            console.error('Translation error:', error);
+            this.showToast(i18n.t('translation.failed'), 'error');
+        } finally {
+            translateBtn.disabled = false;
+            translateBtn.classList.remove('translating');
         }
     }
 }
@@ -904,66 +985,16 @@ class TourGuide {
         this.tooltip = null;
 
         this.steps = [
-            {
-                target: '.sidebar',
-                title: 'Sidebar Navigation',
-                content: 'This is your main navigation area. Here you can browse your chats, friends list, and chat rooms.',
-                position: 'right'
-            },
-            {
-                target: '.sidebar-search',
-                title: 'Search',
-                content: 'Quickly find conversations, friends, or rooms using the search bar.',
-                position: 'right'
-            },
-            {
-                target: '.sidebar-tabs',
-                title: 'Tab Navigation',
-                content: 'Switch between Chats, Friends, and Rooms tabs to organize your conversations.',
-                position: 'right'
-            },
-            {
-                target: '#createRoomBtn',
-                title: 'Create New Room',
-                content: 'Click here to create a new chat room. You can make it public, private, or secret!',
-                position: 'right'
-            },
-            {
-                target: '.user-profile',
-                title: 'Your Profile',
-                content: 'View your profile status and access settings from here.',
-                position: 'top'
-            },
-            {
-                target: '.chat-header',
-                title: 'Chat Header',
-                content: 'See who you\'re chatting with and access call features and room settings.',
-                position: 'bottom'
-            },
-            {
-                target: '.messages-container',
-                title: 'Message Area',
-                content: 'All your messages appear here. Scroll up to see older messages.',
-                position: 'left'
-            },
-            {
-                target: '.input-area',
-                title: 'Send Messages',
-                content: 'Type your message here and press Enter to send. Use Shift+Enter for new lines. You can also attach files!',
-                position: 'top'
-            },
-            {
-                target: '#settingsBtn',
-                title: 'Settings',
-                content: 'Access your account settings, change display name, and manage your profile.',
-                position: 'top'
-            },
-            {
-                target: '#logoutBtn',
-                title: 'Logout',
-                content: 'When you\'re done, click here to safely log out of your account.',
-                position: 'bottom'
-            }
+            { target: '.sidebar', i18nKey: 'sidebar', position: 'right' },
+            { target: '.sidebar-search', i18nKey: 'search', position: 'right' },
+            { target: '.sidebar-tabs', i18nKey: 'tabs', position: 'right' },
+            { target: '#createRoomBtn', i18nKey: 'createRoom', position: 'right' },
+            { target: '.user-profile', i18nKey: 'profile', position: 'top' },
+            { target: '.chat-header', i18nKey: 'chatHeader', position: 'bottom' },
+            { target: '.messages-container', i18nKey: 'messages', position: 'left' },
+            { target: '.input-area', i18nKey: 'input', position: 'top' },
+            { target: '#settingsBtn', i18nKey: 'settings', position: 'top' },
+            { target: '#logoutBtn', i18nKey: 'logout', position: 'bottom' }
         ];
     }
 
@@ -1006,7 +1037,7 @@ class TourGuide {
                     <circle cx="12" cy="12" r="10"/>
                     <polygon points="10,8 16,12 10,16 10,8"/>
                 </svg>
-                Tour Mode
+                ${i18n.t('tour.tourMode')}
             `;
             chatName.parentElement.appendChild(badge);
         }
@@ -1041,13 +1072,16 @@ class TourGuide {
         this.spotlight.style.height = (rect.height + padding * 2) + 'px';
 
         // Build tooltip content
+        const stepTitle = i18n.t(`tour.steps.${step.i18nKey}.title`);
+        const stepContent = i18n.t(`tour.steps.${step.i18nKey}.content`);
+
         this.tooltip.innerHTML = `
             <div class="tour-tooltip-arrow ${this.getArrowPosition(step.position)}"></div>
             <div class="tour-header">
                 <span class="tour-step-badge">${stepIndex + 1}</span>
-                <span class="tour-title">${step.title}</span>
+                <span class="tour-title">${stepTitle}</span>
             </div>
-            <div class="tour-content">${step.content}</div>
+            <div class="tour-content">${stepContent}</div>
             <div class="tour-progress">
                 ${this.steps.map((_, i) => `
                     <span class="tour-progress-dot ${i < stepIndex ? 'completed' : ''} ${i === stepIndex ? 'active' : ''}"></span>
@@ -1056,15 +1090,15 @@ class TourGuide {
             <div class="tour-actions">
                 ${stepIndex > 0 ? `
                     <button class="btn btn-secondary" onclick="chatApp.tour.showStep(${stepIndex - 1})">
-                        Previous
+                        ${i18n.t('tour.previous')}
                     </button>
                 ` : `
                     <button class="btn btn-secondary tour-skip" onclick="chatApp.tour.endTour()">
-                        Skip Tour
+                        ${i18n.t('tour.skipTour')}
                     </button>
                 `}
                 <button class="btn btn-primary" onclick="chatApp.tour.${stepIndex === this.steps.length - 1 ? 'endTour' : `showStep(${stepIndex + 1})`}()">
-                    ${stepIndex === this.steps.length - 1 ? 'Finish' : 'Next'}
+                    ${stepIndex === this.steps.length - 1 ? i18n.t('tour.finish') : i18n.t('tour.next')}
                 </button>
             </div>
         `;
@@ -1148,7 +1182,7 @@ class TourGuide {
             this.cleanup();
 
             // Show completion message
-            this.chatApp.showToast('Tour completed! Enjoy BEAM!', 'success');
+            this.chatApp.showToast(i18n.t('tour.completed'), 'success');
         }, 300);
     }
 

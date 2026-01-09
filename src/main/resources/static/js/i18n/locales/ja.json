@@ -1,0 +1,350 @@
+{
+  "common": {
+    "appName": "BEAM",
+    "loading": "読み込み中...",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "delete": "削除",
+    "edit": "編集",
+    "close": "閉じる",
+    "search": "検索",
+    "or": "または",
+    "back": "戻る"
+  },
+  "nav": {
+    "features": "機能",
+    "technology": "テクノロジー",
+    "architecture": "アーキテクチャ",
+    "security": "セキュリティ",
+    "tour": "ツアー",
+    "signIn": "サインイン",
+    "getStarted": "始める",
+    "getStartedFree": "無料で始める",
+    "takeATour": "ツアーを見る"
+  },
+  "hero": {
+    "badge": "リリース - バージョン 1.0",
+    "title": "セキュアメッセージング",
+    "titleHighlight": "再定義",
+    "description": "エンタープライズグレードのセキュリティと美しいデザインの融合。プライバシーを重視するチームのためのエンドツーエンド暗号化リアルタイムメッセージング。",
+    "startMessaging": "メッセージを始める",
+    "encryption": "暗号化",
+    "latency": "レイテンシー",
+    "uptime": "稼働率"
+  },
+  "loading": {
+    "connecting": "サーバーに接続中...",
+    "reconnecting": "再接続中..."
+  },
+  "error": {
+    "connectionFailed": "接続に失敗しました。もう一度お試しください。",
+    "connectionError": "接続エラー",
+    "connectionLost": "接続が切れました。ページを更新してください。",
+    "required": "必須項目です",
+    "invalidEmail": "有効なメールアドレスを入力してください",
+    "usernameTooShort": "ユーザー名は3〜20文字である必要があります",
+    "usernameInvalid": "ユーザー名には英数字とアンダースコアのみ使用できます",
+    "passwordTooShort": "パスワードは6文字以上である必要があります",
+    "passwordMismatch": "パスワードが一致しません",
+    "loginFailed": "ログインに失敗しました",
+    "registerFailed": "登録に失敗しました",
+    "verificationFailed": "認証に失敗しました",
+    "roomCreateFailed": "ルームの作成に失敗しました",
+    "messageSendFailed": "メッセージの送信に失敗しました",
+    "fileUploadFailed": "ファイルのアップロードに失敗しました",
+    "noResults": "結果が見つかりません"
+  },
+  "features": {
+    "sectionLabel": "機能",
+    "title": "安全な通信に必要な",
+    "titleHighlight": "すべて",
+    "description": "最新のセキュリティ基準で構築され、シームレスなコラボレーションのために設計されています",
+    "encryption": {
+      "title": "エンドツーエンド暗号化",
+      "description": "すべてのメッセージはAES-256で暗号化されます。あなたと受信者だけがメッセージを読むことができます。",
+      "tag": "エンタープライズセキュリティ"
+    },
+    "realtime": {
+      "title": "リアルタイムWebSocket",
+      "description": "50ms未満のレイテンシーで即座にメッセージを配信。自動再接続と状態同期を内蔵。"
+    },
+    "collaboration": {
+      "title": "チームコラボレーション",
+      "description": "パブリック、プライベート、またはシークレットチャンネルを作成。きめ細かな制御でロールと権限を管理。"
+    },
+    "fileSharing": {
+      "title": "ファイル共有",
+      "description": "自動サムネイル生成と包括的なアクセス制御でファイルを安全に共有。"
+    },
+    "search": {
+      "title": "全文検索",
+      "description": "強力な検索エンジンで、メッセージ、ファイル、会話を瞬時に検索。"
+    },
+    "readReceipts": {
+      "title": "既読確認",
+      "description": "リアルタイムのステータス更新で、メッセージが配信され読まれたことを確認。"
+    },
+    "rateLimit": {
+      "title": "レート制限",
+      "description": "Bucket4jによるインテリジェントなレート制限で、不正使用に対する保護を内蔵。"
+    },
+    "monitoring": {
+      "title": "モニタリング",
+      "description": "メッセージングインフラストラクチャの完全な可視性のためのPrometheusメトリクスとヘルスチェック。"
+    }
+  },
+  "technology": {
+    "sectionLabel": "テクノロジー",
+    "title": "モダンスタックで",
+    "titleHighlight": "構築",
+    "description": "スケーラビリティと信頼性のためのプロダクション対応テクノロジー",
+    "backend": "バックエンド",
+    "dataSecurity": "データ & セキュリティ",
+    "devops": "デブオプス",
+    "modernLts": "モダンLTS",
+    "framework": "フレームワーク",
+    "realtime": "リアルタイム",
+    "authentication": "認証",
+    "database": "データベース",
+    "protection": "保護",
+    "caching": "キャッシング",
+    "rateLimit": "レート制限",
+    "container": "コンテナ",
+    "cloudPaas": "クラウドPaaS",
+    "monitoring": "モニタリング",
+    "apiDocs": "APIドキュメント"
+  },
+  "architecture": {
+    "sectionLabel": "アーキテクチャ",
+    "title": "クリーンでスケーラブルな",
+    "titleHighlight": "システム設計",
+    "description": "関心の分離と保守性を確保する階層アーキテクチャ",
+    "presentationLayer": "プレゼンテーション層",
+    "securityLayer": "セキュリティ層",
+    "businessLayer": "ビジネスロジック層",
+    "dataLayer": "データアクセス層",
+    "restControllers": "RESTコントローラー",
+    "websocketHandler": "WebSocketハンドラー",
+    "dtoValidation": "DTOバリデーション",
+    "exceptionHandling": "例外処理",
+    "jwtFilter": "JWTフィルター",
+    "rateLimiting": "レート制限",
+    "corsConfig": "CORS設定",
+    "authManager": "認証マネージャー",
+    "repositoryPattern": "リポジトリパターン",
+    "customQueries": "カスタムクエリ"
+  },
+  "security": {
+    "sectionLabel": "セキュリティ",
+    "title": "エンタープライズグレードの",
+    "titleHighlight": "保護",
+    "description": "プライバシーが最優先です。セキュリティファーストの考え方で構築されています。",
+    "aes": {
+      "title": "AES-256暗号化",
+      "description": "転送中および保存中のすべてのメッセージとファイルに軍事グレードの暗号化を適用。"
+    },
+    "jwt": {
+      "title": "JWT認証",
+      "description": "自動更新とセッション管理機能を備えたセキュアなトークンベースの認証。"
+    },
+    "rateLimit": {
+      "title": "レート制限",
+      "description": "不正使用を防止し、公平な使用を確保するインテリジェントなリクエストスロットリング。"
+    },
+    "audit": {
+      "title": "監査ログ",
+      "description": "コンプライアンスとセキュリティモニタリングのための包括的なアクティビティログ。"
+    }
+  },
+  "cta": {
+    "title": "セキュアメッセージングを",
+    "titleHighlight": "体験する準備はできましたか？",
+    "description": "数秒でメッセージングを開始。クレジットカード不要。"
+  },
+  "auth": {
+    "welcomeBack": "おかえりなさい",
+    "signInToContinue": "BEAMにサインイン",
+    "username": "ユーザー名",
+    "password": "パスワード",
+    "email": "メール",
+    "displayName": "表示名",
+    "confirmPassword": "パスワード確認",
+    "enterUsername": "ユーザー名を入力",
+    "enterPassword": "パスワードを入力",
+    "enterEmail": "your@email.com",
+    "chooseUsername": "ユーザー名を選択",
+    "yourDisplayName": "表示名",
+    "createPassword": "パスワードを作成",
+    "confirmYourPassword": "パスワードを確認",
+    "signIn": "サインイン",
+    "quickStartGuest": "ゲストでクイックスタート",
+    "takeATourFirst": "まずツアーを見る",
+    "dontHaveAccount": "アカウントをお持ちでないですか？",
+    "signUp": "サインアップ",
+    "createAccount": "アカウント作成",
+    "joinBeam": "BEAMに参加して安全にメッセージを送信",
+    "sendVerificationCode": "確認コードを送信します",
+    "usernameHint": "3〜20文字、英数字のみ",
+    "passwordHint": "6文字以上",
+    "alreadyHaveAccount": "すでにアカウントをお持ちですか？",
+    "verifyEmail": "メール認証",
+    "enterVerificationCode": "メールに送信された6桁のコードを入力",
+    "verificationCode": "認証コード",
+    "verify": "認証",
+    "resendCode": "コードを再送信",
+    "backToSignUp": "サインアップに戻る",
+    "verificationSent": "認証コードが送信されました！"
+  },
+  "footer": {
+    "brand": "モダンチームのためのエンタープライズグレードセキュアメッセージングプラットフォーム。",
+    "product": "製品",
+    "resources": "リソース",
+    "legal": "法的情報",
+    "apiDocs": "APIドキュメント",
+    "systemStatus": "システムステータス",
+    "privacyPolicy": "プライバシーポリシー",
+    "termsOfService": "利用規約",
+    "copyright": "© 2025 BEAM. All rights reserved."
+  },
+  "chat": {
+    "searchConversations": "会話を検索...",
+    "chats": "チャット",
+    "friends": "友達",
+    "rooms": "ルーム",
+    "newRoom": "新規ルーム",
+    "guest": "ゲスト",
+    "online": "オンライン",
+    "offline": "オフライン",
+    "general": "一般",
+    "welcomeTitle": "BEAMへようこそ",
+    "welcomeMessage": "会話を選択してメッセージを開始",
+    "typeMessage": "メッセージを入力...",
+    "inputHint": "Enterで送信、Shift + Enterで改行",
+    "attachFile": "ファイルを添付",
+    "sendMessage": "メッセージを送信",
+    "searchInChat": "チャット内を検索",
+    "call": "通話",
+    "logout": "ログアウト",
+    "joined": "が入室しました",
+    "left": "が退室しました",
+    "joinedRoom": "{{room}}に参加しました"
+  },
+  "settings": {
+    "title": "設定",
+    "profile": "プロフィール",
+    "displayName": "表示名",
+    "yourDisplayName": "表示名を入力",
+    "account": "アカウント",
+    "username": "ユーザー名",
+    "email": "メール",
+    "language": "言語",
+    "selectLanguage": "言語を選択",
+    "logout": "ログアウト"
+  },
+  "room": {
+    "createTitle": "チャットルームを作成",
+    "roomName": "ルーム名",
+    "enterRoomName": "ルーム名を入力",
+    "description": "説明",
+    "descriptionPlaceholder": "このルームは何のためですか？",
+    "roomType": "ルームタイプ",
+    "public": "パブリック - 誰でも参加可能",
+    "private": "プライベート - 招待のみ",
+    "maxMembers": "最大人数",
+    "cancel": "キャンセル",
+    "create": "作成",
+    "createdSuccess": "ルームが正常に作成されました",
+    "pleaseEnterName": "ルーム名を入力してください"
+  },
+  "time": {
+    "justNow": "たった今",
+    "minutesAgo": "{{count}}分前",
+    "hoursAgo": "{{count}}時間前",
+    "daysAgo": "{{count}}日前"
+  },
+  "status": {
+    "connected": "接続済み",
+    "disconnected": "切断済み",
+    "reconnecting": "再接続中...",
+    "typing": "入力中..."
+  },
+  "file": {
+    "upload": "ファイルアップロード: {{name}}",
+    "uploading": "アップロード中...",
+    "downloadFailed": "ダウンロード失敗"
+  },
+  "notification": {
+    "newMessage": "新しいメッセージ",
+    "fromUser": "{{user}}さんからメッセージが届きました"
+  },
+  "tour": {
+    "welcomeTitle": "BEAMツアーへようこそ！",
+    "welcomeDescription": "セキュアメッセージングプラットフォームの強力な機能をご紹介します。",
+    "realtimeChat": "リアルタイムチャット",
+    "secureEncrypted": "セキュア＆暗号化",
+    "teamCollaboration": "チームコラボレーション",
+    "lightningFast": "超高速",
+    "startTour": "ツアー開始",
+    "maybeLater": "後で",
+    "failedToStart": "ツアーを開始できませんでした。もう一度お試しください。",
+    "tourMode": "ツアーモード",
+    "previous": "戻る",
+    "next": "次へ",
+    "finish": "完了",
+    "skipTour": "スキップ",
+    "completed": "ツアー完了！BEAMをお楽しみください！",
+    "steps": {
+      "sidebar": {
+        "title": "サイドバーナビゲーション",
+        "content": "メインナビゲーションエリアです。ここでチャット、フレンドリスト、チャットルームを閲覧できます。"
+      },
+      "search": {
+        "title": "検索",
+        "content": "検索バーを使って会話、フレンド、ルームをすばやく見つけましょう。"
+      },
+      "tabs": {
+        "title": "タブナビゲーション",
+        "content": "チャット、フレンド、ルームタブを切り替えて会話を整理しましょう。"
+      },
+      "createRoom": {
+        "title": "新規ルーム作成",
+        "content": "ここをクリックして新しいチャットルームを作成します。パブリック、プライベート、またはシークレットに設定できます！"
+      },
+      "profile": {
+        "title": "プロフィール",
+        "content": "プロフィールステータスを確認し、ここから設定にアクセスします。"
+      },
+      "chatHeader": {
+        "title": "チャットヘッダー",
+        "content": "チャット相手を確認し、通話機能やルーム設定にアクセスします。"
+      },
+      "messages": {
+        "title": "メッセージエリア",
+        "content": "すべてのメッセージがここに表示されます。上にスクロールして以前のメッセージを確認できます。"
+      },
+      "input": {
+        "title": "メッセージ送信",
+        "content": "ここにメッセージを入力してEnterで送信します。Shift+Enterで改行できます。ファイルも添付できます！"
+      },
+      "settings": {
+        "title": "設定",
+        "content": "アカウント設定にアクセスし、表示名を変更し、プロフィールを管理します。"
+      },
+      "logout": {
+        "title": "ログアウト",
+        "content": "終了したら、ここをクリックして安全にログアウトしてください。"
+      }
+    }
+  },
+  "translation": {
+    "translate": "翻訳",
+    "translating": "翻訳中...",
+    "translated": "翻訳済み",
+    "original": "原文を表示",
+    "failed": "翻訳に失敗しました",
+    "disabled": "翻訳サービスを利用できません",
+    "autoTranslate": "自動翻訳",
+    "targetLanguage": "翻訳先言語"
+  }
+}

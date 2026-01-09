@@ -35,6 +35,12 @@ public class UserEntity {
     @Column(name = "status_message", length = 200)
     private String statusMessage;
 
+    @Column(name = "preferred_language", length = 10)
+    private String preferredLanguage = "ko";
+
+    @Column(name = "auto_translate", nullable = false)
+    private Boolean autoTranslate = false;
+
     @Column(name = "is_online", nullable = false)
     private Boolean isOnline = false;
 
@@ -87,6 +93,12 @@ public class UserEntity {
     public String getStatusMessage() { return statusMessage; }
     public void setStatusMessage(String statusMessage) { this.statusMessage = statusMessage; }
 
+    public String getPreferredLanguage() { return preferredLanguage; }
+    public void setPreferredLanguage(String preferredLanguage) { this.preferredLanguage = preferredLanguage; }
+
+    public Boolean getAutoTranslate() { return autoTranslate; }
+    public void setAutoTranslate(Boolean autoTranslate) { this.autoTranslate = autoTranslate; }
+
     public Boolean getIsOnline() { return isOnline; }
     public void setIsOnline(Boolean isOnline) { this.isOnline = isOnline; }
 
@@ -123,6 +135,8 @@ public class UserEntity {
         private String displayName;
         private String profileImage;
         private String statusMessage;
+        private String preferredLanguage = "ko";
+        private Boolean autoTranslate = false;
         private Boolean isOnline = false;
         private LocalDateTime lastSeen;
         private Boolean isActive = true;
@@ -140,6 +154,8 @@ public class UserEntity {
         public UserEntityBuilder displayName(String displayName) { this.displayName = displayName; return this; }
         public UserEntityBuilder profileImage(String profileImage) { this.profileImage = profileImage; return this; }
         public UserEntityBuilder statusMessage(String statusMessage) { this.statusMessage = statusMessage; return this; }
+        public UserEntityBuilder preferredLanguage(String preferredLanguage) { this.preferredLanguage = preferredLanguage; return this; }
+        public UserEntityBuilder autoTranslate(Boolean autoTranslate) { this.autoTranslate = autoTranslate; return this; }
         public UserEntityBuilder isOnline(Boolean isOnline) { this.isOnline = isOnline; return this; }
         public UserEntityBuilder lastSeen(LocalDateTime lastSeen) { this.lastSeen = lastSeen; return this; }
         public UserEntityBuilder isActive(Boolean isActive) { this.isActive = isActive; return this; }
@@ -159,6 +175,8 @@ public class UserEntity {
             entity.displayName = this.displayName;
             entity.profileImage = this.profileImage;
             entity.statusMessage = this.statusMessage;
+            entity.preferredLanguage = this.preferredLanguage;
+            entity.autoTranslate = this.autoTranslate;
             entity.isOnline = this.isOnline;
             entity.lastSeen = this.lastSeen;
             entity.isActive = this.isActive;
@@ -175,6 +193,8 @@ public class UserEntity {
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        if (this.preferredLanguage == null) this.preferredLanguage = "ko";
+        if (this.autoTranslate == null) this.autoTranslate = false;
         if (this.isOnline == null) this.isOnline = false;
         if (this.isActive == null) this.isActive = true;
         if (this.isPhoneVerified == null) this.isPhoneVerified = false;

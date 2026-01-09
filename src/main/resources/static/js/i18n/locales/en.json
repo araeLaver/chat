@@ -1,0 +1,350 @@
+{
+  "common": {
+    "appName": "BEAM",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "search": "Search",
+    "or": "or",
+    "back": "Back"
+  },
+  "nav": {
+    "features": "Features",
+    "technology": "Technology",
+    "architecture": "Architecture",
+    "security": "Security",
+    "tour": "Tour",
+    "signIn": "Sign In",
+    "getStarted": "Get Started",
+    "getStartedFree": "Get Started Free",
+    "takeATour": "Take a Tour"
+  },
+  "hero": {
+    "badge": "Now Available - Version 1.0",
+    "title": "Secure Messaging",
+    "titleHighlight": "Reimagined",
+    "description": "Enterprise-grade security meets beautiful design. Real-time messaging with end-to-end encryption, built for teams that value privacy.",
+    "startMessaging": "Start Messaging",
+    "encryption": "Encryption",
+    "latency": "Latency",
+    "uptime": "Uptime"
+  },
+  "loading": {
+    "connecting": "Connecting to server...",
+    "reconnecting": "Reconnecting..."
+  },
+  "error": {
+    "connectionFailed": "Connection failed. Please try again.",
+    "connectionError": "Connection error",
+    "connectionLost": "Connection lost. Please refresh the page.",
+    "required": "This field is required",
+    "invalidEmail": "Please enter a valid email address",
+    "usernameTooShort": "Username must be 3-20 characters",
+    "usernameInvalid": "Username can only contain letters, numbers, and underscores",
+    "passwordTooShort": "Password must be at least 6 characters",
+    "passwordMismatch": "Passwords do not match",
+    "loginFailed": "Login failed",
+    "registerFailed": "Registration failed",
+    "verificationFailed": "Verification failed",
+    "roomCreateFailed": "Failed to create room",
+    "messageSendFailed": "Failed to send message",
+    "fileUploadFailed": "Failed to upload file",
+    "noResults": "No results found"
+  },
+  "features": {
+    "sectionLabel": "Features",
+    "title": "Everything you need for",
+    "titleHighlight": "secure communication",
+    "description": "Built with modern security standards and designed for seamless collaboration",
+    "encryption": {
+      "title": "End-to-End Encryption",
+      "description": "All messages are encrypted using AES-256. Only you and your recipients can read your messages.",
+      "tag": "Enterprise Security"
+    },
+    "realtime": {
+      "title": "Real-time WebSocket",
+      "description": "Instant message delivery with sub-50ms latency. Auto-reconnect and state synchronization built-in."
+    },
+    "collaboration": {
+      "title": "Team Collaboration",
+      "description": "Create public, private, or secret channels. Manage roles and permissions with fine-grained controls."
+    },
+    "fileSharing": {
+      "title": "File Sharing",
+      "description": "Share files securely with automatic thumbnail generation and comprehensive access controls."
+    },
+    "search": {
+      "title": "Full-text Search",
+      "description": "Find any message, file, or conversation instantly with our powerful search engine."
+    },
+    "readReceipts": {
+      "title": "Read Receipts",
+      "description": "Know when your messages are delivered and read with real-time status updates."
+    },
+    "rateLimit": {
+      "title": "Rate Limiting",
+      "description": "Built-in protection against abuse with intelligent rate limiting powered by Bucket4j."
+    },
+    "monitoring": {
+      "title": "Monitoring",
+      "description": "Prometheus metrics and health checks for complete observability of your messaging infrastructure."
+    }
+  },
+  "technology": {
+    "sectionLabel": "Technology",
+    "title": "Built with",
+    "titleHighlight": "modern stack",
+    "description": "Production-ready technologies for scalability and reliability",
+    "backend": "Backend",
+    "dataSecurity": "Data & Security",
+    "devops": "DevOps",
+    "modernLts": "Modern LTS",
+    "framework": "Framework",
+    "realtime": "Real-time",
+    "authentication": "Authentication",
+    "database": "Database",
+    "protection": "Protection",
+    "caching": "Caching",
+    "rateLimit": "Rate Limit",
+    "container": "Container",
+    "cloudPaas": "Cloud PaaS",
+    "monitoring": "Monitoring",
+    "apiDocs": "API Docs"
+  },
+  "architecture": {
+    "sectionLabel": "Architecture",
+    "title": "Clean & Scalable",
+    "titleHighlight": "System Design",
+    "description": "Layered architecture ensuring separation of concerns and maintainability",
+    "presentationLayer": "Presentation Layer",
+    "securityLayer": "Security Layer",
+    "businessLayer": "Business Logic Layer",
+    "dataLayer": "Data Access Layer",
+    "restControllers": "REST Controllers",
+    "websocketHandler": "WebSocket Handler",
+    "dtoValidation": "DTO Validation",
+    "exceptionHandling": "Exception Handling",
+    "jwtFilter": "JWT Filter",
+    "rateLimiting": "Rate Limiting",
+    "corsConfig": "CORS Config",
+    "authManager": "Auth Manager",
+    "repositoryPattern": "Repository Pattern",
+    "customQueries": "Custom Queries"
+  },
+  "security": {
+    "sectionLabel": "Security",
+    "title": "Enterprise-grade",
+    "titleHighlight": "Protection",
+    "description": "Your privacy is our priority. Built with security-first mindset.",
+    "aes": {
+      "title": "AES-256 Encryption",
+      "description": "Military-grade encryption for all messages and files in transit and at rest."
+    },
+    "jwt": {
+      "title": "JWT Authentication",
+      "description": "Secure token-based authentication with automatic refresh and session management."
+    },
+    "rateLimit": {
+      "title": "Rate Limiting",
+      "description": "Intelligent request throttling to prevent abuse and ensure fair usage."
+    },
+    "audit": {
+      "title": "Audit Logging",
+      "description": "Comprehensive activity logging for compliance and security monitoring."
+    }
+  },
+  "cta": {
+    "title": "Ready to experience",
+    "titleHighlight": "secure messaging?",
+    "description": "Start messaging in seconds. No credit card required."
+  },
+  "auth": {
+    "welcomeBack": "Welcome Back",
+    "signInToContinue": "Sign in to continue to BEAM",
+    "username": "Username",
+    "password": "Password",
+    "email": "Email",
+    "displayName": "Display Name",
+    "confirmPassword": "Confirm Password",
+    "enterUsername": "Enter your username",
+    "enterPassword": "Enter your password",
+    "enterEmail": "your@email.com",
+    "chooseUsername": "Choose a username",
+    "yourDisplayName": "Your display name",
+    "createPassword": "Create a password",
+    "confirmYourPassword": "Confirm your password",
+    "signIn": "Sign In",
+    "quickStartGuest": "Quick Start as Guest",
+    "takeATourFirst": "Take a Tour First",
+    "dontHaveAccount": "Don't have an account?",
+    "signUp": "Sign Up",
+    "createAccount": "Create Account",
+    "joinBeam": "Join BEAM and start messaging securely",
+    "sendVerificationCode": "We'll send a verification code",
+    "usernameHint": "3-20 characters, letters and numbers only",
+    "passwordHint": "At least 6 characters",
+    "alreadyHaveAccount": "Already have an account?",
+    "verifyEmail": "Verify Email",
+    "enterVerificationCode": "Enter the 6-digit code sent to your email",
+    "verificationCode": "Verification Code",
+    "verify": "Verify",
+    "resendCode": "Resend Code",
+    "backToSignUp": "Back to Sign Up",
+    "verificationSent": "Verification code sent!"
+  },
+  "footer": {
+    "brand": "Enterprise-grade secure messaging platform for modern teams.",
+    "product": "Product",
+    "resources": "Resources",
+    "legal": "Legal",
+    "apiDocs": "API Documentation",
+    "systemStatus": "System Status",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "copyright": "© 2025 BEAM. All rights reserved."
+  },
+  "chat": {
+    "searchConversations": "Search conversations...",
+    "chats": "Chats",
+    "friends": "Friends",
+    "rooms": "Rooms",
+    "newRoom": "New Room",
+    "guest": "Guest",
+    "online": "Online",
+    "offline": "Offline",
+    "general": "General",
+    "welcomeTitle": "Welcome to BEAM",
+    "welcomeMessage": "Select a conversation to start messaging",
+    "typeMessage": "Type a message...",
+    "inputHint": "Press Enter to send, Shift + Enter for new line",
+    "attachFile": "Attach file",
+    "sendMessage": "Send message",
+    "searchInChat": "Search in chat",
+    "call": "Call",
+    "logout": "Logout",
+    "joined": "joined the room",
+    "left": "left the room",
+    "joinedRoom": "Joined {{room}}"
+  },
+  "settings": {
+    "title": "Settings",
+    "profile": "Profile",
+    "displayName": "Display Name",
+    "yourDisplayName": "Your display name",
+    "account": "Account",
+    "username": "Username",
+    "email": "Email",
+    "language": "Language",
+    "selectLanguage": "Select language",
+    "logout": "Logout"
+  },
+  "room": {
+    "createTitle": "Create Chat Room",
+    "roomName": "Room Name",
+    "enterRoomName": "Enter room name",
+    "description": "Description",
+    "descriptionPlaceholder": "What's this room about?",
+    "roomType": "Room Type",
+    "public": "Public - Anyone can join",
+    "private": "Private - Invite only",
+    "maxMembers": "Max Members",
+    "cancel": "Cancel",
+    "create": "Create Room",
+    "createdSuccess": "Room created successfully",
+    "pleaseEnterName": "Please enter a room name"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago"
+  },
+  "status": {
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "reconnecting": "Reconnecting...",
+    "typing": "typing..."
+  },
+  "file": {
+    "upload": "File upload: {{name}}",
+    "uploading": "Uploading...",
+    "downloadFailed": "Download failed"
+  },
+  "notification": {
+    "newMessage": "New message",
+    "fromUser": "{{user}} sent you a message"
+  },
+  "tour": {
+    "welcomeTitle": "Welcome to BEAM Tour!",
+    "welcomeDescription": "Take a quick tour to discover all the powerful features of our secure messaging platform.",
+    "realtimeChat": "Real-time Chat",
+    "secureEncrypted": "Secure & Encrypted",
+    "teamCollaboration": "Team Collaboration",
+    "lightningFast": "Lightning Fast",
+    "startTour": "Start Tour",
+    "maybeLater": "Maybe Later",
+    "failedToStart": "Failed to start tour. Please try again.",
+    "tourMode": "Tour Mode",
+    "previous": "Previous",
+    "next": "Next",
+    "finish": "Finish",
+    "skipTour": "Skip Tour",
+    "completed": "Tour completed! Enjoy BEAM!",
+    "steps": {
+      "sidebar": {
+        "title": "Sidebar Navigation",
+        "content": "This is your main navigation area. Here you can browse your chats, friends list, and chat rooms."
+      },
+      "search": {
+        "title": "Search",
+        "content": "Quickly find conversations, friends, or rooms using the search bar."
+      },
+      "tabs": {
+        "title": "Tab Navigation",
+        "content": "Switch between Chats, Friends, and Rooms tabs to organize your conversations."
+      },
+      "createRoom": {
+        "title": "Create New Room",
+        "content": "Click here to create a new chat room. You can make it public, private, or secret!"
+      },
+      "profile": {
+        "title": "Your Profile",
+        "content": "View your profile status and access settings from here."
+      },
+      "chatHeader": {
+        "title": "Chat Header",
+        "content": "See who you're chatting with and access call features and room settings."
+      },
+      "messages": {
+        "title": "Message Area",
+        "content": "All your messages appear here. Scroll up to see older messages."
+      },
+      "input": {
+        "title": "Send Messages",
+        "content": "Type your message here and press Enter to send. Use Shift+Enter for new lines. You can also attach files!"
+      },
+      "settings": {
+        "title": "Settings",
+        "content": "Access your account settings, change display name, and manage your profile."
+      },
+      "logout": {
+        "title": "Logout",
+        "content": "When you're done, click here to safely log out of your account."
+      }
+    }
+  },
+  "translation": {
+    "translate": "Translate",
+    "translating": "Translating...",
+    "translated": "Translated",
+    "original": "Show original",
+    "failed": "Translation failed",
+    "disabled": "Translation service is not available",
+    "autoTranslate": "Auto translate",
+    "targetLanguage": "Target language"
+  }
+}

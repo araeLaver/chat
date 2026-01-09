@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -52,10 +52,10 @@
             </a>
 
             <ul class="nav-links" id="navLinks">
-                <li><a href="#features">Features</a></li>
-                <li><a href="#technology">Technology</a></li>
-                <li><a href="#architecture">Architecture</a></li>
-                <li><a href="#security">Security</a></li>
+                <li><a href="#features" data-i18n="nav.features">Features</a></li>
+                <li><a href="#technology" data-i18n="nav.technology">Technology</a></li>
+                <li><a href="#architecture" data-i18n="nav.architecture">Architecture</a></li>
+                <li><a href="#security" data-i18n="nav.security">Security</a></li>
             </ul>
 
             <div class="nav-actions">
@@ -64,11 +64,11 @@
                         <circle cx="12" cy="12" r="10"/>
                         <polygon points="10,8 16,12 10,16 10,8"/>
                     </svg>
-                    <span>Tour</span>
+                    <span data-i18n="nav.tour">Tour</span>
                 </button>
-                <button class="btn btn-ghost" onclick="openLoginModal()">Sign In</button>
+                <button class="btn btn-ghost" onclick="openLoginModal()" data-i18n="nav.signIn">Sign In</button>
                 <button class="btn btn-primary" onclick="openRegisterModal()">
-                    <span>Get Started</span>
+                    <span data-i18n="nav.getStarted">Get Started</span>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M5 12h14M12 5l7 7-7 7"/>
                     </svg>
@@ -86,20 +86,20 @@
     <!-- Mobile Menu -->
     <div class="mobile-menu" id="mobileMenu">
         <ul class="mobile-nav-links">
-            <li><a href="#features" onclick="toggleMobileMenu()">Features</a></li>
-            <li><a href="#technology" onclick="toggleMobileMenu()">Technology</a></li>
-            <li><a href="#architecture" onclick="toggleMobileMenu()">Architecture</a></li>
-            <li><a href="#security" onclick="toggleMobileMenu()">Security</a></li>
+            <li><a href="#features" onclick="toggleMobileMenu()" data-i18n="nav.features">Features</a></li>
+            <li><a href="#technology" onclick="toggleMobileMenu()" data-i18n="nav.technology">Technology</a></li>
+            <li><a href="#architecture" onclick="toggleMobileMenu()" data-i18n="nav.architecture">Architecture</a></li>
+            <li><a href="#security" onclick="toggleMobileMenu()" data-i18n="nav.security">Security</a></li>
         </ul>
         <div class="mobile-nav-actions">
-            <button class="btn btn-ghost btn-block" onclick="openLoginModal(); toggleMobileMenu();">Sign In</button>
-            <button class="btn btn-primary btn-block" onclick="openRegisterModal(); toggleMobileMenu();">Get Started Free</button>
+            <button class="btn btn-ghost btn-block" onclick="openLoginModal(); toggleMobileMenu();" data-i18n="nav.signIn">Sign In</button>
+            <button class="btn btn-primary btn-block" onclick="openRegisterModal(); toggleMobileMenu();" data-i18n="nav.getStartedFree">Get Started Free</button>
             <button class="btn btn-outline btn-block" onclick="startTour(); toggleMobileMenu();" style="margin-top: 0.5rem;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
                     <circle cx="12" cy="12" r="10"/>
                     <polygon points="10,8 16,12 10,16 10,8"/>
                 </svg>
-                Take a Tour
+                <span data-i18n="nav.takeATour">Take a Tour</span>
             </button>
         </div>
     </div>
@@ -109,15 +109,15 @@
         <div class="hero-content">
             <div class="hero-badge animate-fade-in">
                 <div class="badge-dot"></div>
-                <span>Now Available - Version 1.0</span>
+                <span data-i18n="hero.badge">Now Available - Version 1.0</span>
             </div>
 
             <h1 class="hero-title animate-fade-in-up">
-                Secure Messaging<br>
-                <span class="text-gradient">Reimagined</span>
+                <span data-i18n="hero.title">Secure Messaging</span><br>
+                <span class="text-gradient" data-i18n="hero.titleHighlight">Reimagined</span>
             </h1>
 
-            <p class="hero-description animate-fade-in-up delay-1">
+            <p class="hero-description animate-fade-in-up delay-1" data-i18n="hero.description">
                 Enterprise-grade security meets beautiful design. Real-time messaging
                 with end-to-end encryption, built for teams that value privacy.
             </p>
@@ -127,38 +127,38 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
                     </svg>
-                    <span>Start Messaging</span>
+                    <span data-i18n="hero.startMessaging">Start Messaging</span>
                 </button>
                 <button class="btn btn-outline btn-lg" onclick="startTour()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
                         <polygon points="10,8 16,12 10,16 10,8"/>
                     </svg>
-                    <span>Take a Tour</span>
+                    <span data-i18n="nav.takeATour">Take a Tour</span>
                 </button>
             </div>
 
             <div class="hero-stats animate-fade-in-up delay-3">
                 <div class="stat-item">
                     <span class="stat-value">256-bit</span>
-                    <span class="stat-label">Encryption</span>
+                    <span class="stat-label" data-i18n="hero.encryption">Encryption</span>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-item">
                     <span class="stat-value">&lt;50ms</span>
-                    <span class="stat-label">Latency</span>
+                    <span class="stat-label" data-i18n="hero.latency">Latency</span>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-item">
                     <span class="stat-value">99.9%</span>
-                    <span class="stat-label">Uptime</span>
+                    <span class="stat-label" data-i18n="hero.uptime">Uptime</span>
                 </div>
             </div>
 
             <!-- Loading State -->
             <div class="loading-overlay" id="loading">
                 <div class="loading-spinner"></div>
-                <p>Connecting to server...</p>
+                <p data-i18n="loading.connecting">Connecting to server...</p>
             </div>
 
             <!-- Error State -->
@@ -167,7 +167,7 @@
                     <circle cx="12" cy="12" r="10"/>
                     <path d="M12 8v4M12 16h.01"/>
                 </svg>
-                <span>Connection failed. Please try again.</span>
+                <span data-i18n="error.connectionFailed">Connection failed. Please try again.</span>
             </div>
         </div>
 
@@ -227,9 +227,9 @@
     <section class="section" id="features">
         <div class="container">
             <div class="section-header">
-                <span class="section-label">Features</span>
-                <h2 class="section-title">Everything you need for<br><span class="text-gradient">secure communication</span></h2>
-                <p class="section-description">
+                <span class="section-label" data-i18n="features.sectionLabel">Features</span>
+                <h2 class="section-title"><span data-i18n="features.title">Everything you need for</span><br><span class="text-gradient" data-i18n="features.titleHighlight">secure communication</span></h2>
+                <p class="section-description" data-i18n="features.description">
                     Built with modern security standards and designed for seamless collaboration
                 </p>
             </div>
@@ -242,9 +242,9 @@
                             <path d="M7 11V7a5 5 0 0110 0v4"/>
                         </svg>
                     </div>
-                    <h3>End-to-End Encryption</h3>
-                    <p>All messages are encrypted using AES-256. Only you and your recipients can read your messages.</p>
-                    <div class="feature-tag">Enterprise Security</div>
+                    <h3 data-i18n="features.encryption.title">End-to-End Encryption</h3>
+                    <p data-i18n="features.encryption.description">All messages are encrypted using AES-256. Only you and your recipients can read your messages.</p>
+                    <div class="feature-tag" data-i18n="features.encryption.tag">Enterprise Security</div>
                 </div>
 
                 <div class="feature-card">
@@ -253,8 +253,8 @@
                             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
                         </svg>
                     </div>
-                    <h3>Real-time WebSocket</h3>
-                    <p>Instant message delivery with sub-50ms latency. Auto-reconnect and state synchronization built-in.</p>
+                    <h3 data-i18n="features.realtime.title">Real-time WebSocket</h3>
+                    <p data-i18n="features.realtime.description">Instant message delivery with sub-50ms latency. Auto-reconnect and state synchronization built-in.</p>
                 </div>
 
                 <div class="feature-card">
@@ -265,8 +265,8 @@
                             <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
                         </svg>
                     </div>
-                    <h3>Team Collaboration</h3>
-                    <p>Create public, private, or secret channels. Manage roles and permissions with fine-grained controls.</p>
+                    <h3 data-i18n="features.collaboration.title">Team Collaboration</h3>
+                    <p data-i18n="features.collaboration.description">Create public, private, or secret channels. Manage roles and permissions with fine-grained controls.</p>
                 </div>
 
                 <div class="feature-card">
@@ -275,8 +275,8 @@
                             <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
                         </svg>
                     </div>
-                    <h3>File Sharing</h3>
-                    <p>Share files securely with automatic thumbnail generation and comprehensive access controls.</p>
+                    <h3 data-i18n="features.fileSharing.title">File Sharing</h3>
+                    <p data-i18n="features.fileSharing.description">Share files securely with automatic thumbnail generation and comprehensive access controls.</p>
                 </div>
 
                 <div class="feature-card">
@@ -286,8 +286,8 @@
                             <path d="M21 21l-4.35-4.35"/>
                         </svg>
                     </div>
-                    <h3>Full-text Search</h3>
-                    <p>Find any message, file, or conversation instantly with our powerful search engine.</p>
+                    <h3 data-i18n="features.search.title">Full-text Search</h3>
+                    <p data-i18n="features.search.description">Find any message, file, or conversation instantly with our powerful search engine.</p>
                 </div>
 
                 <div class="feature-card">
@@ -297,8 +297,8 @@
                             <path d="M22 4L12 14.01l-3-3"/>
                         </svg>
                     </div>
-                    <h3>Read Receipts</h3>
-                    <p>Know when your messages are delivered and read with real-time status updates.</p>
+                    <h3 data-i18n="features.readReceipts.title">Read Receipts</h3>
+                    <p data-i18n="features.readReceipts.description">Know when your messages are delivered and read with real-time status updates.</p>
                 </div>
 
                 <div class="feature-card">
@@ -307,8 +307,8 @@
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                         </svg>
                     </div>
-                    <h3>Rate Limiting</h3>
-                    <p>Built-in protection against abuse with intelligent rate limiting powered by Bucket4j.</p>
+                    <h3 data-i18n="features.rateLimit.title">Rate Limiting</h3>
+                    <p data-i18n="features.rateLimit.description">Built-in protection against abuse with intelligent rate limiting powered by Bucket4j.</p>
                 </div>
 
                 <div class="feature-card">
@@ -318,8 +318,8 @@
                             <path d="M8 21h8M12 17v4"/>
                         </svg>
                     </div>
-                    <h3>Monitoring</h3>
-                    <p>Prometheus metrics and health checks for complete observability of your messaging infrastructure.</p>
+                    <h3 data-i18n="features.monitoring.title">Monitoring</h3>
+                    <p data-i18n="features.monitoring.description">Prometheus metrics and health checks for complete observability of your messaging infrastructure.</p>
                 </div>
             </div>
         </div>
@@ -329,16 +329,16 @@
     <section class="section section-alt" id="technology">
         <div class="container">
             <div class="section-header">
-                <span class="section-label">Technology</span>
-                <h2 class="section-title">Built with<br><span class="text-gradient">modern stack</span></h2>
-                <p class="section-description">
+                <span class="section-label" data-i18n="technology.sectionLabel">Technology</span>
+                <h2 class="section-title"><span data-i18n="technology.title">Built with</span><br><span class="text-gradient" data-i18n="technology.titleHighlight">modern stack</span></h2>
+                <p class="section-description" data-i18n="technology.description">
                     Production-ready technologies for scalability and reliability
                 </p>
             </div>
 
             <div class="tech-showcase">
                 <div class="tech-category">
-                    <h3 class="tech-category-title">Backend</h3>
+                    <h3 class="tech-category-title" data-i18n="technology.backend">Backend</h3>
                     <div class="tech-items">
                         <div class="tech-item">
                             <div class="tech-icon-wrapper">
@@ -346,7 +346,7 @@
                             </div>
                             <div class="tech-info">
                                 <span class="tech-name">Java 17</span>
-                                <span class="tech-desc">Modern LTS</span>
+                                <span class="tech-desc" data-i18n="technology.modernLts">Modern LTS</span>
                             </div>
                         </div>
                         <div class="tech-item">
@@ -355,7 +355,7 @@
                             </div>
                             <div class="tech-info">
                                 <span class="tech-name">Spring Boot 3.2</span>
-                                <span class="tech-desc">Framework</span>
+                                <span class="tech-desc" data-i18n="technology.framework">Framework</span>
                             </div>
                         </div>
                         <div class="tech-item">
@@ -364,7 +364,7 @@
                             </div>
                             <div class="tech-info">
                                 <span class="tech-name">WebSocket</span>
-                                <span class="tech-desc">Real-time</span>
+                                <span class="tech-desc" data-i18n="technology.realtime">Real-time</span>
                             </div>
                         </div>
                         <div class="tech-item">
@@ -373,14 +373,14 @@
                             </div>
                             <div class="tech-info">
                                 <span class="tech-name">JWT</span>
-                                <span class="tech-desc">Authentication</span>
+                                <span class="tech-desc" data-i18n="technology.authentication">Authentication</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="tech-category">
-                    <h3 class="tech-category-title">Data & Security</h3>
+                    <h3 class="tech-category-title" data-i18n="technology.dataSecurity">Data & Security</h3>
                     <div class="tech-items">
                         <div class="tech-item">
                             <div class="tech-icon-wrapper">
@@ -388,7 +388,7 @@
                             </div>
                             <div class="tech-info">
                                 <span class="tech-name">PostgreSQL</span>
-                                <span class="tech-desc">Database</span>
+                                <span class="tech-desc" data-i18n="technology.database">Database</span>
                             </div>
                         </div>
                         <div class="tech-item">
@@ -397,7 +397,7 @@
                             </div>
                             <div class="tech-info">
                                 <span class="tech-name">Spring Security</span>
-                                <span class="tech-desc">Protection</span>
+                                <span class="tech-desc" data-i18n="technology.protection">Protection</span>
                             </div>
                         </div>
                         <div class="tech-item">
@@ -406,7 +406,7 @@
                             </div>
                             <div class="tech-info">
                                 <span class="tech-name">Caffeine</span>
-                                <span class="tech-desc">Caching</span>
+                                <span class="tech-desc" data-i18n="technology.caching">Caching</span>
                             </div>
                         </div>
                         <div class="tech-item">
@@ -415,14 +415,14 @@
                             </div>
                             <div class="tech-info">
                                 <span class="tech-name">Bucket4j</span>
-                                <span class="tech-desc">Rate Limit</span>
+                                <span class="tech-desc" data-i18n="technology.rateLimit">Rate Limit</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="tech-category">
-                    <h3 class="tech-category-title">DevOps</h3>
+                    <h3 class="tech-category-title" data-i18n="technology.devops">DevOps</h3>
                     <div class="tech-items">
                         <div class="tech-item">
                             <div class="tech-icon-wrapper">
@@ -430,7 +430,7 @@
                             </div>
                             <div class="tech-info">
                                 <span class="tech-name">Docker</span>
-                                <span class="tech-desc">Container</span>
+                                <span class="tech-desc" data-i18n="technology.container">Container</span>
                             </div>
                         </div>
                         <div class="tech-item">
@@ -439,7 +439,7 @@
                             </div>
                             <div class="tech-info">
                                 <span class="tech-name">Koyeb</span>
-                                <span class="tech-desc">Cloud PaaS</span>
+                                <span class="tech-desc" data-i18n="technology.cloudPaas">Cloud PaaS</span>
                             </div>
                         </div>
                         <div class="tech-item">
@@ -448,7 +448,7 @@
                             </div>
                             <div class="tech-info">
                                 <span class="tech-name">Prometheus</span>
-                                <span class="tech-desc">Monitoring</span>
+                                <span class="tech-desc" data-i18n="technology.monitoring">Monitoring</span>
                             </div>
                         </div>
                         <div class="tech-item">
@@ -457,7 +457,7 @@
                             </div>
                             <div class="tech-info">
                                 <span class="tech-name">Swagger</span>
-                                <span class="tech-desc">API Docs</span>
+                                <span class="tech-desc" data-i18n="technology.apiDocs">API Docs</span>
                             </div>
                         </div>
                     </div>
@@ -470,9 +470,9 @@
     <section class="section" id="architecture">
         <div class="container">
             <div class="section-header">
-                <span class="section-label">Architecture</span>
-                <h2 class="section-title">Clean & Scalable<br><span class="text-gradient">System Design</span></h2>
-                <p class="section-description">
+                <span class="section-label" data-i18n="architecture.sectionLabel">Architecture</span>
+                <h2 class="section-title"><span data-i18n="architecture.title">Clean & Scalable</span><br><span class="text-gradient" data-i18n="architecture.titleHighlight">System Design</span></h2>
+                <p class="section-description" data-i18n="architecture.description">
                     Layered architecture ensuring separation of concerns and maintainability
                 </p>
             </div>
@@ -486,13 +486,13 @@
                                 <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
                             </svg>
                         </div>
-                        <h4>Presentation Layer</h4>
+                        <h4 data-i18n="architecture.presentationLayer">Presentation Layer</h4>
                     </div>
                     <div class="layer-items">
-                        <span class="layer-item">REST Controllers</span>
-                        <span class="layer-item">WebSocket Handler</span>
-                        <span class="layer-item">DTO Validation</span>
-                        <span class="layer-item">Exception Handling</span>
+                        <span class="layer-item" data-i18n="architecture.restControllers">REST Controllers</span>
+                        <span class="layer-item" data-i18n="architecture.websocketHandler">WebSocket Handler</span>
+                        <span class="layer-item" data-i18n="architecture.dtoValidation">DTO Validation</span>
+                        <span class="layer-item" data-i18n="architecture.exceptionHandling">Exception Handling</span>
                     </div>
                 </div>
 
@@ -509,13 +509,13 @@
                                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                             </svg>
                         </div>
-                        <h4>Security Layer</h4>
+                        <h4 data-i18n="architecture.securityLayer">Security Layer</h4>
                     </div>
                     <div class="layer-items">
-                        <span class="layer-item">JWT Filter</span>
-                        <span class="layer-item">Rate Limiting</span>
-                        <span class="layer-item">CORS Config</span>
-                        <span class="layer-item">Auth Manager</span>
+                        <span class="layer-item" data-i18n="architecture.jwtFilter">JWT Filter</span>
+                        <span class="layer-item" data-i18n="architecture.rateLimiting">Rate Limiting</span>
+                        <span class="layer-item" data-i18n="architecture.corsConfig">CORS Config</span>
+                        <span class="layer-item" data-i18n="architecture.authManager">Auth Manager</span>
                     </div>
                 </div>
 
@@ -533,7 +533,7 @@
                                 <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
                             </svg>
                         </div>
-                        <h4>Business Logic Layer</h4>
+                        <h4 data-i18n="architecture.businessLayer">Business Logic Layer</h4>
                     </div>
                     <div class="layer-items">
                         <span class="layer-item">AuthService</span>
@@ -560,12 +560,12 @@
                                 <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
                             </svg>
                         </div>
-                        <h4>Data Access Layer</h4>
+                        <h4 data-i18n="architecture.dataLayer">Data Access Layer</h4>
                     </div>
                     <div class="layer-items">
                         <span class="layer-item">Spring Data JPA</span>
-                        <span class="layer-item">Repository Pattern</span>
-                        <span class="layer-item">Custom Queries</span>
+                        <span class="layer-item" data-i18n="architecture.repositoryPattern">Repository Pattern</span>
+                        <span class="layer-item" data-i18n="architecture.customQueries">Custom Queries</span>
                         <span class="layer-item">Caffeine Cache</span>
                     </div>
                 </div>
@@ -577,9 +577,9 @@
     <section class="section section-alt" id="security">
         <div class="container">
             <div class="section-header">
-                <span class="section-label">Security</span>
-                <h2 class="section-title">Enterprise-grade<br><span class="text-gradient">Protection</span></h2>
-                <p class="section-description">
+                <span class="section-label" data-i18n="security.sectionLabel">Security</span>
+                <h2 class="section-title"><span data-i18n="security.title">Enterprise-grade</span><br><span class="text-gradient" data-i18n="security.titleHighlight">Protection</span></h2>
+                <p class="section-description" data-i18n="security.description">
                     Your privacy is our priority. Built with security-first mindset.
                 </p>
             </div>
@@ -592,8 +592,8 @@
                             <path d="M7 11V7a5 5 0 0110 0v4"/>
                         </svg>
                     </div>
-                    <h3>AES-256 Encryption</h3>
-                    <p>Military-grade encryption for all messages and files in transit and at rest.</p>
+                    <h3 data-i18n="security.aes.title">AES-256 Encryption</h3>
+                    <p data-i18n="security.aes.description">Military-grade encryption for all messages and files in transit and at rest.</p>
                 </div>
 
                 <div class="security-card">
@@ -603,8 +603,8 @@
                             <path d="M9 12l2 2 4-4"/>
                         </svg>
                     </div>
-                    <h3>JWT Authentication</h3>
-                    <p>Secure token-based authentication with automatic refresh and session management.</p>
+                    <h3 data-i18n="security.jwt.title">JWT Authentication</h3>
+                    <p data-i18n="security.jwt.description">Secure token-based authentication with automatic refresh and session management.</p>
                 </div>
 
                 <div class="security-card">
@@ -614,8 +614,8 @@
                             <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
                         </svg>
                     </div>
-                    <h3>Rate Limiting</h3>
-                    <p>Intelligent request throttling to prevent abuse and ensure fair usage.</p>
+                    <h3 data-i18n="security.rateLimit.title">Rate Limiting</h3>
+                    <p data-i18n="security.rateLimit.description">Intelligent request throttling to prevent abuse and ensure fair usage.</p>
                 </div>
 
                 <div class="security-card">
@@ -625,8 +625,8 @@
                             <circle cx="12" cy="12" r="3"/>
                         </svg>
                     </div>
-                    <h3>Audit Logging</h3>
-                    <p>Comprehensive activity logging for compliance and security monitoring.</p>
+                    <h3 data-i18n="security.audit.title">Audit Logging</h3>
+                    <p data-i18n="security.audit.description">Comprehensive activity logging for compliance and security monitoring.</p>
                 </div>
             </div>
         </div>
@@ -636,17 +636,17 @@
     <section class="section cta-section">
         <div class="container">
             <div class="cta-content">
-                <h2>Ready to experience<br><span class="text-gradient">secure messaging?</span></h2>
-                <p>Start messaging in seconds. No credit card required.</p>
+                <h2><span data-i18n="cta.title">Ready to experience</span><br><span class="text-gradient" data-i18n="cta.titleHighlight">secure messaging?</span></h2>
+                <p data-i18n="cta.description">Start messaging in seconds. No credit card required.</p>
                 <div class="cta-buttons">
                     <button class="btn btn-primary btn-lg" onclick="openRegisterModal()">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
                         </svg>
-                        <span>Get Started Free</span>
+                        <span data-i18n="nav.getStartedFree">Get Started Free</span>
                     </button>
                     <button class="btn btn-outline btn-lg" onclick="openLoginModal()">
-                        <span>Sign In</span>
+                        <span data-i18n="nav.signIn">Sign In</span>
                     </button>
                 </div>
             </div>
@@ -670,34 +670,34 @@
                             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
                         </svg>
                     </div>
-                    <h2>Welcome Back</h2>
-                    <p>Sign in to continue to BEAM</p>
+                    <h2 data-i18n="auth.welcomeBack">Welcome Back</h2>
+                    <p data-i18n="auth.signInToContinue">Sign in to continue to BEAM</p>
                 </div>
 
                 <form onsubmit="handleLogin(event)">
                     <div class="form-group">
-                        <label for="loginUsername">Username</label>
-                        <input type="text" id="loginUsername" name="username" placeholder="Enter your username" required>
+                        <label for="loginUsername" data-i18n="auth.username">Username</label>
+                        <input type="text" id="loginUsername" name="username" data-i18n-placeholder="auth.enterUsername" placeholder="Enter your username" required>
                     </div>
                     <div class="form-group">
-                        <label for="loginPassword">Password</label>
-                        <input type="password" id="loginPassword" name="password" placeholder="Enter your password" required>
+                        <label for="loginPassword" data-i18n="auth.password">Password</label>
+                        <input type="password" id="loginPassword" name="password" data-i18n-placeholder="auth.enterPassword" placeholder="Enter your password" required>
                     </div>
                     <div class="form-error" id="loginError"></div>
                     <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
-                        <span>Sign In</span>
+                        <span data-i18n="auth.signIn">Sign In</span>
                     </button>
                 </form>
 
                 <div class="auth-divider">
-                    <span>or</span>
+                    <span data-i18n="common.or">or</span>
                 </div>
 
                 <button class="btn btn-outline btn-block" onclick="guestLogin()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
                     </svg>
-                    <span>Quick Start as Guest</span>
+                    <span data-i18n="auth.quickStartGuest">Quick Start as Guest</span>
                 </button>
 
                 <button class="btn btn-ghost btn-block" onclick="closeAuthModal(); startTour();" style="margin-top: 0.5rem;">
@@ -705,11 +705,11 @@
                         <circle cx="12" cy="12" r="10"/>
                         <polygon points="10,8 16,12 10,16 10,8"/>
                     </svg>
-                    <span>Take a Tour First</span>
+                    <span data-i18n="auth.takeATourFirst">Take a Tour First</span>
                 </button>
 
                 <div class="auth-footer">
-                    <p>Don't have an account? <a href="#" onclick="showRegisterForm(event)">Sign Up</a></p>
+                    <p><span data-i18n="auth.dontHaveAccount">Don't have an account?</span> <a href="#" onclick="showRegisterForm(event)" data-i18n="auth.signUp">Sign Up</a></p>
                 </div>
             </div>
 
@@ -721,42 +721,42 @@
                             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
                         </svg>
                     </div>
-                    <h2>Create Account</h2>
-                    <p>Join BEAM and start messaging securely</p>
+                    <h2 data-i18n="auth.createAccount">Create Account</h2>
+                    <p data-i18n="auth.joinBeam">Join BEAM and start messaging securely</p>
                 </div>
 
                 <form onsubmit="handleRegister(event)">
                     <div class="form-group">
-                        <label for="registerEmail">Email</label>
-                        <input type="email" id="registerEmail" name="email" placeholder="your@email.com" required>
-                        <span class="form-hint">We'll send a verification code</span>
+                        <label for="registerEmail" data-i18n="auth.email">Email</label>
+                        <input type="email" id="registerEmail" name="email" data-i18n-placeholder="auth.enterEmail" placeholder="your@email.com" required>
+                        <span class="form-hint" data-i18n="auth.sendVerificationCode">We'll send a verification code</span>
                     </div>
                     <div class="form-group">
-                        <label for="registerUsername">Username</label>
-                        <input type="text" id="registerUsername" name="username" placeholder="Choose a username" required minlength="3" maxlength="20">
-                        <span class="form-hint">3-20 characters, letters and numbers only</span>
+                        <label for="registerUsername" data-i18n="auth.username">Username</label>
+                        <input type="text" id="registerUsername" name="username" data-i18n-placeholder="auth.chooseUsername" placeholder="Choose a username" required minlength="3" maxlength="20">
+                        <span class="form-hint" data-i18n="auth.usernameHint">3-20 characters, letters and numbers only</span>
                     </div>
                     <div class="form-group">
-                        <label for="registerDisplayName">Display Name</label>
-                        <input type="text" id="registerDisplayName" name="displayName" placeholder="Your display name" required>
+                        <label for="registerDisplayName" data-i18n="auth.displayName">Display Name</label>
+                        <input type="text" id="registerDisplayName" name="displayName" data-i18n-placeholder="auth.yourDisplayName" placeholder="Your display name" required>
                     </div>
                     <div class="form-group">
-                        <label for="registerPassword">Password</label>
-                        <input type="password" id="registerPassword" name="password" placeholder="Create a password" required minlength="6">
-                        <span class="form-hint">At least 6 characters</span>
+                        <label for="registerPassword" data-i18n="auth.password">Password</label>
+                        <input type="password" id="registerPassword" name="password" data-i18n-placeholder="auth.createPassword" placeholder="Create a password" required minlength="6">
+                        <span class="form-hint" data-i18n="auth.passwordHint">At least 6 characters</span>
                     </div>
                     <div class="form-group">
-                        <label for="registerConfirmPassword">Confirm Password</label>
-                        <input type="password" id="registerConfirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
+                        <label for="registerConfirmPassword" data-i18n="auth.confirmPassword">Confirm Password</label>
+                        <input type="password" id="registerConfirmPassword" name="confirmPassword" data-i18n-placeholder="auth.confirmYourPassword" placeholder="Confirm your password" required>
                     </div>
                     <div class="form-error" id="registerError"></div>
                     <button type="submit" class="btn btn-primary btn-block" id="registerBtn">
-                        <span>Create Account</span>
+                        <span data-i18n="auth.createAccount">Create Account</span>
                     </button>
                 </form>
 
                 <div class="auth-footer">
-                    <p>Already have an account? <a href="#" onclick="showLoginForm(event)">Sign In</a></p>
+                    <p><span data-i18n="auth.alreadyHaveAccount">Already have an account?</span> <a href="#" onclick="showLoginForm(event)" data-i18n="auth.signIn">Sign In</a></p>
                 </div>
             </div>
 
@@ -769,31 +769,31 @@
                             <path d="M22 4L12 14.01l-3-3"/>
                         </svg>
                     </div>
-                    <h2>Verify Email</h2>
-                    <p id="verifyEmailMessage">Enter the 6-digit code sent to your email</p>
+                    <h2 data-i18n="auth.verifyEmail">Verify Email</h2>
+                    <p id="verifyEmailMessage" data-i18n="auth.enterVerificationCode">Enter the 6-digit code sent to your email</p>
                 </div>
 
                 <form onsubmit="handleVerifyEmail(event)">
                     <div class="form-group">
-                        <label for="verificationCode">Verification Code</label>
+                        <label for="verificationCode" data-i18n="auth.verificationCode">Verification Code</label>
                         <input type="text" id="verificationCode" name="code" placeholder="000000" required maxlength="6" pattern="[0-9]{6}" style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem;">
                     </div>
                     <div class="form-error" id="verifyError"></div>
                     <button type="submit" class="btn btn-primary btn-block" id="verifyBtn">
-                        <span>Verify</span>
+                        <span data-i18n="auth.verify">Verify</span>
                     </button>
                 </form>
 
                 <div class="auth-divider">
-                    <span>or</span>
+                    <span data-i18n="common.or">or</span>
                 </div>
 
                 <button class="btn btn-outline btn-block" onclick="resendVerificationCode()">
-                    <span>Resend Code</span>
+                    <span data-i18n="auth.resendCode">Resend Code</span>
                 </button>
 
                 <div class="auth-footer">
-                    <p><a href="#" onclick="showRegisterForm(event)">Back to Sign Up</a></p>
+                    <p><a href="#" onclick="showRegisterForm(event)" data-i18n="auth.backToSignUp">Back to Sign Up</a></p>
                 </div>
             </div>
         </div>
@@ -812,42 +812,43 @@
                         </div>
                         <span>BEAM</span>
                     </a>
-                    <p>Enterprise-grade secure messaging platform for modern teams.</p>
+                    <p data-i18n="footer.brand">Enterprise-grade secure messaging platform for modern teams.</p>
                 </div>
 
                 <div class="footer-links-group">
-                    <h4>Product</h4>
+                    <h4 data-i18n="footer.product">Product</h4>
                     <ul>
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#security">Security</a></li>
-                        <li><a href="#technology">Technology</a></li>
-                        <li><a href="#architecture">Architecture</a></li>
+                        <li><a href="#features" data-i18n="nav.features">Features</a></li>
+                        <li><a href="#security" data-i18n="nav.security">Security</a></li>
+                        <li><a href="#technology" data-i18n="nav.technology">Technology</a></li>
+                        <li><a href="#architecture" data-i18n="nav.architecture">Architecture</a></li>
                     </ul>
                 </div>
 
                 <div class="footer-links-group">
-                    <h4>Resources</h4>
+                    <h4 data-i18n="footer.resources">Resources</h4>
                     <ul>
-                        <li><a href="/swagger-ui/index.html">API Documentation</a></li>
-                        <li><a href="/actuator/health">System Status</a></li>
+                        <li><a href="/swagger-ui/index.html" data-i18n="footer.apiDocs">API Documentation</a></li>
+                        <li><a href="/actuator/health" data-i18n="footer.systemStatus">System Status</a></li>
                     </ul>
                 </div>
 
                 <div class="footer-links-group">
-                    <h4>Legal</h4>
+                    <h4 data-i18n="footer.legal">Legal</h4>
                     <ul>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#" data-i18n="footer.privacyPolicy">Privacy Policy</a></li>
+                        <li><a href="#" data-i18n="footer.termsOfService">Terms of Service</a></li>
                     </ul>
                 </div>
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; 2025 BEAM. All rights reserved.</p>
+                <p data-i18n="footer.copyright">&copy; 2025 BEAM. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
+    <script src="/js/i18n/i18n.js"></script>
     <script src="/js/app.js"></script>
 </body>
 </html>

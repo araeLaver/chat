@@ -116,6 +116,12 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
+        <!-- Google Cloud Translation -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-translate</artifactId>
+            <version>2.31.0</version>
+        </dependency>
 
         <!-- Testing -->
         <dependency>
