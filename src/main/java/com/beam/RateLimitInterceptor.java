@@ -1,5 +1,6 @@
 package com.beam;
 
+import com.beam.util.IpAddressExtractor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,9 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     @Autowired
     private RateLimitService rateLimitService;
 
+    @Autowired
+    private IpAddressExtractor ipAddressExtractor;
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         // Skip rate limiting for health checks and actuator endpoints
@@ -37,7 +41,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         }
 
         // Get client identifier (IP address)
-        String clientId = getClientIP(request);
+        String clientId = ipAddressExtractor.extractClientIp(request);
 
         // Check rate limit
         if (!rateLimitService.isApiRequestAllowed(clientId)) {
@@ -57,25 +61,5 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         response.setHeader("X-RateLimit-Remaining", String.valueOf(remaining));
 
         return true;
-    }
-
-    /**
-     * Extract client IP address from request, considering proxy headers
-     *
-     * @param request HTTP request
-     * @return Client IP address
-     */
-    private String getClientIP(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            return xForwardedFor.split(",")[0].trim();
-        }
-
-        String xRealIP = request.getHeader("X-Real-IP");
-        if (xRealIP != null && !xRealIP.isEmpty()) {
-            return xRealIP;
-        }
-
-        return request.getRemoteAddr();
     }
 }

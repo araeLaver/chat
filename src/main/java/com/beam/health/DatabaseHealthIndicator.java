@@ -1,5 +1,6 @@
 package com.beam.health;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
@@ -17,8 +18,11 @@ import java.sql.ResultSet;
 @Component
 public class DatabaseHealthIndicator implements HealthIndicator {
 
-    private static final long SLOW_QUERY_THRESHOLD_MS = 100;
-    private static final long CRITICAL_QUERY_THRESHOLD_MS = 500;
+    @Value("${health.database.slow-query-threshold-ms:100}")
+    private long slowQueryThresholdMs;
+
+    @Value("${health.database.critical-query-threshold-ms:500}")
+    private long criticalQueryThresholdMs;
 
     private final DataSource dataSource;
 
@@ -38,10 +42,10 @@ public class DatabaseHealthIndicator implements HealthIndicator {
 
             Health.Builder builder;
 
-            if (responseTime > CRITICAL_QUERY_THRESHOLD_MS) {
+            if (responseTime > criticalQueryThresholdMs) {
                 builder = Health.down()
                     .withDetail("error", "Database response time critically slow");
-            } else if (responseTime > SLOW_QUERY_THRESHOLD_MS) {
+            } else if (responseTime > slowQueryThresholdMs) {
                 builder = Health.up()
                     .withDetail("warning", "Database response time slow");
             } else {

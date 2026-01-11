@@ -34,7 +34,9 @@ import java.util.concurrent.CompletableFuture;
 public class FileStorageService {
 
     private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
-    private static final int THUMBNAIL_WIDTH = 200;
+
+    @Value("${file.thumbnail.width:200}")
+    private int thumbnailWidth;
 
     @Value("${file.upload-dir:uploads}")
     private String uploadDir;
@@ -209,12 +211,12 @@ public class FileStorageService {
             throw new IOException("Cannot read image file");
         }
 
-        int thumbnailHeight = (int) (originalImage.getHeight() * ((double) THUMBNAIL_WIDTH / originalImage.getWidth()));
+        int thumbnailHeight = (int) (originalImage.getHeight() * ((double) thumbnailWidth / originalImage.getWidth()));
 
-        BufferedImage thumbnail = new BufferedImage(THUMBNAIL_WIDTH, thumbnailHeight, BufferedImage.TYPE_INT_RGB);
+        BufferedImage thumbnail = new BufferedImage(thumbnailWidth, thumbnailHeight, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = thumbnail.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g.drawImage(originalImage, 0, 0, THUMBNAIL_WIDTH, thumbnailHeight, null);
+        g.drawImage(originalImage, 0, 0, thumbnailWidth, thumbnailHeight, null);
         g.dispose();
 
         String thumbnailFileName = "thumb_" + originalFileName;

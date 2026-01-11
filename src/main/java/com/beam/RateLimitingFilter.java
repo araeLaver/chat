@@ -1,9 +1,11 @@
 package com.beam;
 
+import com.beam.util.IpAddressExtractor;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -55,6 +57,9 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     @Value("${rate-limit.upload.requests-per-minute:30}")
     private int uploadMaxRequestsPerMinute;
 
+    @Autowired
+    private IpAddressExtractor ipAddressExtractor;
+
     private static final long WINDOW_SIZE_MS = 60000;        // 1분 윈도우
     private static final long CLEANUP_INTERVAL_MS = 300000;  // 5분마다 정리
 
@@ -72,7 +77,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             return;
         }
 
-        String clientIp = getClientIP(request);
+        String clientIp = ipAddressExtractor.extractClientIp(request);
         long currentTime = System.currentTimeMillis();
 
         // 주기적으로 오래된 항목 정리
@@ -164,48 +169,6 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             this.resetTimestamp = resetTimestamp;
             this.retryAfterSeconds = retryAfterSeconds;
         }
-    }
-
-    /**
-     * 클라이언트 IP 주소 추출 (프록시 고려)
-     */
-    private String getClientIP(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_X_FORWARDED");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_X_CLUSTER_CLIENT_IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_CLIENT_IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_FORWARDED_FOR");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_FORWARDED");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-
-        // 여러 IP가 있는 경우 첫 번째 IP 사용
-        if (ip != null && ip.contains(",")) {
-            ip = ip.split(",")[0].trim();
-        }
-
-        return ip;
     }
 
     /**

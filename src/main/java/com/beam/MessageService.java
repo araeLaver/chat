@@ -1,6 +1,7 @@
 package com.beam;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,8 +24,11 @@ public class MessageService {
     @Autowired
     private MessageEncryptionService encryptionService;
 
-    private static final int DEFAULT_PAGE_SIZE = 100;
-    private static final int MAX_PAGE_SIZE = 500;
+    @Value("${app.page.default-size:100}")
+    private int defaultPageSize;
+
+    @Value("${app.page.max-size:500}")
+    private int maxPageSize;
 
     public MessageEntity saveMessage(ChatMessage chatMessage) {
         String content = chatMessage.getContent();
@@ -79,7 +83,7 @@ public class MessageService {
      * 채팅방 메시지 조회 (페이징 지원)
      */
     public Page<MessageEntity> getAllRoomMessages(String roomId, int page, int size) {
-        int pageSize = Math.min(size, MAX_PAGE_SIZE);
+        int pageSize = Math.min(size, maxPageSize);
         Pageable pageable = PageRequest.of(page, pageSize);
         Page<MessageEntity> messagePage = messageRepository.findByRoomIdOrderByTimestampAsc(roomId, pageable);
         // Page 내용 복호화

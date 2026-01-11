@@ -1,8 +1,10 @@
 package com.beam;
 
+import com.beam.util.IpAddressExtractor;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -17,6 +19,9 @@ public class SecurityEnhancementFilter implements Filter {
     private static final int MAX_REQUESTS_PER_MINUTE = 100;
     private static final long RATE_LIMIT_WINDOW = 60000;
 
+    @Autowired
+    private IpAddressExtractor ipAddressExtractor;
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
@@ -30,7 +35,7 @@ public class SecurityEnhancementFilter implements Filter {
         httpResponse.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
         httpResponse.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:");
 
-        String clientIp = getClientIP(httpRequest);
+        String clientIp = ipAddressExtractor.extractClientIp(httpRequest);
 
         if (!checkRateLimit(clientIp)) {
             httpResponse.setStatus(429);
@@ -39,20 +44,6 @@ public class SecurityEnhancementFilter implements Filter {
         }
 
         chain.doFilter(request, response);
-    }
-
-    private String getClientIP(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            return xForwardedFor.split(",")[0].trim();
-        }
-
-        String xRealIP = request.getHeader("X-Real-IP");
-        if (xRealIP != null && !xRealIP.isEmpty()) {
-            return xRealIP;
-        }
-
-        return request.getRemoteAddr();
     }
 
     private boolean checkRateLimit(String clientIp) {

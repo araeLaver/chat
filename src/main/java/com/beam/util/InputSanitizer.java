@@ -201,10 +201,11 @@ public class InputSanitizer {
         if (!trimmed.startsWith("http://") &&
             !trimmed.startsWith("https://") &&
             !trimmed.startsWith("mailto:") &&
+            !trimmed.startsWith("data:image/") &&
             !trimmed.startsWith("/") &&
             !trimmed.startsWith("#")) {
             // 프로토콜이 없으면 https:// 추가
-            if (!trimmed.contains("://")) {
+            if (!trimmed.contains("://") && !trimmed.contains(":")) {
                 return "https://" + url.trim();
             }
             return "";

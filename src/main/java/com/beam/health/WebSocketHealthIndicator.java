@@ -1,6 +1,7 @@
 package com.beam.health;
 
 import com.beam.websocket.WebSocketSessionManager;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
@@ -13,8 +14,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class WebSocketHealthIndicator implements HealthIndicator {
 
-    private static final int MAX_SESSIONS_WARNING = 5000;
-    private static final int MAX_SESSIONS_CRITICAL = 10000;
+    @Value("${health.websocket.max-sessions-warning:5000}")
+    private int maxSessionsWarning;
+
+    @Value("${health.websocket.max-sessions-critical:10000}")
+    private int maxSessionsCritical;
 
     private final WebSocketSessionManager sessionManager;
 
@@ -31,10 +35,10 @@ public class WebSocketHealthIndicator implements HealthIndicator {
 
         Health.Builder builder;
 
-        if (totalSessions >= MAX_SESSIONS_CRITICAL) {
+        if (totalSessions >= maxSessionsCritical) {
             builder = Health.down()
                 .withDetail("reason", "Session limit critical - approaching maximum capacity");
-        } else if (totalSessions >= MAX_SESSIONS_WARNING) {
+        } else if (totalSessions >= maxSessionsWarning) {
             builder = Health.up()
                 .withDetail("warning", "High session count - monitor closely");
         } else {
@@ -45,8 +49,8 @@ public class WebSocketHealthIndicator implements HealthIndicator {
             .withDetail("totalSessions", totalSessions)
             .withDetail("authenticatedUsers", authenticatedUsers)
             .withDetail("activeRooms", activeRooms)
-            .withDetail("maxSessionsWarning", MAX_SESSIONS_WARNING)
-            .withDetail("maxSessionsCritical", MAX_SESSIONS_CRITICAL)
+            .withDetail("maxSessionsWarning", maxSessionsWarning)
+            .withDetail("maxSessionsCritical", maxSessionsCritical)
             .build();
     }
 }

@@ -43,8 +43,26 @@ public class DirectMessageController {
             @RequestBody Map<String, Object> request) {
         try {
             Long senderId = AuthUtil.extractUserId(token, jwtUtil);
-            Long receiverId = Long.valueOf(request.get("receiverId").toString());
-            String content = request.get("content").toString();
+
+            // Null 체크 및 유효성 검증
+            Object receiverIdObj = request.get("receiverId");
+            Object contentObj = request.get("content");
+
+            if (receiverIdObj == null) {
+                return ResponseEntity.badRequest().body(ResponseHelper.error("receiverId is required"));
+            }
+            if (contentObj == null) {
+                return ResponseEntity.badRequest().body(ResponseHelper.error("content is required"));
+            }
+
+            Long receiverId;
+            try {
+                receiverId = Long.valueOf(receiverIdObj.toString());
+            } catch (NumberFormatException e) {
+                return ResponseEntity.badRequest().body(ResponseHelper.error("Invalid receiverId format"));
+            }
+
+            String content = contentObj.toString();
 
             DirectMessageEntity message = directMessageService.sendMessage(senderId, receiverId, content);
 

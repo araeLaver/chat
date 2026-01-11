@@ -1,11 +1,13 @@
 package com.beam.logging;
 
+import com.beam.util.IpAddressExtractor;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -24,14 +26,18 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestLoggingFilter.class);
 
+    @Autowired
+    private IpAddressExtractor ipAddressExtractor;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         long startTime = System.currentTimeMillis();
+        String clientIp = ipAddressExtractor.extractClientIp(request);
 
         try (LogContext context = LogContext.forRequest()
-                .withClientIp(getClientIP(request))
+                .withClientIp(clientIp)
                 .withAction(request.getMethod() + " " + request.getRequestURI())) {
 
             // 요청 로깅 (상세 정보는 DEBUG 레벨)
@@ -39,7 +45,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                 logger.debug("Request: {} {} from {}",
                     request.getMethod(),
                     request.getRequestURI(),
-                    getClientIP(request));
+                    clientIp);
             }
 
             filterChain.doFilter(request, response);
@@ -75,23 +81,6 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             logger.warn("Slow request detected: {} {} took {}ms",
                 request.getMethod(), uri, duration);
         }
-    }
-
-    private String getClientIP(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        if (ip != null && ip.contains(",")) {
-            ip = ip.split(",")[0].trim();
-        }
-        return ip;
     }
 
     private boolean isStaticResource(String uri) {

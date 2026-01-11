@@ -1,5 +1,6 @@
 package com.beam;
 
+import com.beam.util.IpAddressExtractor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -29,8 +30,11 @@ import java.util.concurrent.ThreadLocalRandom;
 @Tag(name = "Authentication", description = "사용자 인증 및 회원가입 API")
 public class AuthController {
 
-    private static final int MAX_GUEST_ID = 10000;
-    private static final int DEFAULT_ROOM_MAX_MEMBERS = 1000;
+    @Value("${app.guest.max-id:10000}")
+    private int maxGuestId;
+
+    @Value("${app.room.default-max-members:1000}")
+    private int defaultRoomMaxMembers;
 
     @Value("${guest.default-room-name:일반 채팅}")
     private String defaultRoomName;
@@ -53,6 +57,9 @@ public class AuthController {
     @Autowired
     private RoomRepository roomRepository;
 
+    @Autowired
+    private IpAddressExtractor ipAddressExtractor;
+
     @Operation(summary = "회원가입", description = "새로운 사용자 계정을 생성합니다")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "회원가입 성공",
@@ -74,30 +81,9 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody AuthRequest request, HttpServletRequest httpRequest) {
-        String ipAddress = getClientIP(httpRequest);
+        String ipAddress = ipAddressExtractor.extractClientIp(httpRequest);
         AuthResponse response = authService.login(request, ipAddress);
         return ResponseEntity.ok(response);
-    }
-
-    /**
-     * 클라이언트 IP 주소 추출 (프록시 고려)
-     */
-    private String getClientIP(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        // 여러 IP가 있는 경우 첫 번째 IP 사용
-        if (ip != null && ip.contains(",")) {
-            ip = ip.split(",")[0].trim();
-        }
-        return ip;
     }
 
     @Operation(summary = "로그아웃", description = "사용자 로그아웃 처리")
@@ -129,7 +115,7 @@ public class AuthController {
         try {
             // 랜덤 게스트 사용자명 생성
             String guestUsername = "guest_" + System.currentTimeMillis();
-            String guestDisplayName = "게스트" + ThreadLocalRandom.current().nextInt(MAX_GUEST_ID);
+            String guestDisplayName = "게스트" + ThreadLocalRandom.current().nextInt(maxGuestId);
 
             // 게스트 사용자 생성
             UserEntity guestUser = UserEntity.builder()
@@ -151,7 +137,7 @@ public class AuthController {
                     defaultRoomName,
                     "누구나 참여 가능한 일반 채팅방입니다",
                     RoomEntity.RoomType.PUBLIC,
-                    DEFAULT_ROOM_MAX_MEMBERS
+                    defaultRoomMaxMembers
                 ));
 
             // 사용자를 방에 추가 (이미 있으면 무시)

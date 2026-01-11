@@ -11,6 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -41,6 +42,13 @@ class MessageServiceTest {
     private static final Long USER_ID = 1L;
     private static final Long MESSAGE_ID = 100L;
     private static final String USERNAME = "testuser";
+
+    @BeforeEach
+    void setUp() {
+        // Set @Value injected fields
+        ReflectionTestUtils.setField(messageService, "defaultPageSize", 100);
+        ReflectionTestUtils.setField(messageService, "maxPageSize", 500);
+    }
 
     @Nested
     @DisplayName("saveMessage Tests")
