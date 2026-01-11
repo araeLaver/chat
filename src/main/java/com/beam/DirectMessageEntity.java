@@ -62,6 +62,16 @@ public class DirectMessageEntity {
     @Column(name = "security_type", nullable = false, length = 20)
     private MessageSecurityType securityType = MessageSecurityType.NORMAL;
 
+    // Reply/Quote fields
+    @Column(name = "reply_to_id")
+    private Long replyToId;
+
+    @Column(name = "reply_to_sender", length = 50)
+    private String replyToSender;
+
+    @Column(name = "reply_to_content", length = 200)
+    private String replyToContent;
+
     public DirectMessageEntity() {
     }
 
@@ -241,6 +251,30 @@ public class DirectMessageEntity {
         this.securityType = securityType;
     }
 
+    public Long getReplyToId() {
+        return replyToId;
+    }
+
+    public void setReplyToId(Long replyToId) {
+        this.replyToId = replyToId;
+    }
+
+    public String getReplyToSender() {
+        return replyToSender;
+    }
+
+    public void setReplyToSender(String replyToSender) {
+        this.replyToSender = replyToSender;
+    }
+
+    public String getReplyToContent() {
+        return replyToContent;
+    }
+
+    public void setReplyToContent(String replyToContent) {
+        this.replyToContent = replyToContent;
+    }
+
     // Builder
     public static Builder builder() {
         return new Builder();
@@ -263,6 +297,9 @@ public class DirectMessageEntity {
         private Long fileSize;
         private Boolean isEncrypted = false;
         private MessageSecurityType securityType = MessageSecurityType.NORMAL;
+        private Long replyToId;
+        private String replyToSender;
+        private String replyToContent;
 
         public Builder id(Long id) {
             this.id = id;
@@ -344,6 +381,21 @@ public class DirectMessageEntity {
             return this;
         }
 
+        public Builder replyToId(Long replyToId) {
+            this.replyToId = replyToId;
+            return this;
+        }
+
+        public Builder replyToSender(String replyToSender) {
+            this.replyToSender = replyToSender;
+            return this;
+        }
+
+        public Builder replyToContent(String replyToContent) {
+            this.replyToContent = replyToContent;
+            return this;
+        }
+
         public DirectMessageEntity build() {
             DirectMessageEntity entity = new DirectMessageEntity();
             entity.id = this.id;
@@ -362,6 +414,9 @@ public class DirectMessageEntity {
             entity.fileSize = this.fileSize;
             entity.isEncrypted = this.isEncrypted;
             entity.securityType = this.securityType;
+            entity.replyToId = this.replyToId;
+            entity.replyToSender = this.replyToSender;
+            entity.replyToContent = this.replyToContent;
             return entity;
         }
     }

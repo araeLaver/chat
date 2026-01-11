@@ -56,7 +56,17 @@ public class MessageEntity {
     
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
-    
+
+    // Reply/Quote fields
+    @Column(name = "reply_to_id")
+    private Long replyToId;
+
+    @Column(name = "reply_to_sender", length = 50)
+    private String replyToSender;
+
+    @Column(name = "reply_to_content", length = 200)
+    private String replyToContent;
+
     public MessageEntity() {}
     
     public MessageEntity(String sender, String content, String roomId, String messageType) {
@@ -177,5 +187,29 @@ public class MessageEntity {
 
     public void setIsDeleted(Boolean isDeleted) {
         this.isDeleted = isDeleted;
+    }
+
+    public Long getReplyToId() {
+        return replyToId;
+    }
+
+    public void setReplyToId(Long replyToId) {
+        this.replyToId = replyToId;
+    }
+
+    public String getReplyToSender() {
+        return replyToSender;
+    }
+
+    public void setReplyToSender(String replyToSender) {
+        this.replyToSender = replyToSender;
+    }
+
+    public String getReplyToContent() {
+        return replyToContent;
+    }
+
+    public void setReplyToContent(String replyToContent) {
+        this.replyToContent = replyToContent;
     }
 }

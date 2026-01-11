@@ -51,6 +51,16 @@ public class ChatMessage {
     @Size(max = 500, message = "설명은 500자를 초과할 수 없습니다")
     private String description;
 
+    // Reply/Quote fields
+    @Positive(message = "인용 메시지 ID는 양수여야 합니다")
+    private Long replyToId;
+
+    @Size(max = 50, message = "인용 발신자 이름은 50자를 초과할 수 없습니다")
+    private String replyToSender;
+
+    @Size(max = 200, message = "인용 내용은 200자를 초과할 수 없습니다")
+    private String replyToContent;
+
     public ChatMessage() {}
 
     public ChatMessage(String sender, String content, String timestamp) {
@@ -170,5 +180,29 @@ public class ChatMessage {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Long getReplyToId() {
+        return replyToId;
+    }
+
+    public void setReplyToId(Long replyToId) {
+        this.replyToId = replyToId;
+    }
+
+    public String getReplyToSender() {
+        return replyToSender;
+    }
+
+    public void setReplyToSender(String replyToSender) {
+        this.replyToSender = replyToSender;
+    }
+
+    public String getReplyToContent() {
+        return replyToContent;
+    }
+
+    public void setReplyToContent(String replyToContent) {
+        this.replyToContent = replyToContent;
     }
 }

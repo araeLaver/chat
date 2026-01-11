@@ -24,6 +24,9 @@ public class MessageService {
     @Autowired
     private MessageEncryptionService encryptionService;
 
+    @Autowired
+    private MentionService mentionService;
+
     @Value("${app.page.default-size:100}")
     private int defaultPageSize;
 
@@ -50,7 +53,44 @@ public class MessageService {
         entity.setSecurityType(chatMessage.getSecurityType());
         entity.setIsEncrypted(isEncrypted);
 
-        return messageRepository.save(entity);
+        // Handle reply/quote
+        if (chatMessage.getReplyToId() != null) {
+            messageRepository.findById(chatMessage.getReplyToId()).ifPresent(originalMessage -> {
+                entity.setReplyToId(originalMessage.getId());
+                entity.setReplyToSender(originalMessage.getSender());
+                entity.setReplyToContent(truncateContent(
+                    decryptContentIfNeeded(originalMessage, chatMessage.getRoomId()), 200));
+            });
+        }
+
+        MessageEntity savedMessage = messageRepository.save(entity);
+
+        // Process mentions in the message content
+        if (chatMessage.getContent() != null && chatMessage.getUserId() != null) {
+            mentionService.processMentions(
+                chatMessage.getContent(),
+                savedMessage.getId(),
+                MentionEntity.MessageType.ROOM,
+                chatMessage.getUserId(),
+                chatMessage.getRoomId(),
+                null
+            );
+        }
+
+        return savedMessage;
+    }
+
+    private String truncateContent(String content, int maxLength) {
+        if (content == null) return null;
+        if (content.length() <= maxLength) return content;
+        return content.substring(0, maxLength - 3) + "...";
+    }
+
+    private String decryptContentIfNeeded(MessageEntity message, String roomId) {
+        if (Boolean.TRUE.equals(message.getIsEncrypted())) {
+            return encryptionService.decryptRoomMessage(message.getContent(), roomId, true);
+        }
+        return message.getContent();
     }
 
     public List<MessageEntity> getRecentMessages(String roomId) {
