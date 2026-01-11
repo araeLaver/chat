@@ -1,6 +1,13 @@
 package com.beam;
 
 import com.beam.dto.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +21,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
+@Tag(name = "Authentication", description = "이메일/휴대폰 인증 및 회원가입 API")
 public class ChatController {
 
     @Autowired
@@ -31,7 +39,13 @@ public class ChatController {
     @Autowired
     private EmailService emailService;
 
-    // 이메일 인증 코드 발송
+    @Operation(summary = "이메일 인증 코드 발송", description = "회원가입을 위한 이메일 인증 코드를 발송합니다. 인증 코드는 5분간 유효합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "인증 코드 발송 성공",
+            content = @Content(schema = @Schema(example = "{\"success\": true, \"message\": \"인증번호가 이메일로 발송되었습니다\"}"))),
+        @ApiResponse(responseCode = "400", description = "이미 가입된 이메일이거나 요청 오류",
+            content = @Content(schema = @Schema(example = "{\"success\": false, \"message\": \"이미 가입된 이메일입니다\"}")))
+    })
     @PostMapping("/auth/email/send-code")
     public ResponseEntity<?> sendEmailVerificationCode(@Valid @RequestBody EmailSendCodeRequest request) {
         try {
@@ -89,7 +103,12 @@ public class ChatController {
         }
     }
 
-    // 이메일로 회원가입 완료
+    @Operation(summary = "이메일 회원가입 완료", description = "이메일 인증 완료 후 사용자명과 표시명을 설정하여 회원가입을 완료합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "회원가입 성공, JWT 토큰 반환",
+            content = @Content(schema = @Schema(example = "{\"success\": true, \"token\": \"jwt-token\", \"user\": {\"id\": 1, \"username\": \"user1\"}}"))),
+        @ApiResponse(responseCode = "400", description = "이메일 인증 미완료 또는 중복 사용자명")
+    })
     @PostMapping("/auth/email/register")
     public ResponseEntity<?> completeEmailRegistration(@Valid @RequestBody EmailRegisterRequest request) {
         try {
@@ -147,7 +166,11 @@ public class ChatController {
         }
     }
 
-    // 이메일로 로그인
+    @Operation(summary = "이메일 로그인 요청", description = "이메일 주소로 OTP 로그인을 요청합니다. 인증 코드가 이메일로 발송됩니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "인증 코드 발송 성공"),
+        @ApiResponse(responseCode = "400", description = "등록되지 않은 이메일 또는 비활성화 계정")
+    })
     @PostMapping("/auth/email/login")
     public ResponseEntity<?> emailLogin(@Valid @RequestBody EmailSendCodeRequest request) {
         try {
@@ -184,7 +207,11 @@ public class ChatController {
         }
     }
 
-    // 이메일 로그인 인증 확인
+    @Operation(summary = "이메일 로그인 인증 확인", description = "이메일로 발송된 인증 코드를 확인하고 로그인을 완료합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "로그인 성공, JWT 토큰 반환"),
+        @ApiResponse(responseCode = "400", description = "인증 코드 불일치 또는 만료")
+    })
     @PostMapping("/auth/email/login/verify")
     public ResponseEntity<?> verifyEmailLogin(@Valid @RequestBody EmailVerifyRequest request) {
         try {
@@ -239,6 +266,11 @@ public class ChatController {
         }
     }
 
+    @Operation(summary = "휴대폰 인증 코드 발송", description = "회원가입을 위한 휴대폰 인증 코드를 발송합니다. (현재 SMS 미구현)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "인증 코드 발송 성공"),
+        @ApiResponse(responseCode = "400", description = "이미 가입된 휴대폰 번호")
+    })
     @PostMapping("/auth/phone/send-code")
     public ResponseEntity<?> sendVerificationCode(@Valid @RequestBody PhoneSendCodeRequest request) {
         try {
@@ -295,6 +327,11 @@ public class ChatController {
         }
     }
 
+    @Operation(summary = "휴대폰 인증 확인", description = "발송된 인증 코드를 확인하여 휴대폰 인증을 완료합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "인증 성공"),
+        @ApiResponse(responseCode = "400", description = "인증 코드 불일치 또는 만료")
+    })
     @PostMapping("/auth/phone/verify")
     public ResponseEntity<?> verifyPhone(@Valid @RequestBody PhoneVerifyRequest request) {
         try {
@@ -342,6 +379,11 @@ public class ChatController {
         }
     }
 
+    @Operation(summary = "휴대폰 회원가입 완료", description = "휴대폰 인증 완료 후 사용자명과 표시명을 설정하여 회원가입을 완료합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "회원가입 성공, JWT 토큰 반환"),
+        @ApiResponse(responseCode = "400", description = "휴대폰 인증 미완료 또는 중복 사용자명")
+    })
     @PostMapping("/auth/phone/register")
     public ResponseEntity<?> completeRegistration(@Valid @RequestBody PhoneRegisterRequest request) {
         try {
@@ -396,6 +438,11 @@ public class ChatController {
         }
     }
 
+    @Operation(summary = "휴대폰 로그인", description = "등록된 휴대폰 번호로 로그인합니다. 인증된 사용자에게 JWT 토큰을 발급합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "로그인 성공, JWT 토큰 반환"),
+        @ApiResponse(responseCode = "400", description = "등록되지 않은 번호 또는 비활성화 계정")
+    })
     @PostMapping("/auth/phone/login")
     public ResponseEntity<?> login(@Valid @RequestBody PhoneSendCodeRequest request) {
         try {

@@ -4,7 +4,11 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "chat_rooms")
+@Table(name = "chat_rooms", indexes = {
+    @Index(name = "idx_chat_room_type", columnList = "room_type"),
+    @Index(name = "idx_chat_room_active", columnList = "is_active"),
+    @Index(name = "idx_chat_room_created", columnList = "created_at")
+})
 public class ChatRoomEntity {
     
     @Id

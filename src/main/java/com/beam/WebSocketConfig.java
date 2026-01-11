@@ -1,12 +1,17 @@
 package com.beam;
 
 import com.beam.websocket.TokenHandshakeInterceptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+
+import jakarta.annotation.PostConstruct;
+import java.util.Arrays;
 
 /**
  * WebSocket Configuration for BEAM Messenger
@@ -42,15 +47,44 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
+    private static final Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
+
     private final ChatWebSocketHandler chatWebSocketHandler;
-    private final String allowedOrigins;
+    private final String allowedOriginsConfig;
+    private String[] allowedOriginPatterns;
+
+    @Value("${spring.profiles.active:prod}")
+    private String activeProfile;
 
     @Autowired
     public WebSocketConfig(
             ChatWebSocketHandler chatWebSocketHandler,
             @Value("${cors.allowed-origins}") String allowedOrigins) {
         this.chatWebSocketHandler = chatWebSocketHandler;
-        this.allowedOrigins = allowedOrigins;
+        this.allowedOriginsConfig = allowedOrigins;
+    }
+
+    @PostConstruct
+    public void init() {
+        // Parse allowed origins from config
+        this.allowedOriginPatterns = Arrays.stream(allowedOriginsConfig.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
+
+        // 개발 환경에서만 와일드카드 허용
+        if (isDevEnvironment() && allowedOriginPatterns.length == 0) {
+            logger.warn("⚠️ WebSocket CORS: No origins configured, using wildcard for development");
+            allowedOriginPatterns = new String[]{"*"};
+        }
+
+        logger.info("✅ WebSocket CORS configured with origins: {}", Arrays.toString(allowedOriginPatterns));
+
+        // 프로덕션에서 와일드카드 사용 시 경고
+        if (!isDevEnvironment() && Arrays.asList(allowedOriginPatterns).contains("*")) {
+            logger.warn("⚠️ SECURITY WARNING: WebSocket CORS allows all origins in production. " +
+                "Configure specific origins via CORS_ALLOWED_ORIGINS environment variable.");
+        }
     }
 
     @Override
@@ -58,12 +92,20 @@ public class WebSocketConfig implements WebSocketConfigurer {
         // Register handler for native WebSocket with token interceptor
         registry.addHandler(chatWebSocketHandler, "/ws")
                 .addInterceptors(new TokenHandshakeInterceptor())
-                .setAllowedOriginPatterns("*");
+                .setAllowedOriginPatterns(allowedOriginPatterns);
 
         // Keep /chat endpoint with SockJS for backward compatibility
         registry.addHandler(chatWebSocketHandler, "/chat")
                 .addInterceptors(new TokenHandshakeInterceptor())
-                .setAllowedOriginPatterns("*")
+                .setAllowedOriginPatterns(allowedOriginPatterns)
                 .withSockJS();
+
+        logger.info("WebSocket handlers registered: /ws (native), /chat (SockJS)");
+    }
+
+    private boolean isDevEnvironment() {
+        return "dev".equalsIgnoreCase(activeProfile) ||
+               "local".equalsIgnoreCase(activeProfile) ||
+               "development".equalsIgnoreCase(activeProfile);
     }
 }

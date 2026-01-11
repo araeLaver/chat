@@ -1,5 +1,7 @@
 package com.beam;
 
+import com.beam.exception.AuthenticationException;
+import com.beam.exception.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,18 +29,21 @@ public class AuthService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private AuthRateLimiter authRateLimiter;
+
     @Transactional
     public AuthResponse register(AuthRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            throw new RuntimeException("Username already exists");
+            throw UserException.usernameExists(request.getUsername());
         }
 
         if (request.getEmail() == null || request.getEmail().isBlank()) {
-            throw new RuntimeException("Email is required");
+            throw new IllegalArgumentException("Email is required");
         }
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already registered");
+            throw UserException.emailExists(request.getEmail());
         }
 
         String phoneNumber = request.getPhoneNumber();
@@ -75,23 +80,32 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthResponse login(AuthRequest request) {
-        UserEntity user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Invalid username or password"));
+    public AuthResponse login(AuthRequest request, String ipAddress) {
+        // Rate Limiting 체크
+        authRateLimiter.checkLoginAttempt(ipAddress);
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid username or password");
+        UserEntity user = userRepository.findByUsername(request.getUsername()).orElse(null);
+
+        if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            authRateLimiter.recordLoginFailure(ipAddress);
+            logger.warn("로그인 실패 - IP: {}, 사용자: {}", ipAddress, request.getUsername());
+            throw AuthenticationException.invalidCredentials();
         }
 
         if (!user.getIsActive()) {
-            throw new RuntimeException("Account is deactivated");
+            throw AuthenticationException.accountDisabled();
         }
+
+        // 로그인 성공 - 실패 기록 초기화
+        authRateLimiter.recordLoginSuccess(ipAddress);
 
         user.setLastSeen(LocalDateTime.now());
         user.setIsOnline(true);
         userRepository.save(user);
 
         String token = jwtUtil.generateToken(user.getUsername(), user.getId());
+
+        logger.info("로그인 성공 - 사용자: {}, IP: {}", user.getUsername(), ipAddress);
 
         return AuthResponse.builder()
                 .token(token)
@@ -101,6 +115,16 @@ public class AuthService {
                 .phoneNumber(user.getPhoneNumber())
                 .message("Login successful")
                 .build();
+    }
+
+    /**
+     * 기존 login 메서드 호환성 유지
+     * @deprecated Use login(AuthRequest, String) instead
+     */
+    @Deprecated
+    @Transactional
+    public AuthResponse login(AuthRequest request) {
+        return login(request, "unknown");
     }
 
     @Transactional
@@ -117,7 +141,7 @@ public class AuthService {
     @Transactional
     public String sendVerificationCode(String phoneNumber) {
         UserEntity user = userRepository.findByPhoneNumber(phoneNumber)
-                .orElseThrow(() -> new RuntimeException("Phone number not found"));
+                .orElseThrow(() -> UserException.notFoundByEmail(phoneNumber));
 
         String code = VerificationCodeGenerator.generate();
 
@@ -133,7 +157,7 @@ public class AuthService {
     @Transactional
     public boolean verifyPhoneNumber(String phoneNumber, String code) {
         UserEntity user = userRepository.findByPhoneNumber(phoneNumber)
-                .orElseThrow(() -> new RuntimeException("Phone number not found"));
+                .orElseThrow(() -> UserException.notFoundByEmail(phoneNumber));
 
         if (user.getVerificationCode() == null ||
             !user.getVerificationCode().equals(code)) {
@@ -154,17 +178,24 @@ public class AuthService {
 
     @Transactional
     public AuthResponse verifyEmail(String email, String code) {
+        // Rate Limiting 체크
+        authRateLimiter.checkVerifyCodeAttempt(email);
+
         UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Email not found"));
+                .orElseThrow(() -> UserException.notFoundByEmail(email));
 
         if (user.getVerificationCode() == null ||
             !user.getVerificationCode().equals(code)) {
-            throw new RuntimeException("Invalid verification code");
+            authRateLimiter.recordVerifyCodeFailure(email);
+            throw AuthenticationException.verificationFailed();
         }
 
         if (user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Verification code expired");
+            throw AuthenticationException.verificationExpired();
         }
+
+        // 성공 - Rate Limit 초기화
+        authRateLimiter.recordVerifyCodeSuccess(email);
 
         user.setIsActive(true);
         user.setVerificationCode(null);
@@ -187,10 +218,10 @@ public class AuthService {
     @Transactional
     public void resendVerificationEmail(String email) {
         UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Email not found"));
+                .orElseThrow(() -> UserException.notFoundByEmail(email));
 
         if (user.getIsActive()) {
-            throw new RuntimeException("Email already verified");
+            throw new IllegalArgumentException("Email already verified");
         }
 
         String verificationCode = VerificationCodeGenerator.generate();

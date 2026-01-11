@@ -90,7 +90,7 @@ public class PerformanceConfig {
     }
 
     /**
-     * Cache Manager using Caffeine
+     * Cache Manager using Caffeine with fine-grained TTL settings
      *
      * <p>Configures application-level caching with the following caches:
      * <ul>
@@ -98,28 +98,73 @@ public class PerformanceConfig {
      *   <li><b>chatRooms</b>: Chat room data (15 min TTL, 500 max entries)</li>
      *   <li><b>messages</b>: Recent messages (5 min TTL, 2000 max entries)</li>
      *   <li><b>friends</b>: Friend relationships (10 min TTL, 500 max entries)</li>
+     *   <li><b>conversations</b>: DM conversation lists (10 min TTL)</li>
+     *   <li><b>unreadCounts</b>: Unread message counts (3 min TTL)</li>
+     *   <li><b>translations</b>: Translation results (1 hour TTL)</li>
      * </ul>
      *
      * @return Configured Caffeine cache manager
      */
     @Bean
     public CacheManager cacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager();
-
-        // Configure individual cache specifications
-        cacheManager.setCaffeine(Caffeine.newBuilder()
-                .expireAfterWrite(30, TimeUnit.MINUTES)
-                .maximumSize(1000)
-                .recordStats());
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager() {
+            @Override
+            protected com.github.benmanes.caffeine.cache.Cache<Object, Object> createNativeCaffeineCache(String name) {
+                return getCacheBuilder(name).build();
+            }
+        };
 
         // Register cache names
         cacheManager.setCacheNames(java.util.Arrays.asList(
                 "users",
                 "chatRooms",
                 "messages",
-                "friends"
+                "friends",
+                "conversations",
+                "unreadCounts",
+                "translations"
         ));
 
         return cacheManager;
+    }
+
+    /**
+     * 캐시별 세분화된 설정
+     */
+    private Caffeine<Object, Object> getCacheBuilder(String cacheName) {
+        return switch (cacheName) {
+            case "users" -> Caffeine.newBuilder()
+                .expireAfterWrite(30, TimeUnit.MINUTES)
+                .maximumSize(1000)
+                .recordStats();
+            case "chatRooms" -> Caffeine.newBuilder()
+                .expireAfterWrite(15, TimeUnit.MINUTES)
+                .maximumSize(500)
+                .recordStats();
+            case "messages" -> Caffeine.newBuilder()
+                .expireAfterWrite(5, TimeUnit.MINUTES)
+                .maximumSize(2000)
+                .recordStats();
+            case "friends" -> Caffeine.newBuilder()
+                .expireAfterWrite(10, TimeUnit.MINUTES)
+                .maximumSize(500)
+                .recordStats();
+            case "conversations" -> Caffeine.newBuilder()
+                .expireAfterWrite(10, TimeUnit.MINUTES)
+                .maximumSize(500)
+                .recordStats();
+            case "unreadCounts" -> Caffeine.newBuilder()
+                .expireAfterWrite(3, TimeUnit.MINUTES)
+                .maximumSize(1000)
+                .recordStats();
+            case "translations" -> Caffeine.newBuilder()
+                .expireAfterWrite(1, TimeUnit.HOURS)
+                .maximumSize(5000)
+                .recordStats();
+            default -> Caffeine.newBuilder()
+                .expireAfterWrite(30, TimeUnit.MINUTES)
+                .maximumSize(1000)
+                .recordStats();
+        };
     }
 }

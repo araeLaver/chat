@@ -1,5 +1,6 @@
 package com.beam;
 
+import com.beam.websocket.WebSocketSessionManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,9 @@ class HealthControllerTest {
 
     @MockBean
     private MonitoringService monitoringService;
+
+    @MockBean
+    private WebSocketSessionManager sessionManager;
 
     @Nested
     @DisplayName("GET /api/health Tests")
@@ -84,13 +88,44 @@ class HealthControllerTest {
         @Test
         @DisplayName("Should return service status")
         void shouldReturnServiceStatus() throws Exception {
+            when(sessionManager.getStats())
+                .thenReturn(new WebSocketSessionManager.SessionStats(5, 3, 2));
+
             mockMvc.perform(get("/api/health/status"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.database").value("CONNECTED"))
-                    .andExpect(jsonPath("$.websocket").value("ACTIVE"))
-                    .andExpect(jsonPath("$.fileStorage").value("READY"))
-                    .andExpect(jsonPath("$.messaging").value("OPERATIONAL"))
-                    .andExpect(jsonPath("$.security").value("ENABLED"))
+                    .andExpect(jsonPath("$.database.status").exists())
+                    .andExpect(jsonPath("$.websocket.status").value("HEALTHY"))
+                    .andExpect(jsonPath("$.websocket.activeSessions").value(5))
+                    .andExpect(jsonPath("$.fileStorage.status").exists())
+                    .andExpect(jsonPath("$.overall").exists())
+                    .andExpect(jsonPath("$.timestamp").exists());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/health/ready Tests")
+    class ReadinessTests {
+
+        @Test
+        @DisplayName("Should return ready status")
+        void shouldReturnReadyStatus() throws Exception {
+            mockMvc.perform(get("/api/health/ready"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("READY"))
+                    .andExpect(jsonPath("$.timestamp").exists());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/health/live Tests")
+    class LivenessTests {
+
+        @Test
+        @DisplayName("Should return alive status")
+        void shouldReturnAliveStatus() throws Exception {
+            mockMvc.perform(get("/api/health/live"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("ALIVE"))
                     .andExpect(jsonPath("$.timestamp").exists());
         }
     }

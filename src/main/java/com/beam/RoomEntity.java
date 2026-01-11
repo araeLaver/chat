@@ -6,7 +6,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "rooms", indexes = {
     @Index(name = "idx_room_type", columnList = "roomType"),
-    @Index(name = "idx_created_by", columnList = "createdBy")
+    @Index(name = "idx_created_by", columnList = "createdBy"),
+    @Index(name = "idx_room_active", columnList = "isActive"),
+    @Index(name = "idx_room_type_active", columnList = "roomType,isActive")
 })
 public class RoomEntity {
 

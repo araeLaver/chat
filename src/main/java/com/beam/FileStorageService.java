@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,7 +22,14 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
+/**
+ * 파일 저장 서비스
+ * - 파일 업로드/다운로드
+ * - 썸네일 비동기 생성
+ * - 파일 보안 검증
+ */
 @Service
 public class FileStorageService {
 
@@ -88,16 +96,14 @@ public class FileStorageService {
                 .uploadedAt(LocalDateTime.now())
                 .build();
 
+            FileMetadataEntity savedMetadata = fileMetadataRepository.save(metadata);
+
+            // 이미지인 경우 비동기로 썸네일 생성
             if (category == FileMetadataEntity.FileCategory.IMAGE) {
-                try {
-                    String thumbnailPath = generateThumbnail(targetLocation.toString(), uniqueFileName);
-                    metadata.setThumbnailPath(thumbnailPath);
-                } catch (Exception e) {
-                    logger.warn("Failed to generate thumbnail: {}", e.getMessage());
-                }
+                generateThumbnailAsync(savedMetadata.getId(), targetLocation.toString(), uniqueFileName);
             }
 
-            return fileMetadataRepository.save(metadata);
+            return savedMetadata;
 
         } catch (IOException ex) {
             throw new RuntimeException("Could not store file. Please try again!", ex);
@@ -172,6 +178,29 @@ public class FileStorageService {
         } catch (IOException ex) {
             logger.warn("Failed to delete physical file: {}", ex.getMessage());
         }
+    }
+
+    /**
+     * 비동기 썸네일 생성
+     * 파일 업로드 후 백그라운드에서 썸네일을 생성하고 DB 업데이트
+     */
+    @Async("taskExecutor")
+    public CompletableFuture<Void> generateThumbnailAsync(Long fileId, String originalFilePath, String originalFileName) {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                logger.debug("Starting async thumbnail generation for file: {}", fileId);
+                String thumbnailPath = generateThumbnail(originalFilePath, originalFileName);
+
+                // DB 업데이트
+                fileMetadataRepository.findById(fileId).ifPresent(metadata -> {
+                    metadata.setThumbnailPath(thumbnailPath);
+                    fileMetadataRepository.save(metadata);
+                    logger.debug("Thumbnail generated and saved for file: {}", fileId);
+                });
+            } catch (Exception e) {
+                logger.warn("Failed to generate thumbnail for file {}: {}", fileId, e.getMessage());
+            }
+        });
     }
 
     private String generateThumbnail(String originalFilePath, String originalFileName) throws IOException {

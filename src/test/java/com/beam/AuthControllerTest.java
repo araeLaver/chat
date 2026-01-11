@@ -91,8 +91,8 @@ class AuthControllerTest {
             mockMvc.perform(post("/api/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.error").value("Username already exists"));
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.error").value("Username already exists: testuser"));
         }
 
         @Test
@@ -109,8 +109,8 @@ class AuthControllerTest {
             mockMvc.perform(post("/api/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.error").value("Email already registered"));
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.error").value("Email already registered: test@example.com"));
         }
     }
 
@@ -149,8 +149,8 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Should return 400 for wrong password")
-        void shouldReturn400ForWrongPassword() throws Exception {
+        @DisplayName("Should return 401 for wrong password")
+        void shouldReturn401ForWrongPassword() throws Exception {
             AuthRequest loginRequest = new AuthRequest();
             loginRequest.setUsername("testuser");
             loginRequest.setPassword("wrongpassword");
@@ -158,13 +158,13 @@ class AuthControllerTest {
             mockMvc.perform(post("/api/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(loginRequest)))
-                    .andExpect(status().isBadRequest())
+                    .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.error").value("Invalid username or password"));
         }
 
         @Test
-        @DisplayName("Should return 400 for non-existent user")
-        void shouldReturn400ForNonExistentUser() throws Exception {
+        @DisplayName("Should return 401 for non-existent user")
+        void shouldReturn401ForNonExistentUser() throws Exception {
             AuthRequest loginRequest = new AuthRequest();
             loginRequest.setUsername("nonexistent");
             loginRequest.setPassword("password123");
@@ -172,7 +172,7 @@ class AuthControllerTest {
             mockMvc.perform(post("/api/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(loginRequest)))
-                    .andExpect(status().isBadRequest())
+                    .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.error").value("Invalid username or password"));
         }
     }
@@ -283,7 +283,7 @@ class AuthControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"email\": \"test@example.com\", \"code\": \"wrongcode\"}"))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.error").value("Invalid verification code"));
+                    .andExpect(jsonPath("$.error").value("Verification failed"));
         }
 
         @Test

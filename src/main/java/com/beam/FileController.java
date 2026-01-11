@@ -1,8 +1,17 @@
 package com.beam;
 
+import com.beam.dto.FileListItemProjection;
 import com.beam.util.AuthUtil;
 import com.beam.util.FileMetadataMapper;
 import com.beam.util.ResponseHelper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +27,8 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/files")
+@Tag(name = "File Management", description = "파일 업로드/다운로드 및 관리 API")
+@SecurityRequirement(name = "bearerAuth")
 public class FileController {
 
     @Autowired
@@ -32,11 +43,17 @@ public class FileController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Operation(summary = "DM 파일 업로드", description = "다이렉트 메시지 대화에 파일을 업로드합니다. 최대 10MB까지 지원됩니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "업로드 성공"),
+        @ApiResponse(responseCode = "400", description = "파일 크기 초과 또는 허용되지 않는 파일 형식"),
+        @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
     @PostMapping("/upload/dm")
     public ResponseEntity<?> uploadFileToDM(
-            @RequestHeader("Authorization") String token,
-            @RequestParam("file") MultipartFile file,
-            @RequestParam("conversationId") String conversationId) {
+            @Parameter(description = "JWT 토큰", required = true) @RequestHeader("Authorization") String token,
+            @Parameter(description = "업로드할 파일", required = true) @RequestParam("file") MultipartFile file,
+            @Parameter(description = "대화 ID", required = true) @RequestParam("conversationId") String conversationId) {
         try {
             Long userId = AuthUtil.extractUserId(token, jwtUtil);
             FileMetadataEntity metadata = fileStorageService.storeFile(file, userId, conversationId, null);
@@ -46,11 +63,17 @@ public class FileController {
         }
     }
 
+    @Operation(summary = "채팅방 파일 업로드", description = "그룹 채팅방에 파일을 업로드합니다. 최대 10MB까지 지원됩니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "업로드 성공"),
+        @ApiResponse(responseCode = "400", description = "파일 크기 초과 또는 허용되지 않는 파일 형식"),
+        @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
     @PostMapping("/upload/room")
     public ResponseEntity<?> uploadFileToRoom(
-            @RequestHeader("Authorization") String token,
-            @RequestParam("file") MultipartFile file,
-            @RequestParam("roomId") Long roomId) {
+            @Parameter(description = "JWT 토큰", required = true) @RequestHeader("Authorization") String token,
+            @Parameter(description = "업로드할 파일", required = true) @RequestParam("file") MultipartFile file,
+            @Parameter(description = "채팅방 ID", required = true) @RequestParam("roomId") Long roomId) {
         try {
             Long userId = AuthUtil.extractUserId(token, jwtUtil);
             FileMetadataEntity metadata = fileStorageService.storeFile(file, userId, null, roomId);
@@ -60,10 +83,16 @@ public class FileController {
         }
     }
 
+    @Operation(summary = "파일 다운로드", description = "파일 ID로 파일을 다운로드합니다. 다운로드 횟수가 자동으로 기록됩니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "파일 다운로드 성공", content = @Content(mediaType = "application/octet-stream")),
+        @ApiResponse(responseCode = "400", description = "파일을 찾을 수 없음"),
+        @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
     @GetMapping("/download/{fileId}")
     public ResponseEntity<Resource> downloadFile(
-            @RequestHeader("Authorization") String token,
-            @PathVariable Long fileId,
+            @Parameter(description = "JWT 토큰", required = true) @RequestHeader("Authorization") String token,
+            @Parameter(description = "파일 ID", required = true) @PathVariable Long fileId,
             HttpServletRequest request) {
         try {
             FileMetadataEntity metadata = fileMetadataRepository.findByIdAndIsDeletedFalse(fileId)
@@ -81,10 +110,15 @@ public class FileController {
         }
     }
 
+    @Operation(summary = "썸네일 조회", description = "이미지 파일의 썸네일을 조회합니다. 썸네일은 업로드 시 자동 생성됩니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "썸네일 반환", content = @Content(mediaType = "image/jpeg")),
+        @ApiResponse(responseCode = "400", description = "썸네일 없음 또는 파일을 찾을 수 없음")
+    })
     @GetMapping("/thumbnail/{fileId}")
     public ResponseEntity<Resource> getThumbnail(
-            @RequestHeader("Authorization") String token,
-            @PathVariable Long fileId) {
+            @Parameter(description = "JWT 토큰", required = true) @RequestHeader("Authorization") String token,
+            @Parameter(description = "파일 ID", required = true) @PathVariable Long fileId) {
         try {
             Resource resource = fileStorageService.loadThumbnailAsResource(fileId);
             return ResponseEntity.ok()
@@ -95,16 +129,22 @@ public class FileController {
         }
     }
 
+    @Operation(summary = "대화 파일 목록", description = "특정 DM 대화의 모든 파일 목록을 조회합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "파일 목록 반환"),
+        @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
     @GetMapping("/conversation/{conversationId}")
     public ResponseEntity<?> getConversationFiles(
-            @RequestHeader("Authorization") String token,
-            @PathVariable String conversationId) {
+            @Parameter(description = "JWT 토큰", required = true) @RequestHeader("Authorization") String token,
+            @Parameter(description = "대화 ID", required = true) @PathVariable String conversationId) {
         try {
-            List<FileMetadataEntity> files = fileMetadataRepository
-                .findByConversationIdAndIsDeletedFalseOrderByUploadedAtDesc(conversationId);
+            // N+1 문제 해결: JOIN으로 한 번에 조회
+            List<FileListItemProjection> files = fileMetadataRepository
+                .findConversationFilesWithUploader(conversationId);
 
             List<Map<String, Object>> result = files.stream()
-                .map(file -> buildFileListItem(file))
+                .map(this::buildFileListItemFromProjection)
                 .collect(Collectors.toList());
 
             return ResponseEntity.ok(result);
@@ -113,16 +153,22 @@ public class FileController {
         }
     }
 
+    @Operation(summary = "채팅방 파일 목록", description = "특정 채팅방의 모든 파일 목록을 조회합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "파일 목록 반환"),
+        @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
     @GetMapping("/room/{roomId}")
     public ResponseEntity<?> getRoomFiles(
-            @RequestHeader("Authorization") String token,
-            @PathVariable Long roomId) {
+            @Parameter(description = "JWT 토큰", required = true) @RequestHeader("Authorization") String token,
+            @Parameter(description = "채팅방 ID", required = true) @PathVariable Long roomId) {
         try {
-            List<FileMetadataEntity> files = fileMetadataRepository
-                .findByRoomIdAndIsDeletedFalseOrderByUploadedAtDesc(roomId);
+            // N+1 문제 해결: JOIN으로 한 번에 조회
+            List<FileListItemProjection> files = fileMetadataRepository
+                .findRoomFilesWithUploader(roomId);
 
             List<Map<String, Object>> result = files.stream()
-                .map(file -> buildFileListItem(file))
+                .map(this::buildFileListItemFromProjection)
                 .collect(Collectors.toList());
 
             return ResponseEntity.ok(result);
@@ -131,8 +177,14 @@ public class FileController {
         }
     }
 
+    @Operation(summary = "내 파일 목록", description = "현재 사용자가 업로드한 모든 파일 목록과 총 용량을 조회합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "파일 목록 및 통계 반환"),
+        @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
     @GetMapping("/my-files")
-    public ResponseEntity<?> getMyFiles(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> getMyFiles(
+            @Parameter(description = "JWT 토큰", required = true) @RequestHeader("Authorization") String token) {
         try {
             Long userId = AuthUtil.extractUserId(token, jwtUtil);
 
@@ -156,10 +208,16 @@ public class FileController {
         }
     }
 
+    @Operation(summary = "파일 삭제", description = "자신이 업로드한 파일을 삭제합니다. 소프트 삭제로 처리됩니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "삭제 성공"),
+        @ApiResponse(responseCode = "400", description = "파일을 찾을 수 없음 또는 권한 없음"),
+        @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
     @DeleteMapping("/{fileId}")
     public ResponseEntity<?> deleteFile(
-            @RequestHeader("Authorization") String token,
-            @PathVariable Long fileId) {
+            @Parameter(description = "JWT 토큰", required = true) @RequestHeader("Authorization") String token,
+            @Parameter(description = "파일 ID", required = true) @PathVariable Long fileId) {
         try {
             Long userId = AuthUtil.extractUserId(token, jwtUtil);
             fileStorageService.deleteFile(fileId, userId);
@@ -169,10 +227,16 @@ public class FileController {
         }
     }
 
+    @Operation(summary = "파일 정보 조회", description = "특정 파일의 상세 메타데이터를 조회합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "파일 정보 반환"),
+        @ApiResponse(responseCode = "400", description = "파일을 찾을 수 없음"),
+        @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
     @GetMapping("/info/{fileId}")
     public ResponseEntity<?> getFileInfo(
-            @RequestHeader("Authorization") String token,
-            @PathVariable Long fileId) {
+            @Parameter(description = "JWT 토큰", required = true) @RequestHeader("Authorization") String token,
+            @Parameter(description = "파일 ID", required = true) @PathVariable Long fileId) {
         try {
             FileMetadataEntity file = fileMetadataRepository.findByIdAndIsDeletedFalse(fileId)
                 .orElseThrow(() -> new RuntimeException("File not found"));
@@ -226,6 +290,25 @@ public class FileController {
         fileMap.put("downloadCount", file.getDownloadCount());
         fileMap.put("conversationId", file.getConversationId());
         fileMap.put("roomId", file.getRoomId());
+        fileMap.put("hasThumbnail", file.getThumbnailPath() != null);
+
+        return fileMap;
+    }
+
+    /**
+     * Projection에서 파일 목록 아이템 생성 (N+1 문제 해결)
+     */
+    private Map<String, Object> buildFileListItemFromProjection(FileListItemProjection file) {
+        Map<String, Object> fileMap = new HashMap<>();
+        fileMap.put("fileId", file.getFileId());
+        fileMap.put("fileName", file.getFileName());
+        fileMap.put("fileSize", file.getFileSize());
+        fileMap.put("fileType", file.getFileType());
+        fileMap.put("category", file.getCategory());
+        fileMap.put("uploaderId", file.getUploaderId());
+        fileMap.put("uploaderName", file.getUploaderName() != null ? file.getUploaderName() : "Unknown");
+        fileMap.put("uploadedAt", file.getUploadedAt().toString());
+        fileMap.put("downloadCount", file.getDownloadCount());
         fileMap.put("hasThumbnail", file.getThumbnailPath() != null);
 
         return fileMap;

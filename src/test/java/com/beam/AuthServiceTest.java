@@ -1,5 +1,7 @@
 package com.beam;
 
+import com.beam.exception.AuthenticationException;
+import com.beam.exception.UserException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -32,6 +34,9 @@ class AuthServiceTest {
 
     @Mock
     private EmailService emailService;
+
+    @Mock
+    private AuthRateLimiter authRateLimiter;
 
     @InjectMocks
     private AuthService authService;
@@ -100,8 +105,8 @@ class AuthServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> authService.register(validRequest))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Username already exists");
+                    .isInstanceOf(UserException.class)
+                    .hasMessageContaining("Username already exists");
 
             verify(userRepository, never()).save(any());
         }
@@ -115,8 +120,8 @@ class AuthServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> authService.register(validRequest))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Email already registered");
+                    .isInstanceOf(UserException.class)
+                    .hasMessageContaining("Email already registered");
 
             verify(userRepository, never()).save(any());
         }
@@ -130,7 +135,7 @@ class AuthServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> authService.register(validRequest))
-                    .isInstanceOf(RuntimeException.class)
+                    .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Email is required");
         }
 
@@ -194,7 +199,7 @@ class AuthServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> authService.login(validRequest))
-                    .isInstanceOf(RuntimeException.class)
+                    .isInstanceOf(AuthenticationException.class)
                     .hasMessage("Invalid username or password");
         }
 
@@ -206,7 +211,7 @@ class AuthServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> authService.login(validRequest))
-                    .isInstanceOf(RuntimeException.class)
+                    .isInstanceOf(AuthenticationException.class)
                     .hasMessage("Invalid username or password");
         }
 
@@ -220,8 +225,8 @@ class AuthServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> authService.login(validRequest))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Account is deactivated");
+                    .isInstanceOf(AuthenticationException.class)
+                    .hasMessage("Account is disabled");
         }
     }
 
@@ -297,8 +302,8 @@ class AuthServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> authService.verifyEmail("test@example.com", "wrong"))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Invalid verification code");
+                    .isInstanceOf(AuthenticationException.class)
+                    .hasMessage("Verification failed");
         }
 
         @Test
@@ -312,8 +317,8 @@ class AuthServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> authService.verifyEmail("test@example.com", "123456"))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Verification code expired");
+                    .isInstanceOf(AuthenticationException.class)
+                    .hasMessage("Verification code has expired");
         }
     }
 
@@ -406,7 +411,7 @@ class AuthServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> authService.resendVerificationEmail("test@example.com"))
-                    .isInstanceOf(RuntimeException.class)
+                    .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Email already verified");
         }
     }

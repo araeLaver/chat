@@ -1,22 +1,54 @@
 package com.beam;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+
+/**
+ * WebSocket 채팅 메시지 DTO
+ * 유효성 검증 어노테이션 포함
+ */
 public class ChatMessage {
+
+    @Size(max = 50, message = "발신자 이름은 50자를 초과할 수 없습니다")
     private String sender;
+
+    @Size(max = 5000, message = "메시지 내용은 5000자를 초과할 수 없습니다")
     private String content;
+
     private String timestamp;
+
+    @Pattern(regexp = "^(message|joinRoom|createRoom|createDirectMessage|deleteRoom|file|getHistory|markAsRead|ping|pong)?$",
+             message = "유효하지 않은 메시지 타입입니다")
     private String type;
+
+    @Size(max = 100, message = "방 ID는 100자를 초과할 수 없습니다")
     private String roomId;
+
     private MessageSecurityType securityType = MessageSecurityType.NORMAL;
 
     // 사용자 ID (1:1 채팅 및 친구 기능용)
+    @Positive(message = "사용자 ID는 양수여야 합니다")
     private Long userId;
+
+    @Positive(message = "친구 ID는 양수여야 합니다")
     private Long friendId;
+
+    @Size(max = 50, message = "친구 이름은 50자를 초과할 수 없습니다")
     private String friendName;
 
     // 방 생성용 필드들
+    @Size(max = 100, message = "방 이름은 100자를 초과할 수 없습니다")
     private String roomName;
+
+    @Pattern(regexp = "^(public|private|direct)?$", message = "유효하지 않은 방 타입입니다")
     private String roomType;
+
+    @Size(max = 50, message = "생성자 이름은 50자를 초과할 수 없습니다")
     private String creator;
+
+    @Size(max = 500, message = "설명은 500자를 초과할 수 없습니다")
     private String description;
 
     public ChatMessage() {}

@@ -3,12 +3,15 @@ package com.beam;
 import com.google.cloud.translate.v3.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -66,8 +69,10 @@ public class TranslationService {
     }
 
     /**
-     * Translate text to target language
+     * Translate text to target language (with caching)
      */
+    @Cacheable(value = "translations", key = "#text.hashCode() + '_' + #targetLanguage",
+               condition = "#text != null && #text.length() < 1000")
     public String translate(String text, String targetLanguage) {
         if (!translationEnabled || text == null || text.trim().isEmpty()) {
             return text;
@@ -85,7 +90,7 @@ public class TranslationService {
 
             if (!response.getTranslationsList().isEmpty()) {
                 String translatedText = response.getTranslations(0).getTranslatedText();
-                log.debug("Translated '{}' to '{}': '{}'",
+                log.debug("Translated '{}' to '{}': '{}' (cache miss)",
                     truncate(text, 50), targetLanguage, truncate(translatedText, 50));
                 return translatedText;
             }
@@ -97,8 +102,21 @@ public class TranslationService {
     }
 
     /**
-     * Translate text from source language to target language
+     * Translate text asynchronously
      */
+    @Async("taskExecutor")
+    public CompletableFuture<String> translateAsync(String text, String targetLanguage) {
+        log.debug("Starting async translation to {}", targetLanguage);
+        String result = translate(text, targetLanguage);
+        return CompletableFuture.completedFuture(result);
+    }
+
+    /**
+     * Translate text from source language to target language (with caching)
+     */
+    @Cacheable(value = "translations",
+               key = "#text.hashCode() + '_' + #sourceLanguage + '_' + #targetLanguage",
+               condition = "#text != null && #text.length() < 1000")
     public String translate(String text, String sourceLanguage, String targetLanguage) {
         if (!translationEnabled || text == null || text.trim().isEmpty()) {
             return text;
@@ -123,6 +141,7 @@ public class TranslationService {
             TranslateTextResponse response = translationClient.translateText(requestBuilder.build());
 
             if (!response.getTranslationsList().isEmpty()) {
+                log.debug("Translated from {} to {} (cache miss)", sourceLanguage, targetLanguage);
                 return response.getTranslations(0).getTranslatedText();
             }
         } catch (Exception e) {
@@ -133,8 +152,20 @@ public class TranslationService {
     }
 
     /**
-     * Detect the language of the text
+     * Translate text asynchronously with source language
      */
+    @Async("taskExecutor")
+    public CompletableFuture<String> translateAsync(String text, String sourceLanguage, String targetLanguage) {
+        log.debug("Starting async translation from {} to {}", sourceLanguage, targetLanguage);
+        String result = translate(text, sourceLanguage, targetLanguage);
+        return CompletableFuture.completedFuture(result);
+    }
+
+    /**
+     * Detect the language of the text (with caching)
+     */
+    @Cacheable(value = "translations", key = "'detect_' + #text.hashCode()",
+               condition = "#text != null && #text.length() < 500")
     public String detectLanguage(String text) {
         if (!translationEnabled || text == null || text.trim().isEmpty()) {
             return "unknown";
@@ -151,7 +182,7 @@ public class TranslationService {
 
             if (!response.getLanguagesList().isEmpty()) {
                 DetectedLanguage detected = response.getLanguages(0);
-                log.debug("Detected language for '{}': {} (confidence: {})",
+                log.debug("Detected language for '{}': {} (confidence: {}) (cache miss)",
                     truncate(text, 30), detected.getLanguageCode(), detected.getConfidence());
                 return detected.getLanguageCode();
             }
@@ -160,6 +191,16 @@ public class TranslationService {
         }
 
         return "unknown";
+    }
+
+    /**
+     * Detect language asynchronously
+     */
+    @Async("taskExecutor")
+    public CompletableFuture<String> detectLanguageAsync(String text) {
+        log.debug("Starting async language detection");
+        String result = detectLanguage(text);
+        return CompletableFuture.completedFuture(result);
     }
 
     /**
@@ -192,6 +233,16 @@ public class TranslationService {
         }
 
         return texts;
+    }
+
+    /**
+     * Translate multiple texts in batch asynchronously
+     */
+    @Async("taskExecutor")
+    public CompletableFuture<List<String>> translateBatchAsync(List<String> texts, String targetLanguage) {
+        log.debug("Starting async batch translation of {} texts to {}", texts.size(), targetLanguage);
+        List<String> result = translateBatch(texts, targetLanguage);
+        return CompletableFuture.completedFuture(result);
     }
 
     /**

@@ -1,6 +1,12 @@
 package com.beam;
 
+import com.beam.dto.ConversationListItemProjection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -8,8 +14,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 1:1 다이렉트 메시지 서비스
+ * - 메시지 전송/조회
+ * - 대화 목록 캐싱
+ * - 읽음 상태 관리
+ */
 @Service
 public class DirectMessageService {
+
+    private static final Logger logger = LoggerFactory.getLogger(DirectMessageService.class);
 
     @Autowired
     private DirectMessageRepository directMessageRepository;
@@ -24,6 +38,12 @@ public class DirectMessageService {
     private MessageEncryptionService encryptionService;
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "conversations", key = "#senderId"),
+        @CacheEvict(value = "conversations", key = "#receiverId"),
+        @CacheEvict(value = "unreadCounts", key = "#senderId + '_' + #receiverId"),
+        @CacheEvict(value = "unreadCounts", key = "#receiverId + '_' + #senderId")
+    })
     public DirectMessageEntity sendMessage(Long senderId, Long receiverId, String content) {
         UserEntity sender = userRepository.findById(senderId)
             .orElseThrow(() -> new RuntimeException("Sender not found"));
@@ -95,6 +115,10 @@ public class DirectMessageService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "conversations", key = "#userId"),
+        @CacheEvict(value = "unreadCounts", key = "#conversationId + '_' + #userId")
+    })
     public void markMessagesAsRead(String conversationId, Long userId) {
         List<DirectMessageEntity> unreadMessages = directMessageRepository
             .findUnreadMessages(conversationId, userId);
@@ -118,12 +142,25 @@ public class DirectMessageService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "conversations", key = "#userId")
     public List<ConversationEntity> getUserConversations(Long userId) {
+        logger.debug("Loading conversations for user: {} (cache miss)", userId);
         return conversationRepository.findUserConversations(userId);
     }
 
+    /**
+     * 대화 목록을 사용자 정보와 함께 조회 (N+1 문제 해결)
+     */
     @Transactional(readOnly = true)
+    public List<ConversationListItemProjection> getUserConversationsWithUsers(Long userId) {
+        logger.debug("Loading conversations with users for user: {}", userId);
+        return conversationRepository.findUserConversationsWithUsers(userId);
+    }
+
+    @Transactional(readOnly = true)
+    @Cacheable(value = "unreadCounts", key = "#conversationId + '_' + #userId")
     public Integer getUnreadCount(String conversationId, Long userId) {
+        logger.debug("Loading unread count for conversation: {} user: {} (cache miss)", conversationId, userId);
         return directMessageRepository.countUnreadMessages(conversationId, userId);
     }
 

@@ -5,7 +5,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "conversations", indexes = {
-    @Index(name = "idx_user1_user2", columnList = "user1Id,user2Id")
+    @Index(name = "idx_user1_user2", columnList = "user1Id,user2Id"),
+    @Index(name = "idx_conv_user1_time", columnList = "user1Id,lastMessageTime"),
+    @Index(name = "idx_conv_user2_time", columnList = "user2Id,lastMessageTime")
 })
 public class ConversationEntity {
 

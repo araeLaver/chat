@@ -79,6 +79,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         try {
+            // 세션 활동 시간 갱신
+            sessionManager.updateActivity(session.getId());
+
             // Rate Limiting
             if (!rateLimitService.isWebSocketMessageAllowed(session.getId())) {
                 sendRateLimitError(session);
@@ -93,7 +96,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             logger.debug("Message processed: {} - {}", chatMessage.getSender(), chatMessage.getContent());
 
         } catch (Exception e) {
-            logger.error("Message processing error: {}", e.getMessage(), e);
+            logger.error("Message processing error: {}", e.getMessage());
         }
     }
 
@@ -124,6 +127,14 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 break;
             case "markAsRead":
                 chatHandler.handleMarkAsRead(session, message);
+                break;
+            case "pong":
+                // Heartbeat pong 응답 처리
+                sessionManager.handlePong(session.getId());
+                break;
+            case "ping":
+                // 클라이언트에서 보낸 ping에 pong 응답
+                handleClientPing(session);
                 break;
             default:
                 // 기본적으로 텍스트 메시지로 처리
@@ -177,5 +188,16 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         errorMessage.setTimestamp(LocalDateTime.now().format(TIME_FORMATTER));
         session.sendMessage(new TextMessage(objectMapper.writeValueAsString(errorMessage)));
         logger.warn("Rate limit exceeded for session: {}", session.getId());
+    }
+
+    /**
+     * 클라이언트 ping 메시지에 대한 pong 응답
+     */
+    private void handleClientPing(WebSocketSession session) throws Exception {
+        ChatMessage pongMessage = new ChatMessage();
+        pongMessage.setType("pong");
+        pongMessage.setTimestamp(LocalDateTime.now().format(TIME_FORMATTER));
+        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(pongMessage)));
+        logger.debug("Sent pong response to session: {}", session.getId());
     }
 }
