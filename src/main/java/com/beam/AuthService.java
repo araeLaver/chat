@@ -9,8 +9,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.beam.dto.AnonymousRegisterRequest;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -76,6 +79,45 @@ public class AuthService {
                 .email(user.getEmail())
                 .message("Verification code sent to email")
                 .emailVerified(false)
+                .build();
+    }
+
+    /**
+     * 익명 회원가입 - 이메일/전화번호 없이 가입
+     */
+    @Transactional
+    public AuthResponse registerAnonymous(AnonymousRegisterRequest request) {
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw UserException.usernameExists(request.getUsername());
+        }
+
+        // 고유한 placeholder 생성 (unique constraint 회피)
+        String placeholder = "anon_" + UUID.randomUUID().toString().substring(0, 8);
+
+        UserEntity user = UserEntity.builder()
+                .username(request.getUsername())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .phoneNumber(placeholder)
+                .email(null)
+                .displayName(request.getDisplayName() != null ? request.getDisplayName() : request.getUsername())
+                .preferredLanguage(request.getPreferredLanguage() != null ? request.getPreferredLanguage() : "ko")
+                .isActive(true)  // 이메일 인증 불필요
+                .isPhoneVerified(false)
+                .isAnonymous(true)
+                .build();
+
+        user = userRepository.save(user);
+
+        String token = jwtUtil.generateToken(user.getUsername(), user.getId());
+
+        logger.info("익명 회원가입 성공 - 사용자: {}", user.getUsername());
+
+        return AuthResponse.builder()
+                .token(token)
+                .username(user.getUsername())
+                .userId(user.getId())
+                .displayName(user.getDisplayName())
+                .message("Anonymous registration successful")
                 .build();
     }
 

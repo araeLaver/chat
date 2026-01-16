@@ -1,5 +1,6 @@
 package com.beam;
 
+import com.beam.dto.AnonymousRegisterRequest;
 import com.beam.util.IpAddressExtractor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -69,6 +70,18 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody AuthRequest request) {
         AuthResponse response = authService.register(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "익명 회원가입", description = "이메일/전화번호 없이 익명으로 계정을 생성합니다")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "익명 회원가입 성공",
+                content = @Content(schema = @Schema(implementation = AuthResponse.class))),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 (중복 사용자명 등)")
+    })
+    @PostMapping("/register/anonymous")
+    public ResponseEntity<?> registerAnonymous(@Valid @RequestBody AnonymousRegisterRequest request) {
+        AuthResponse response = authService.registerAnonymous(request);
         return ResponseEntity.ok(response);
     }
 

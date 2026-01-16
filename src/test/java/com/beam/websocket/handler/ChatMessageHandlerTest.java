@@ -75,7 +75,8 @@ class ChatMessageHandlerTest {
 
             // Then
             verify(messageService).saveMessage(any(ChatMessage.class));
-            verify(messageSender).broadcastToRoom(eq(ROOM_ID), any(ChatMessage.class));
+            // 번역 기능이 포함된 브로드캐스트 호출 검증
+            verify(messageSender).broadcastToRoomWithTranslation(eq(ROOM_ID), any(ChatMessage.class));
         }
 
         @Test
@@ -91,7 +92,7 @@ class ChatMessageHandlerTest {
 
             // Then
             verify(messageService, never()).saveMessage(any());
-            verify(messageSender, never()).broadcastToRoom(anyString(), any());
+            verify(messageSender, never()).broadcastToRoomWithTranslation(anyString(), any());
         }
 
         @Test
@@ -108,7 +109,7 @@ class ChatMessageHandlerTest {
 
             // Then
             verify(messageService, never()).saveMessage(any());
-            verify(messageSender, never()).broadcastToRoom(anyString(), any());
+            verify(messageSender, never()).broadcastToRoomWithTranslation(anyString(), any());
         }
     }
 

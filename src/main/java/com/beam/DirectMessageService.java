@@ -45,6 +45,20 @@ public class DirectMessageService {
         @CacheEvict(value = "unreadCounts", key = "#receiverId + '_' + #senderId")
     })
     public DirectMessageEntity sendMessage(Long senderId, Long receiverId, String content) {
+        return sendMessage(senderId, receiverId, content, null, null);
+    }
+
+    /**
+     * TTL과 언어 메타데이터를 지원하는 메시지 전송
+     */
+    @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "conversations", key = "#senderId"),
+        @CacheEvict(value = "conversations", key = "#receiverId"),
+        @CacheEvict(value = "unreadCounts", key = "#senderId + '_' + #receiverId"),
+        @CacheEvict(value = "unreadCounts", key = "#receiverId + '_' + #senderId")
+    })
+    public DirectMessageEntity sendMessage(Long senderId, Long receiverId, String content, Long ttlSeconds, String sourceLanguage) {
         UserEntity sender = userRepository.findById(senderId)
             .orElseThrow(() -> new RuntimeException("Sender not found"));
         UserEntity receiver = userRepository.findById(receiverId)
@@ -64,17 +78,29 @@ public class DirectMessageService {
             isEncrypted = true;
         }
 
+        LocalDateTime now = LocalDateTime.now();
         DirectMessageEntity message = DirectMessageEntity.builder()
             .conversationId(conversationId)
             .senderId(senderId)
             .receiverId(receiverId)
             .content(messageContent)
             .messageType(DirectMessageEntity.MessageType.TEXT)
-            .timestamp(LocalDateTime.now())
+            .timestamp(now)
             .isRead(false)
             .isEncrypted(isEncrypted)
             .securityType(MessageSecurityType.NORMAL)
             .build();
+
+        // TTL (자동 삭제) 처리
+        if (ttlSeconds != null && ttlSeconds > 0) {
+            message.setTtlSeconds(ttlSeconds);
+            message.setExpiresAt(now.plusSeconds(ttlSeconds));
+        }
+
+        // 번역 메타데이터 설정
+        if (sourceLanguage != null) {
+            message.setSourceLanguage(sourceLanguage);
+        }
 
         message = directMessageRepository.save(message);
 

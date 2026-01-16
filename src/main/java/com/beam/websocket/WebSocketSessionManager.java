@@ -223,6 +223,20 @@ public class WebSocketSessionManager {
             .orElse(null);
     }
 
+    /**
+     * 사용자 ID로 세션 찾기
+     */
+    public WebSocketSession findSessionByUserId(Long userId) {
+        if (userId == null) return null;
+
+        for (Map.Entry<String, User> entry : users.entrySet()) {
+            if (entry.getValue() != null && userId.equals(entry.getValue().getUserId())) {
+                return findSessionById(entry.getKey());
+            }
+        }
+        return null;
+    }
+
     public void addUser(String sessionId, User user) {
         users.put(sessionId, user);
     }

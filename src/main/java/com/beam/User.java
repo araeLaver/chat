@@ -2,6 +2,7 @@ package com.beam;
 
 public class User {
     private String id;
+    private Long userId;  // DB의 UserEntity ID (번역 기능용)
     private String username;
     private String sessionId;
     private long joinTime;
@@ -12,6 +13,14 @@ public class User {
         this.id = id;
         this.username = username;
         this.sessionId = sessionId;
+        this.joinTime = System.currentTimeMillis();
+    }
+
+    public User(String id, String username, String sessionId, Long userId) {
+        this.id = id;
+        this.username = username;
+        this.sessionId = sessionId;
+        this.userId = userId;
         this.joinTime = System.currentTimeMillis();
     }
 
@@ -45,5 +54,13 @@ public class User {
 
     public void setJoinTime(long joinTime) {
         this.joinTime = joinTime;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }

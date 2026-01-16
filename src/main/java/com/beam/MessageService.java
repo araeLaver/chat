@@ -53,6 +53,17 @@ public class MessageService {
         entity.setSecurityType(chatMessage.getSecurityType());
         entity.setIsEncrypted(isEncrypted);
 
+        // TTL (자동 삭제) 처리
+        if (chatMessage.getTtlSeconds() != null && chatMessage.getTtlSeconds() > 0) {
+            entity.setTtlSeconds(chatMessage.getTtlSeconds());
+            entity.setExpiresAt(LocalDateTime.now().plusSeconds(chatMessage.getTtlSeconds()));
+        }
+
+        // 번역 메타데이터 설정
+        if (chatMessage.getSourceLanguage() != null) {
+            entity.setSourceLanguage(chatMessage.getSourceLanguage());
+        }
+
         // Handle reply/quote
         if (chatMessage.getReplyToId() != null) {
             messageRepository.findById(chatMessage.getReplyToId()).ifPresent(originalMessage -> {

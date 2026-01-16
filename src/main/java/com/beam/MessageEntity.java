@@ -57,6 +57,17 @@ public class MessageEntity {
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 
+    // TTL (Time-To-Live) for self-destructing messages
+    @Column(name = "ttl_seconds")
+    private Long ttlSeconds;
+
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
+
+    // Translation metadata
+    @Column(name = "source_language", length = 10)
+    private String sourceLanguage;
+
     // Reply/Quote fields
     @Column(name = "reply_to_id")
     private Long replyToId;
@@ -187,6 +198,30 @@ public class MessageEntity {
 
     public void setIsDeleted(Boolean isDeleted) {
         this.isDeleted = isDeleted;
+    }
+
+    public Long getTtlSeconds() {
+        return ttlSeconds;
+    }
+
+    public void setTtlSeconds(Long ttlSeconds) {
+        this.ttlSeconds = ttlSeconds;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public String getSourceLanguage() {
+        return sourceLanguage;
+    }
+
+    public void setSourceLanguage(String sourceLanguage) {
+        this.sourceLanguage = sourceLanguage;
     }
 
     public Long getReplyToId() {

@@ -59,6 +59,15 @@ public class UserEntity {
     @Column(name = "verification_code_expires_at")
     private LocalDateTime verificationCodeExpiresAt;
 
+    @Column(name = "is_anonymous", nullable = false)
+    private Boolean isAnonymous = false;
+
+    @Column(name = "ghost_mode", nullable = false)
+    private Boolean ghostMode = false;
+
+    @Column(name = "disable_ip_logging", nullable = false)
+    private Boolean disableIpLogging = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -117,6 +126,15 @@ public class UserEntity {
     public LocalDateTime getVerificationCodeExpiresAt() { return verificationCodeExpiresAt; }
     public void setVerificationCodeExpiresAt(LocalDateTime verificationCodeExpiresAt) { this.verificationCodeExpiresAt = verificationCodeExpiresAt; }
 
+    public Boolean getIsAnonymous() { return isAnonymous; }
+    public void setIsAnonymous(Boolean isAnonymous) { this.isAnonymous = isAnonymous; }
+
+    public Boolean getGhostMode() { return ghostMode; }
+    public void setGhostMode(Boolean ghostMode) { this.ghostMode = ghostMode; }
+
+    public Boolean getDisableIpLogging() { return disableIpLogging; }
+    public void setDisableIpLogging(Boolean disableIpLogging) { this.disableIpLogging = disableIpLogging; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
@@ -143,6 +161,9 @@ public class UserEntity {
         private Boolean isPhoneVerified = false;
         private String verificationCode;
         private LocalDateTime verificationCodeExpiresAt;
+        private Boolean isAnonymous = false;
+        private Boolean ghostMode = false;
+        private Boolean disableIpLogging = false;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
@@ -162,6 +183,9 @@ public class UserEntity {
         public UserEntityBuilder isPhoneVerified(Boolean isPhoneVerified) { this.isPhoneVerified = isPhoneVerified; return this; }
         public UserEntityBuilder verificationCode(String verificationCode) { this.verificationCode = verificationCode; return this; }
         public UserEntityBuilder verificationCodeExpiresAt(LocalDateTime verificationCodeExpiresAt) { this.verificationCodeExpiresAt = verificationCodeExpiresAt; return this; }
+        public UserEntityBuilder isAnonymous(Boolean isAnonymous) { this.isAnonymous = isAnonymous; return this; }
+        public UserEntityBuilder ghostMode(Boolean ghostMode) { this.ghostMode = ghostMode; return this; }
+        public UserEntityBuilder disableIpLogging(Boolean disableIpLogging) { this.disableIpLogging = disableIpLogging; return this; }
         public UserEntityBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
         public UserEntityBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
@@ -183,6 +207,9 @@ public class UserEntity {
             entity.isPhoneVerified = this.isPhoneVerified;
             entity.verificationCode = this.verificationCode;
             entity.verificationCodeExpiresAt = this.verificationCodeExpiresAt;
+            entity.isAnonymous = this.isAnonymous;
+            entity.ghostMode = this.ghostMode;
+            entity.disableIpLogging = this.disableIpLogging;
             entity.createdAt = this.createdAt;
             entity.updatedAt = this.updatedAt;
             return entity;
@@ -198,6 +225,9 @@ public class UserEntity {
         if (this.isOnline == null) this.isOnline = false;
         if (this.isActive == null) this.isActive = true;
         if (this.isPhoneVerified == null) this.isPhoneVerified = false;
+        if (this.isAnonymous == null) this.isAnonymous = false;
+        if (this.ghostMode == null) this.ghostMode = false;
+        if (this.disableIpLogging == null) this.disableIpLogging = false;
     }
 
     @PreUpdate

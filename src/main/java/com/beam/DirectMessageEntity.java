@@ -62,6 +62,17 @@ public class DirectMessageEntity {
     @Column(name = "security_type", nullable = false, length = 20)
     private MessageSecurityType securityType = MessageSecurityType.NORMAL;
 
+    // TTL (Time-To-Live) for self-destructing messages
+    @Column(name = "ttl_seconds")
+    private Long ttlSeconds;
+
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
+
+    // Translation metadata
+    @Column(name = "source_language", length = 10)
+    private String sourceLanguage;
+
     // Reply/Quote fields
     @Column(name = "reply_to_id")
     private Long replyToId;
@@ -251,6 +262,30 @@ public class DirectMessageEntity {
         this.securityType = securityType;
     }
 
+    public Long getTtlSeconds() {
+        return ttlSeconds;
+    }
+
+    public void setTtlSeconds(Long ttlSeconds) {
+        this.ttlSeconds = ttlSeconds;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public String getSourceLanguage() {
+        return sourceLanguage;
+    }
+
+    public void setSourceLanguage(String sourceLanguage) {
+        this.sourceLanguage = sourceLanguage;
+    }
+
     public Long getReplyToId() {
         return replyToId;
     }
@@ -297,6 +332,9 @@ public class DirectMessageEntity {
         private Long fileSize;
         private Boolean isEncrypted = false;
         private MessageSecurityType securityType = MessageSecurityType.NORMAL;
+        private Long ttlSeconds;
+        private LocalDateTime expiresAt;
+        private String sourceLanguage;
         private Long replyToId;
         private String replyToSender;
         private String replyToContent;
@@ -381,6 +419,21 @@ public class DirectMessageEntity {
             return this;
         }
 
+        public Builder ttlSeconds(Long ttlSeconds) {
+            this.ttlSeconds = ttlSeconds;
+            return this;
+        }
+
+        public Builder expiresAt(LocalDateTime expiresAt) {
+            this.expiresAt = expiresAt;
+            return this;
+        }
+
+        public Builder sourceLanguage(String sourceLanguage) {
+            this.sourceLanguage = sourceLanguage;
+            return this;
+        }
+
         public Builder replyToId(Long replyToId) {
             this.replyToId = replyToId;
             return this;
@@ -414,6 +467,9 @@ public class DirectMessageEntity {
             entity.fileSize = this.fileSize;
             entity.isEncrypted = this.isEncrypted;
             entity.securityType = this.securityType;
+            entity.ttlSeconds = this.ttlSeconds;
+            entity.expiresAt = this.expiresAt;
+            entity.sourceLanguage = this.sourceLanguage;
             entity.replyToId = this.replyToId;
             entity.replyToSender = this.replyToSender;
             entity.replyToContent = this.replyToContent;

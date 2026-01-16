@@ -51,6 +51,14 @@ public class ChatMessage {
     @Size(max = 500, message = "설명은 500자를 초과할 수 없습니다")
     private String description;
 
+    // TTL (Time-To-Live) for self-destructing messages
+    private Long ttlSeconds;
+
+    // Translation fields
+    private String originalContent;
+    private String sourceLanguage;
+    private Boolean isTranslated = false;
+
     // Reply/Quote fields
     @Positive(message = "인용 메시지 ID는 양수여야 합니다")
     private Long replyToId;
@@ -180,6 +188,38 @@ public class ChatMessage {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Long getTtlSeconds() {
+        return ttlSeconds;
+    }
+
+    public void setTtlSeconds(Long ttlSeconds) {
+        this.ttlSeconds = ttlSeconds;
+    }
+
+    public String getOriginalContent() {
+        return originalContent;
+    }
+
+    public void setOriginalContent(String originalContent) {
+        this.originalContent = originalContent;
+    }
+
+    public String getSourceLanguage() {
+        return sourceLanguage;
+    }
+
+    public void setSourceLanguage(String sourceLanguage) {
+        this.sourceLanguage = sourceLanguage;
+    }
+
+    public Boolean getIsTranslated() {
+        return isTranslated;
+    }
+
+    public void setIsTranslated(Boolean isTranslated) {
+        this.isTranslated = isTranslated;
     }
 
     public Long getReplyToId() {

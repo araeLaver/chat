@@ -55,8 +55,10 @@ public class ChatMessageHandler {
 
             ChatRoom room = roomManager.getRoom(roomId);
             if (room != null) {
+                // 원본 메시지 저장
                 messageService.saveMessage(chatMessage);
-                messageSender.broadcastToRoom(roomId, chatMessage);
+                // 번역 기능이 포함된 브로드캐스트 (각 수신자별 언어로 번역)
+                messageSender.broadcastToRoomWithTranslation(roomId, chatMessage);
             }
         }
     }

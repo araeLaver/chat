@@ -29,4 +29,9 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
     List<Long> findUnreadMessageIds(@Param("roomId") String roomId,
                                      @Param("userId") Long userId,
                                      @Param("username") String username);
+
+    // 만료된 메시지 삭제 (TTL 기능)
+    @Modifying
+    @Query("DELETE FROM MessageEntity m WHERE m.expiresAt IS NOT NULL AND m.expiresAt < :now")
+    int deleteByExpiresAtBefore(@Param("now") LocalDateTime now);
 }

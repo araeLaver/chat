@@ -1,6 +1,7 @@
 package com.beam;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -29,4 +30,9 @@ public interface GroupMessageRepository extends JpaRepository<GroupMessageEntity
            "gm.isDeleted = false")
     Integer countUnreadMessages(@Param("roomId") Long roomId,
                                   @Param("since") LocalDateTime since);
+
+    // 만료된 그룹 메시지 삭제 (TTL 기능)
+    @Modifying
+    @Query("DELETE FROM GroupMessageEntity gm WHERE gm.expiresAt IS NOT NULL AND gm.expiresAt < :now")
+    int deleteByExpiresAtBefore(@Param("now") LocalDateTime now);
 }
