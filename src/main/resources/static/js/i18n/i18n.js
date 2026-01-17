@@ -264,6 +264,18 @@ class I18n {
 // Create global instance
 const i18n = new I18n();
 
+// Auto-initialize when DOM is ready
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            i18n.init().catch(err => console.error('i18n init failed:', err));
+        });
+    } else {
+        // DOM already loaded
+        i18n.init().catch(err => console.error('i18n init failed:', err));
+    }
+}
+
 // Export for ES modules (if needed)
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { I18n, i18n };
