@@ -111,10 +111,49 @@
         <appender-ref ref="ERROR_FILE"/>
     </root>
 
-    <!-- 프로덕션 환경: 콘솔 출력 최소화 -->
+    <!-- 프로덕션 환경: JSON 구조화 로깅 -->
     <springProfile name="prod">
+        <!-- JSON 형식 파일 출력 -->
+        <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/beam-app.json</file>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdcKeyName>requestId</includeMdcKeyName>
+                <includeMdcKeyName>userId</includeMdcKeyName>
+                <includeMdcKeyName>clientIp</includeMdcKeyName>
+                <timeZone>Asia/Seoul</timeZone>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>logs/beam-app-%d{yyyy-MM-dd}.%i.json</fileNamePattern>
+                <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                    <maxFileSize>100MB</maxFileSize>
+                </timeBasedFileNamingAndTriggeringPolicy>
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>3GB</totalSizeCap>
+            </rollingPolicy>
+        </appender>
+
+        <!-- 보안 이벤트 JSON 로깅 -->
+        <appender name="SECURITY_JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/beam-security.json</file>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdcKeyName>requestId</includeMdcKeyName>
+                <includeMdcKeyName>userId</includeMdcKeyName>
+                <includeMdcKeyName>clientIp</includeMdcKeyName>
+                <includeMdcKeyName>eventType</includeMdcKeyName>
+                <timeZone>Asia/Seoul</timeZone>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>logs/beam-security-%d{yyyy-MM-dd}.json</fileNamePattern>
+                <maxHistory>90</maxHistory>
+            </rollingPolicy>
+        </appender>
+
+        <logger name="com.beam.security" level="INFO" additivity="false">
+            <appender-ref ref="SECURITY_JSON"/>
+        </logger>
+
         <root level="WARN">
-            <appender-ref ref="FILE"/>
+            <appender-ref ref="JSON_FILE"/>
             <appender-ref ref="ERROR_FILE"/>
         </root>
     </springProfile>
