@@ -72,18 +72,31 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 .filter(s -> !s.isEmpty())
                 .toArray(String[]::new);
 
-        // 개발 환경에서만 와일드카드 허용
+        // 개발 환경에서 origins 미설정 시 localhost만 허용 (와일드카드 금지)
         if (isDevEnvironment() && allowedOriginPatterns.length == 0) {
-            logger.warn("⚠️ WebSocket CORS: No origins configured, using wildcard for development");
-            allowedOriginPatterns = new String[]{"*"};
+            logger.warn("⚠️ WebSocket CORS: No origins configured, using localhost defaults for development");
+            allowedOriginPatterns = new String[]{
+                "http://localhost:3000",
+                "http://localhost:8080",
+                "http://127.0.0.1:3000",
+                "http://127.0.0.1:8080"
+            };
         }
 
         logger.info("✅ WebSocket CORS configured with origins: {}", Arrays.toString(allowedOriginPatterns));
 
-        // 프로덕션에서 와일드카드 사용 시 경고
+        // 프로덕션에서 와일드카드 사용 금지
         if (!isDevEnvironment() && Arrays.asList(allowedOriginPatterns).contains("*")) {
-            logger.warn("⚠️ SECURITY WARNING: WebSocket CORS allows all origins in production. " +
-                "Configure specific origins via CORS_ALLOWED_ORIGINS environment variable.");
+            throw new IllegalStateException(
+                "WebSocket CORS wildcard (*) is not allowed in production. " +
+                "Set CORS_ALLOWED_ORIGINS environment variable with specific domains.");
+        }
+
+        // 프로덕션에서 origins 미설정 시 예외
+        if (!isDevEnvironment() && allowedOriginPatterns.length == 0) {
+            throw new IllegalStateException(
+                "WebSocket CORS origins must be configured in production. " +
+                "Set CORS_ALLOWED_ORIGINS environment variable.");
         }
     }
 
