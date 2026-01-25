@@ -1,7 +1,8 @@
 package com.beam;
 
 import com.beam.MessageReactionEntity.MessageType;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.beam.exception.MessageException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,16 +10,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class MessageReactionService {
 
-    @Autowired
-    private MessageReactionRepository reactionRepository;
-
-    @Autowired
-    private MessageRepository messageRepository;
-
-    @Autowired
-    private DirectMessageRepository directMessageRepository;
+    private final MessageReactionRepository reactionRepository;
+    private final MessageRepository messageRepository;
+    private final DirectMessageRepository directMessageRepository;
 
     @Transactional
     public MessageReactionEntity addReaction(Long messageId, MessageType messageType,
@@ -29,7 +26,7 @@ public class MessageReactionService {
         // Check for duplicate reaction
         if (reactionRepository.existsByMessageIdAndMessageTypeAndUserIdAndEmoji(
                 messageId, messageType, userId, emoji)) {
-            throw new RuntimeException("Reaction already exists");
+            throw MessageException.reactionExists(messageId, userId, emoji);
         }
 
         MessageReactionEntity reaction = MessageReactionEntity.builder()
@@ -104,7 +101,7 @@ public class MessageReactionService {
         };
 
         if (!exists) {
-            throw new RuntimeException("Message not found: " + messageId);
+            throw MessageException.notFound(messageId);
         }
     }
 

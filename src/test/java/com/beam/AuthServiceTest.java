@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -81,7 +82,8 @@ class AuthServiceTest {
                 saved.setId(1L);
                 return saved;
             });
-            doNothing().when(emailService).sendVerificationEmail(anyString(), anyString());
+            when(emailService.sendVerificationEmail(anyString(), anyString()))
+                    .thenReturn(CompletableFuture.completedFuture(true));
 
             // When
             AuthResponse response = authService.register(validRequest);
@@ -152,7 +154,8 @@ class AuthServiceTest {
                 saved.setId(1L);
                 return saved;
             });
-            doNothing().when(emailService).sendVerificationEmail(anyString(), anyString());
+            when(emailService.sendVerificationEmail(anyString(), anyString()))
+                    .thenReturn(CompletableFuture.completedFuture(true));
 
             // When
             AuthResponse response = authService.register(validRequest);
@@ -393,7 +396,8 @@ class AuthServiceTest {
             existingUser.setIsActive(false);
             when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
             when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
-            doNothing().when(emailService).sendVerificationEmail(anyString(), anyString());
+            when(emailService.sendVerificationEmail(anyString(), anyString()))
+                    .thenReturn(CompletableFuture.completedFuture(true));
 
             // When & Then
             assertThatCode(() -> authService.resendVerificationEmail("test@example.com"))

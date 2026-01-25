@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/api/v1/notifications")
 @Tag(name = "Notifications", description = "알림 관리 API")
 @SecurityRequirement(name = "bearerAuth")
 public class NotificationController {

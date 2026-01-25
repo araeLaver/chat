@@ -26,7 +26,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/files")
+@RequestMapping("/api/v1/files")
 @Tag(name = "File Management", description = "파일 업로드/다운로드 및 관리 API")
 @SecurityRequirement(name = "bearerAuth")
 public class FileController {

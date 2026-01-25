@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
 @Tag(name = "Authentication", description = "이메일/휴대폰 인증 및 회원가입 API")
 public class ChatController {
 

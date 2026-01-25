@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -50,8 +51,10 @@ class ChatControllerTest {
         when(rateLimitService.getApiRemainingTokens(anyString())).thenReturn(100L);
 
         // Mock email service
-        doNothing().when(emailService).sendVerificationEmail(anyString(), anyString());
-        doNothing().when(emailService).sendWelcomeEmail(anyString(), anyString());
+        when(emailService.sendVerificationEmail(anyString(), anyString()))
+                .thenReturn(CompletableFuture.completedFuture(true));
+        when(emailService.sendWelcomeEmail(anyString(), anyString()))
+                .thenReturn(CompletableFuture.completedFuture(true));
 
     }
 
@@ -68,7 +71,7 @@ class ChatControllerTest {
                 }
                 """;
 
-            mockMvc.perform(post("/api/auth/email/send-code")
+            mockMvc.perform(post("/api/v1/auth/email/send-code")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andExpect(status().isOk())
@@ -98,7 +101,7 @@ class ChatControllerTest {
                 }
                 """;
 
-            mockMvc.perform(post("/api/auth/email/send-code")
+            mockMvc.perform(post("/api/v1/auth/email/send-code")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andExpect(status().isBadRequest())
@@ -134,7 +137,7 @@ class ChatControllerTest {
                 }
                 """;
 
-            mockMvc.perform(post("/api/auth/email/register")
+            mockMvc.perform(post("/api/v1/auth/email/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andExpect(status().isOk())
@@ -169,7 +172,7 @@ class ChatControllerTest {
                 }
                 """;
 
-            mockMvc.perform(post("/api/auth/email/register")
+            mockMvc.perform(post("/api/v1/auth/email/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andExpect(status().isBadRequest())
@@ -211,7 +214,7 @@ class ChatControllerTest {
                 }
                 """;
 
-            mockMvc.perform(post("/api/auth/email/register")
+            mockMvc.perform(post("/api/v1/auth/email/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andExpect(status().isBadRequest())
@@ -245,7 +248,7 @@ class ChatControllerTest {
                 }
                 """;
 
-            mockMvc.perform(post("/api/auth/email/login")
+            mockMvc.perform(post("/api/v1/auth/email/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andExpect(status().isOk())
@@ -264,7 +267,7 @@ class ChatControllerTest {
                 }
                 """;
 
-            mockMvc.perform(post("/api/auth/email/login")
+            mockMvc.perform(post("/api/v1/auth/email/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andExpect(status().isBadRequest())
@@ -293,7 +296,7 @@ class ChatControllerTest {
                 }
                 """;
 
-            mockMvc.perform(post("/api/auth/email/login")
+            mockMvc.perform(post("/api/v1/auth/email/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andExpect(status().isBadRequest())
@@ -330,7 +333,7 @@ class ChatControllerTest {
                 }
                 """;
 
-            mockMvc.perform(post("/api/auth/email/login/verify")
+            mockMvc.perform(post("/api/v1/auth/email/login/verify")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andExpect(status().isOk())
@@ -364,7 +367,7 @@ class ChatControllerTest {
                 }
                 """;
 
-            mockMvc.perform(post("/api/auth/email/login/verify")
+            mockMvc.perform(post("/api/v1/auth/email/login/verify")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andExpect(status().isBadRequest())
@@ -396,7 +399,7 @@ class ChatControllerTest {
                 }
                 """;
 
-            mockMvc.perform(post("/api/auth/email/login/verify")
+            mockMvc.perform(post("/api/v1/auth/email/login/verify")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andExpect(status().isBadRequest())
@@ -429,7 +432,7 @@ class ChatControllerTest {
                 }
                 """;
 
-            mockMvc.perform(post("/api/auth/phone/send-code")
+            mockMvc.perform(post("/api/v1/auth/phone/send-code")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andExpect(status().isBadRequest())

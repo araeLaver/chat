@@ -1,5 +1,8 @@
 package com.beam;
 
+import com.beam.exception.RoomException;
+import com.beam.exception.UserException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -21,22 +24,14 @@ import java.util.List;
  * @since 1.0.0
  */
 @Service
+@RequiredArgsConstructor
 public class RoomService {
 
-    @Autowired
-    private RoomRepository roomRepository;
-
-    @Autowired
-    private RoomMemberRepository roomMemberRepository;
-
-    @Autowired
-    private GroupMessageRepository groupMessageRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private MessageEncryptionService encryptionService;
+    private final RoomRepository roomRepository;
+    private final RoomMemberRepository roomMemberRepository;
+    private final GroupMessageRepository groupMessageRepository;
+    private final UserRepository userRepository;
+    private final MessageEncryptionService encryptionService;
 
     @Autowired(required = false)
     private CacheManager cacheManager;
@@ -48,7 +43,7 @@ public class RoomService {
 
         // Verify user exists
         userRepository.findById(creatorId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> UserException.notFound(creatorId));
 
         RoomEntity room = RoomEntity.builder()
             .roomName(roomName)
@@ -82,14 +77,14 @@ public class RoomService {
     public RoomEntity updateRoom(Long roomId, Long userId, String roomName,
                                   String description, Integer maxMembers) {
         RoomEntity room = roomRepository.findByIdAndIsActiveTrue(roomId)
-            .orElseThrow(() -> new RuntimeException("Room not found"));
+            .orElseThrow(() -> RoomException.notFound(roomId));
 
         RoomMemberEntity member = roomMemberRepository.findByRoomIdAndUserIdAndIsActiveTrue(roomId, userId)
-            .orElseThrow(() -> new RuntimeException("Not a member of this room"));
+            .orElseThrow(() -> RoomException.notMember(roomId, userId));
 
         if (member.getRole() != RoomMemberEntity.MemberRole.OWNER &&
             member.getRole() != RoomMemberEntity.MemberRole.ADMIN) {
-            throw new RuntimeException("No permission to update room");
+            throw RoomException.permissionDenied(roomId);
         }
 
         if (roomName != null) room.setRoomName(roomName);
@@ -102,13 +97,13 @@ public class RoomService {
     @Transactional
     public void deleteRoom(Long roomId, Long userId) {
         RoomEntity room = roomRepository.findByIdAndIsActiveTrue(roomId)
-            .orElseThrow(() -> new RuntimeException("Room not found"));
+            .orElseThrow(() -> RoomException.notFound(roomId));
 
         RoomMemberEntity member = roomMemberRepository.findByRoomIdAndUserIdAndIsActiveTrue(roomId, userId)
-            .orElseThrow(() -> new RuntimeException("Not a member of this room"));
+            .orElseThrow(() -> RoomException.notMember(roomId, userId));
 
         if (member.getRole() != RoomMemberEntity.MemberRole.OWNER) {
-            throw new RuntimeException("Only owner can delete room");
+            throw RoomException.ownerOnly(roomId);
         }
 
         room.setIsActive(false);
@@ -161,20 +156,20 @@ public class RoomService {
     @Transactional
     public void addMember(Long roomId, Long userId, Long inviterId) {
         RoomEntity room = roomRepository.findByIdAndIsActiveTrue(roomId)
-            .orElseThrow(() -> new RuntimeException("Room not found"));
+            .orElseThrow(() -> RoomException.notFound(roomId));
 
         userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> UserException.notFound(userId));
 
         RoomMemberEntity inviter = roomMemberRepository.findByRoomIdAndUserIdAndIsActiveTrue(roomId, inviterId)
-            .orElseThrow(() -> new RuntimeException("Inviter not in room"));
+            .orElseThrow(() -> RoomException.notMember(roomId, inviterId));
 
         if (roomMemberRepository.existsByRoomIdAndUserIdAndIsActiveTrue(roomId, userId)) {
-            throw new RuntimeException("User already in room");
+            throw RoomException.alreadyMember(roomId, userId);
         }
 
         if (room.getCurrentMembers() >= room.getMaxMembers()) {
-            throw new RuntimeException("Room is full");
+            throw RoomException.roomFull(roomId);
         }
 
         RoomMemberEntity newMember = RoomMemberEntity.builder()
@@ -193,21 +188,21 @@ public class RoomService {
     @Transactional
     public void removeMember(Long roomId, Long userId, Long removerId) {
         RoomEntity room = roomRepository.findByIdAndIsActiveTrue(roomId)
-            .orElseThrow(() -> new RuntimeException("Room not found"));
+            .orElseThrow(() -> RoomException.notFound(roomId));
 
         RoomMemberEntity remover = roomMemberRepository.findByRoomIdAndUserIdAndIsActiveTrue(roomId, removerId)
-            .orElseThrow(() -> new RuntimeException("Remover not in room"));
+            .orElseThrow(() -> RoomException.notMember(roomId, removerId));
 
         RoomMemberEntity member = roomMemberRepository.findByRoomIdAndUserIdAndIsActiveTrue(roomId, userId)
-            .orElseThrow(() -> new RuntimeException("Member not found"));
+            .orElseThrow(() -> RoomException.notMember(roomId, userId));
 
         if (member.getRole() == RoomMemberEntity.MemberRole.OWNER) {
-            throw new RuntimeException("Cannot remove room owner");
+            throw RoomException.cannotRemoveOwner(roomId);
         }
 
         if (remover.getRole() != RoomMemberEntity.MemberRole.OWNER &&
             remover.getRole() != RoomMemberEntity.MemberRole.ADMIN) {
-            throw new RuntimeException("No permission to remove members");
+            throw RoomException.permissionDenied(roomId);
         }
 
         member.setIsActive(false);
@@ -221,10 +216,10 @@ public class RoomService {
     @Transactional
     public void leaveRoom(Long roomId, Long userId) {
         RoomMemberEntity member = roomMemberRepository.findByRoomIdAndUserIdAndIsActiveTrue(roomId, userId)
-            .orElseThrow(() -> new RuntimeException("Not a member of this room"));
+            .orElseThrow(() -> RoomException.notMember(roomId, userId));
 
         RoomEntity room = roomRepository.findByIdAndIsActiveTrue(roomId)
-            .orElseThrow(() -> new RuntimeException("Room not found"));
+            .orElseThrow(() -> RoomException.notFound(roomId));
 
         if (member.getRole() == RoomMemberEntity.MemberRole.OWNER) {
             List<RoomMemberEntity> admins = roomMemberRepository.findByRoomIdAndRole(
@@ -248,14 +243,14 @@ public class RoomService {
     public GroupMessageEntity sendMessage(Long roomId, Long senderId, String content,
                                           GroupMessageEntity.MessageType messageType) {
         RoomEntity room = roomRepository.findByIdAndIsActiveTrue(roomId)
-            .orElseThrow(() -> new RuntimeException("Room not found"));
+            .orElseThrow(() -> RoomException.notFound(roomId));
 
         RoomMemberEntity sender = roomMemberRepository.findByRoomIdAndUserIdAndIsActiveTrue(roomId, senderId)
-            .orElseThrow(() -> new RuntimeException("Not a member of this room"));
+            .orElseThrow(() -> RoomException.notMember(roomId, senderId));
 
         if (sender.getIsMuted()) {
             if (sender.getMutedUntil() != null && sender.getMutedUntil().isAfter(LocalDateTime.now())) {
-                throw new RuntimeException("You are muted");
+                throw RoomException.userMuted(roomId, senderId);
             } else {
                 sender.setIsMuted(false);
                 sender.setMutedUntil(null);
@@ -308,7 +303,7 @@ public class RoomService {
     @Cacheable(value = "messages", key = "#roomId")
     public List<GroupMessageEntity> getRoomMessages(Long roomId, Long userId) {
         roomMemberRepository.findByRoomIdAndUserIdAndIsActiveTrue(roomId, userId)
-            .orElseThrow(() -> new RuntimeException("Not a member of this room"));
+            .orElseThrow(() -> RoomException.notMember(roomId, userId));
 
         List<GroupMessageEntity> messages = groupMessageRepository
             .findTop100ByRoomIdAndIsDeletedFalseOrderByTimestampDesc(roomId);
@@ -332,7 +327,7 @@ public class RoomService {
     @Transactional
     public void markAsRead(Long roomId, Long userId) {
         RoomMemberEntity member = roomMemberRepository.findByRoomIdAndUserIdAndIsActiveTrue(roomId, userId)
-            .orElseThrow(() -> new RuntimeException("Not a member of this room"));
+            .orElseThrow(() -> RoomException.notMember(roomId, userId));
 
         member.resetUnreadCount();
         roomMemberRepository.save(member);
@@ -341,18 +336,15 @@ public class RoomService {
     @Transactional(readOnly = true)
     @Cacheable(value = "chatRooms", key = "'userRooms:' + #userId")
     public List<RoomEntity> getUserRooms(Long userId) {
-        List<RoomMemberEntity> memberships = roomMemberRepository.findByUserIdAndIsActiveTrue(userId);
-        return memberships.stream()
-            .map(m -> roomRepository.findByIdAndIsActiveTrue(m.getRoomId()).orElse(null))
-            .filter(r -> r != null)
-            .toList();
+        // N+1 쿼리 최적화: 서브쿼리로 한 번에 조회
+        return roomRepository.findUserRooms(userId);
     }
 
     @Transactional(readOnly = true)
     @Cacheable(value = "chatRooms", key = "'members:' + #roomId")
     public List<RoomMemberEntity> getRoomMembers(Long roomId, Long userId) {
         roomMemberRepository.findByRoomIdAndUserIdAndIsActiveTrue(roomId, userId)
-            .orElseThrow(() -> new RuntimeException("Not a member of this room"));
+            .orElseThrow(() -> RoomException.notMember(roomId, userId));
 
         return roomMemberRepository.findByRoomIdAndIsActiveTrue(roomId);
     }

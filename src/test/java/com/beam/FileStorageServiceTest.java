@@ -1,5 +1,6 @@
 package com.beam;
 
+import com.beam.exception.FileException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -107,8 +108,7 @@ class FileStorageServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> fileStorageService.storeFile(file, 1L, null, null))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Cannot store empty file");
+                    .isInstanceOf(FileException.class);
         }
 
         @Test
@@ -125,8 +125,7 @@ class FileStorageServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> fileStorageService.storeFile(file, 1L, null, null))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("File size exceeds maximum limit");
+                    .isInstanceOf(FileException.class);
         }
 
         @Test
@@ -216,8 +215,7 @@ class FileStorageServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> fileStorageService.loadFileAsResource(999L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("File not found");
+                    .isInstanceOf(FileException.class);
         }
 
         @Test
@@ -230,8 +228,7 @@ class FileStorageServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> fileStorageService.loadFileAsResource(1L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("File not found");
+                    .isInstanceOf(FileException.class);
         }
     }
 
@@ -266,10 +263,9 @@ class FileStorageServiceTest {
             when(fileMetadataRepository.findByIdAndIsDeletedFalse(1L))
                     .thenReturn(Optional.of(testMetadata));
 
-            // When & Then - The exception is caught and re-thrown as "Thumbnail not found"
+            // When & Then - The exception is caught and re-thrown as FileException
             assertThatThrownBy(() -> fileStorageService.loadThumbnailAsResource(1L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Thumbnail not found");
+                    .isInstanceOf(FileException.class);
         }
     }
 
@@ -307,8 +303,7 @@ class FileStorageServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> fileStorageService.deleteFile(1L, 999L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("No permission to delete this file");
+                    .isInstanceOf(FileException.class);
         }
 
         @Test

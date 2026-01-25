@@ -29,10 +29,16 @@ public enum ErrorCode {
     ROOM_FULL("ROOM_003", "Chat room is full", HttpStatus.BAD_REQUEST),
     ROOM_ALREADY_MEMBER("ROOM_004", "Already a member of this room", HttpStatus.CONFLICT),
     ROOM_NOT_MEMBER("ROOM_005", "Not a member of this room", HttpStatus.FORBIDDEN),
+    ROOM_OWNER_ONLY("ROOM_006", "Only room owner can perform this action", HttpStatus.FORBIDDEN),
+    ROOM_PERMISSION_DENIED("ROOM_007", "No permission to perform this action", HttpStatus.FORBIDDEN),
+    ROOM_CANNOT_REMOVE_OWNER("ROOM_008", "Cannot remove room owner", HttpStatus.BAD_REQUEST),
+    ROOM_USER_MUTED("ROOM_009", "You are muted in this room", HttpStatus.FORBIDDEN),
 
     // 메시지 관련 (MSG_xxx)
     MESSAGE_NOT_FOUND("MSG_001", "Message not found", HttpStatus.NOT_FOUND),
     MESSAGE_SEND_FAILED("MSG_002", "Failed to send message", HttpStatus.INTERNAL_SERVER_ERROR),
+    MESSAGE_REACTION_EXISTS("MSG_003", "Reaction already exists", HttpStatus.CONFLICT),
+    MESSAGE_READ_UNAUTHORIZED("MSG_004", "Not authorized to mark this message as read", HttpStatus.FORBIDDEN),
 
     // 파일 관련 (FILE_xxx)
     FILE_NOT_FOUND("FILE_001", "File not found", HttpStatus.NOT_FOUND),
@@ -41,16 +47,27 @@ public enum ErrorCode {
     FILE_TOO_LARGE("FILE_004", "File size exceeds limit", HttpStatus.PAYLOAD_TOO_LARGE),
     FILE_EMPTY("FILE_005", "File is empty", HttpStatus.BAD_REQUEST),
     FILE_SECURITY_VIOLATION("FILE_006", "File security validation failed", HttpStatus.BAD_REQUEST),
+    FILE_DELETE_DENIED("FILE_007", "No permission to delete this file", HttpStatus.FORBIDDEN),
+    FILE_THUMBNAIL_NOT_FOUND("FILE_008", "Thumbnail not found", HttpStatus.NOT_FOUND),
 
     // 친구 관련 (FRIEND_xxx)
     FRIEND_REQUEST_EXISTS("FRIEND_001", "Friend request already exists", HttpStatus.CONFLICT),
     FRIEND_REQUEST_NOT_FOUND("FRIEND_002", "Friend request not found", HttpStatus.NOT_FOUND),
     FRIEND_ALREADY_FRIENDS("FRIEND_003", "Already friends", HttpStatus.CONFLICT),
     FRIEND_SELF_REQUEST("FRIEND_004", "Cannot send friend request to yourself", HttpStatus.BAD_REQUEST),
+    FRIEND_BLOCKED_USER("FRIEND_005", "Cannot send friend request to blocked user", HttpStatus.FORBIDDEN),
+    FRIEND_REQUEST_NOT_PENDING("FRIEND_006", "Friend request is not pending", HttpStatus.BAD_REQUEST),
+    FRIEND_REQUEST_UNAUTHORIZED("FRIEND_007", "Not authorized to handle this friend request", HttpStatus.FORBIDDEN),
 
     // Rate Limiting (RATE_xxx)
     RATE_LIMIT_EXCEEDED("RATE_001", "Too many requests", HttpStatus.TOO_MANY_REQUESTS),
     RATE_LIMIT_AUTH_EXCEEDED("RATE_002", "Too many authentication attempts", HttpStatus.TOO_MANY_REQUESTS),
+
+    // 암호화 관련 (CRYPTO_xxx)
+    CRYPTO_KEY_GENERATION_FAILED("CRYPTO_001", "Key generation failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    CRYPTO_ENCRYPTION_FAILED("CRYPTO_002", "Encryption failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    CRYPTO_DECRYPTION_FAILED("CRYPTO_003", "Decryption failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    CRYPTO_KEY_DERIVATION_FAILED("CRYPTO_004", "Key derivation failed", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // 일반 에러 (GENERAL_xxx)
     INVALID_INPUT("GEN_001", "Invalid input", HttpStatus.BAD_REQUEST),

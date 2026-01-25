@@ -57,7 +57,7 @@ class SearchControllerTest {
 
             when(messageSearchService.searchAllMessages(eq(1L), eq("hello"))).thenReturn(results);
 
-            mockMvc.perform(get("/api/search/messages")
+            mockMvc.perform(get("/api/v1/search/messages")
                             .header("Authorization", VALID_TOKEN)
                             .param("keyword", "hello"))
                     .andExpect(status().isOk())
@@ -75,7 +75,7 @@ class SearchControllerTest {
 
             when(messageSearchService.searchDirectMessages(eq(1L), eq("test"))).thenReturn(results);
 
-            mockMvc.perform(get("/api/search/messages")
+            mockMvc.perform(get("/api/v1/search/messages")
                             .header("Authorization", VALID_TOKEN)
                             .param("keyword", "test")
                             .param("type", "DM"))
@@ -93,7 +93,7 @@ class SearchControllerTest {
 
             when(messageSearchService.searchRoomMessages(eq(1L), eq("test"))).thenReturn(results);
 
-            mockMvc.perform(get("/api/search/messages")
+            mockMvc.perform(get("/api/v1/search/messages")
                             .header("Authorization", VALID_TOKEN)
                             .param("keyword", "test")
                             .param("type", "ROOM"))
@@ -105,7 +105,7 @@ class SearchControllerTest {
         @Test
         @DisplayName("Should return bad request when keyword is empty")
         void shouldReturnBadRequestWhenKeywordIsEmpty() throws Exception {
-            mockMvc.perform(get("/api/search/messages")
+            mockMvc.perform(get("/api/v1/search/messages")
                             .header("Authorization", VALID_TOKEN)
                             .param("keyword", ""))
                     .andExpect(status().isBadRequest())
@@ -115,7 +115,7 @@ class SearchControllerTest {
         @Test
         @DisplayName("Should return bad request when keyword is whitespace")
         void shouldReturnBadRequestWhenKeywordIsWhitespace() throws Exception {
-            mockMvc.perform(get("/api/search/messages")
+            mockMvc.perform(get("/api/v1/search/messages")
                             .header("Authorization", VALID_TOKEN)
                             .param("keyword", "   "))
                     .andExpect(status().isBadRequest())
@@ -127,7 +127,7 @@ class SearchControllerTest {
         void shouldReturnEmptyResultsWhenNoMatches() throws Exception {
             when(messageSearchService.searchAllMessages(eq(1L), anyString())).thenReturn(Arrays.asList());
 
-            mockMvc.perform(get("/api/search/messages")
+            mockMvc.perform(get("/api/v1/search/messages")
                             .header("Authorization", VALID_TOKEN)
                             .param("keyword", "nonexistent"))
                     .andExpect(status().isOk())
@@ -140,7 +140,7 @@ class SearchControllerTest {
         void shouldHandleExceptionGracefully() throws Exception {
             when(jwtUtil.getUserIdFromToken(anyString())).thenThrow(new RuntimeException("Invalid token"));
 
-            mockMvc.perform(get("/api/search/messages")
+            mockMvc.perform(get("/api/v1/search/messages")
                             .header("Authorization", VALID_TOKEN)
                             .param("keyword", "test"))
                     .andExpect(status().isBadRequest())

@@ -14,6 +14,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import com.beam.exception.RoomException;
+import com.beam.exception.UserException;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -144,8 +147,7 @@ class RoomServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> roomService.createRoom(999L, "Room", "Desc", null, null))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("User not found");
+                    .isInstanceOf(UserException.class);
         }
     }
 
@@ -208,8 +210,7 @@ class RoomServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> roomService.updateRoom(1L, 2L, "Name", null, null))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("No permission to update room");
+                    .isInstanceOf(RoomException.class);
         }
 
         @Test
@@ -220,8 +221,7 @@ class RoomServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> roomService.updateRoom(999L, 1L, "Name", null, null))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Room not found");
+                    .isInstanceOf(RoomException.class);
         }
     }
 
@@ -258,8 +258,7 @@ class RoomServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> roomService.deleteRoom(1L, 2L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Only owner can delete room");
+                    .isInstanceOf(RoomException.class);
         }
     }
 
@@ -306,8 +305,7 @@ class RoomServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> roomService.addMember(1L, 3L, 1L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Room is full");
+                    .isInstanceOf(RoomException.class);
         }
 
         @Test
@@ -322,8 +320,7 @@ class RoomServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> roomService.addMember(1L, 2L, 1L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("User already in room");
+                    .isInstanceOf(RoomException.class);
         }
     }
 
@@ -362,8 +359,7 @@ class RoomServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> roomService.removeMember(1L, 1L, 1L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Cannot remove room owner");
+                    .isInstanceOf(RoomException.class);
         }
 
         @Test
@@ -379,8 +375,7 @@ class RoomServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> roomService.removeMember(1L, 3L, 2L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("No permission to remove members");
+                    .isInstanceOf(RoomException.class);
         }
     }
 
@@ -480,8 +475,7 @@ class RoomServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> roomService.sendMessage(1L, 1L, "Hello", null))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("You are muted");
+                    .isInstanceOf(RoomException.class);
         }
 
         @Test
@@ -546,8 +540,7 @@ class RoomServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> roomService.getRoomMessages(1L, 999L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Not a member of this room");
+                    .isInstanceOf(RoomException.class);
         }
     }
 
@@ -581,11 +574,9 @@ class RoomServiceTest {
         @Test
         @DisplayName("Should get user rooms successfully")
         void shouldGetUserRoomsSuccessfully() {
-            // Given
-            when(roomMemberRepository.findByUserIdAndIsActiveTrue(1L))
-                    .thenReturn(List.of(ownerMember));
-            when(roomRepository.findByIdAndIsActiveTrue(1L))
-                    .thenReturn(Optional.of(testRoom));
+            // Given - 최적화된 단일 쿼리 사용
+            when(roomRepository.findUserRooms(1L))
+                    .thenReturn(List.of(testRoom));
 
             // When
             List<RoomEntity> result = roomService.getUserRooms(1L);

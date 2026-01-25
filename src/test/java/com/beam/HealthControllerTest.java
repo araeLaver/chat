@@ -37,7 +37,7 @@ class HealthControllerTest {
         @Test
         @DisplayName("Should return health status")
         void shouldReturnHealthStatus() throws Exception {
-            mockMvc.perform(get("/api/health"))
+            mockMvc.perform(get("/api/v1/health"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status").value("UP"))
                     .andExpect(jsonPath("$.service").value("BEAM Messenger"))
@@ -58,7 +58,7 @@ class HealthControllerTest {
             when(monitoringService.getActiveUsers()).thenReturn(25L);
             when(monitoringService.getActiveRooms()).thenReturn(10L);
 
-            mockMvc.perform(get("/api/health/metrics"))
+            mockMvc.perform(get("/api/v1/health/metrics"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalMessages").value(100))
                     .andExpect(jsonPath("$.activeUsers").value(25))
@@ -73,7 +73,7 @@ class HealthControllerTest {
             when(monitoringService.getActiveUsers()).thenReturn(0L);
             when(monitoringService.getActiveRooms()).thenReturn(0L);
 
-            mockMvc.perform(get("/api/health/metrics"))
+            mockMvc.perform(get("/api/v1/health/metrics"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalMessages").value(0))
                     .andExpect(jsonPath("$.activeUsers").value(0))
@@ -91,7 +91,7 @@ class HealthControllerTest {
             when(sessionManager.getStats())
                 .thenReturn(new WebSocketSessionManager.SessionStats(5, 3, 2));
 
-            mockMvc.perform(get("/api/health/status"))
+            mockMvc.perform(get("/api/v1/health/status"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.database.status").exists())
                     .andExpect(jsonPath("$.websocket.status").value("HEALTHY"))
@@ -109,7 +109,7 @@ class HealthControllerTest {
         @Test
         @DisplayName("Should return ready status")
         void shouldReturnReadyStatus() throws Exception {
-            mockMvc.perform(get("/api/health/ready"))
+            mockMvc.perform(get("/api/v1/health/ready"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status").value("READY"))
                     .andExpect(jsonPath("$.timestamp").exists());
@@ -123,7 +123,7 @@ class HealthControllerTest {
         @Test
         @DisplayName("Should return alive status")
         void shouldReturnAliveStatus() throws Exception {
-            mockMvc.perform(get("/api/health/live"))
+            mockMvc.perform(get("/api/v1/health/live"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status").value("ALIVE"))
                     .andExpect(jsonPath("$.timestamp").exists());

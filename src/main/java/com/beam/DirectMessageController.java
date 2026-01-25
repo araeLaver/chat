@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/dm")
+@RequestMapping("/api/v1/dm")
 @Tag(name = "Direct Messages", description = "1:1 다이렉트 메시지 API")
 @SecurityRequirement(name = "bearerAuth")
 public class DirectMessageController {

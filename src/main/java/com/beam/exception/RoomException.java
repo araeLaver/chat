@@ -34,4 +34,21 @@ public class RoomException extends ApplicationException {
         return new RoomException(ErrorCode.ROOM_NOT_MEMBER,
             "User " + userId + " is not a member of room " + roomId);
     }
+
+    public static RoomException ownerOnly(Long roomId) {
+        return new RoomException(ErrorCode.ROOM_OWNER_ONLY, "Room ID: " + roomId);
+    }
+
+    public static RoomException permissionDenied(Long roomId) {
+        return new RoomException(ErrorCode.ROOM_PERMISSION_DENIED, "Room ID: " + roomId);
+    }
+
+    public static RoomException cannotRemoveOwner(Long roomId) {
+        return new RoomException(ErrorCode.ROOM_CANNOT_REMOVE_OWNER, "Room ID: " + roomId);
+    }
+
+    public static RoomException userMuted(Long roomId, Long userId) {
+        return new RoomException(ErrorCode.ROOM_USER_MUTED,
+            "User " + userId + " is muted in room " + roomId);
+    }
 }

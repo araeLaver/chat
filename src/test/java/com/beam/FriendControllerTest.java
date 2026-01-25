@@ -98,7 +98,7 @@ class FriendControllerTest {
         void shouldSendFriendRequestSuccessfully() throws Exception {
             String requestBody = "{\"friendId\": " + otherUser.getId() + "}";
 
-            mockMvc.perform(post("/api/friends/request")
+            mockMvc.perform(post("/api/v1/friends/request")
                             .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
@@ -122,7 +122,7 @@ class FriendControllerTest {
 
             String requestBody = "{\"requesterId\": " + otherUser.getId() + "}";
 
-            mockMvc.perform(post("/api/friends/accept")
+            mockMvc.perform(post("/api/v1/friends/accept")
                             .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
@@ -145,7 +145,7 @@ class FriendControllerTest {
 
             String requestBody = "{\"requesterId\": " + otherUser.getId() + "}";
 
-            mockMvc.perform(post("/api/friends/reject")
+            mockMvc.perform(post("/api/v1/friends/reject")
                             .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
@@ -164,7 +164,7 @@ class FriendControllerTest {
         void shouldBlockUserSuccessfully() throws Exception {
             String requestBody = "{\"userId\": " + otherUser.getId() + "}";
 
-            mockMvc.perform(post("/api/friends/block")
+            mockMvc.perform(post("/api/v1/friends/block")
                             .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
@@ -189,7 +189,7 @@ class FriendControllerTest {
                     .build();
             friendRepository.save(friendship);
 
-            mockMvc.perform(delete("/api/friends/unfriend/" + otherUser.getId())
+            mockMvc.perform(delete("/api/v1/friends/unfriend/" + otherUser.getId())
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
@@ -212,7 +212,7 @@ class FriendControllerTest {
                     .build();
             friendRepository.save(friendship);
 
-            mockMvc.perform(get("/api/friends/list")
+            mockMvc.perform(get("/api/v1/friends/list")
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
@@ -223,7 +223,7 @@ class FriendControllerTest {
         @Test
         @DisplayName("Should return empty list when no friends")
         void shouldReturnEmptyListWhenNoFriends() throws Exception {
-            mockMvc.perform(get("/api/friends/list")
+            mockMvc.perform(get("/api/v1/friends/list")
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
@@ -246,7 +246,7 @@ class FriendControllerTest {
                     .build();
             friendRepository.save(request);
 
-            mockMvc.perform(get("/api/friends/requests/received")
+            mockMvc.perform(get("/api/v1/friends/requests/received")
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
@@ -265,7 +265,7 @@ class FriendControllerTest {
                     .build();
             friendRepository.save(request);
 
-            mockMvc.perform(get("/api/friends/requests/sent")
+            mockMvc.perform(get("/api/v1/friends/requests/sent")
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
@@ -290,7 +290,7 @@ class FriendControllerTest {
             friendRepository.save(request1);
             friendRepository.save(request2);
 
-            mockMvc.perform(get("/api/friends/requests/count")
+            mockMvc.perform(get("/api/v1/friends/requests/count")
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.count").value(2));
@@ -304,7 +304,7 @@ class FriendControllerTest {
         @Test
         @DisplayName("Should search users by username")
         void shouldSearchUsersByUsername() throws Exception {
-            mockMvc.perform(get("/api/friends/search")
+            mockMvc.perform(get("/api/v1/friends/search")
                             .header("Authorization", "Bearer " + token)
                             .param("query", "friendother"))
                     .andExpect(status().isOk())
@@ -315,7 +315,7 @@ class FriendControllerTest {
         @Test
         @DisplayName("Should exclude self from search results")
         void shouldExcludeSelfFromSearchResults() throws Exception {
-            mockMvc.perform(get("/api/friends/search")
+            mockMvc.perform(get("/api/v1/friends/search")
                             .header("Authorization", "Bearer " + token)
                             .param("query", "friendtest"))
                     .andExpect(status().isOk())
@@ -326,7 +326,7 @@ class FriendControllerTest {
         @Test
         @DisplayName("Should return empty when no matches")
         void shouldReturnEmptyWhenNoMatches() throws Exception {
-            mockMvc.perform(get("/api/friends/search")
+            mockMvc.perform(get("/api/v1/friends/search")
                             .header("Authorization", "Bearer " + token)
                             .param("query", "nonexistentuser123"))
                     .andExpect(status().isOk())

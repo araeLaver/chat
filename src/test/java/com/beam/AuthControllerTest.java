@@ -11,6 +11,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.concurrent.CompletableFuture;
+
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -54,7 +56,10 @@ class AuthControllerTest {
         validRequest.setEmail("test@example.com");
 
         // Mock email service
-        doNothing().when(emailService).sendVerificationEmail(anyString(), anyString());
+        when(emailService.sendVerificationEmail(anyString(), anyString()))
+                .thenReturn(CompletableFuture.completedFuture(true));
+        when(emailService.sendWelcomeEmail(anyString(), anyString()))
+                .thenReturn(CompletableFuture.completedFuture(true));
 
         // Mock rate limit service to always allow
         when(rateLimitService.isApiRequestAllowed(anyString())).thenReturn(true);
@@ -68,7 +73,7 @@ class AuthControllerTest {
         @Test
         @DisplayName("Should register successfully with valid request")
         void shouldRegisterSuccessfully() throws Exception {
-            mockMvc.perform(post("/api/auth/register")
+            mockMvc.perform(post("/api/v1/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isOk())
@@ -82,13 +87,13 @@ class AuthControllerTest {
         @DisplayName("Should return 400 when username already exists")
         void shouldReturn400WhenUsernameExists() throws Exception {
             // First registration
-            mockMvc.perform(post("/api/auth/register")
+            mockMvc.perform(post("/api/v1/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isOk());
 
             // Second registration with same username
-            mockMvc.perform(post("/api/auth/register")
+            mockMvc.perform(post("/api/v1/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isConflict())
@@ -99,14 +104,14 @@ class AuthControllerTest {
         @DisplayName("Should return 400 when email already exists")
         void shouldReturn400WhenEmailExists() throws Exception {
             // First registration
-            mockMvc.perform(post("/api/auth/register")
+            mockMvc.perform(post("/api/v1/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isOk());
 
             // Second registration with different username but same email
             validRequest.setUsername("anotheruser");
-            mockMvc.perform(post("/api/auth/register")
+            mockMvc.perform(post("/api/v1/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isConflict())
@@ -121,7 +126,7 @@ class AuthControllerTest {
         @BeforeEach
         void createUser() throws Exception {
             // Register and verify user first
-            mockMvc.perform(post("/api/auth/register")
+            mockMvc.perform(post("/api/v1/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isOk());
@@ -139,7 +144,7 @@ class AuthControllerTest {
             loginRequest.setUsername("testuser");
             loginRequest.setPassword("password123");
 
-            mockMvc.perform(post("/api/auth/login")
+            mockMvc.perform(post("/api/v1/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(loginRequest)))
                     .andExpect(status().isOk())
@@ -155,7 +160,7 @@ class AuthControllerTest {
             loginRequest.setUsername("testuser");
             loginRequest.setPassword("wrongpassword");
 
-            mockMvc.perform(post("/api/auth/login")
+            mockMvc.perform(post("/api/v1/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(loginRequest)))
                     .andExpect(status().isUnauthorized())
@@ -169,7 +174,7 @@ class AuthControllerTest {
             loginRequest.setUsername("nonexistent");
             loginRequest.setPassword("password123");
 
-            mockMvc.perform(post("/api/auth/login")
+            mockMvc.perform(post("/api/v1/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(loginRequest)))
                     .andExpect(status().isUnauthorized())
@@ -186,7 +191,7 @@ class AuthControllerTest {
         @BeforeEach
         void loginUser() throws Exception {
             // Register and activate user
-            mockMvc.perform(post("/api/auth/register")
+            mockMvc.perform(post("/api/v1/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)));
 
@@ -200,7 +205,7 @@ class AuthControllerTest {
         @Test
         @DisplayName("Should logout successfully")
         void shouldLogoutSuccessfully() throws Exception {
-            mockMvc.perform(post("/api/auth/logout")
+            mockMvc.perform(post("/api/v1/auth/logout")
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value("Logout successful"));
@@ -214,7 +219,7 @@ class AuthControllerTest {
         @Test
         @DisplayName("Should create guest user and return token")
         void shouldCreateGuestUserSuccessfully() throws Exception {
-            mockMvc.perform(post("/api/auth/guest"))
+            mockMvc.perform(post("/api/v1/auth/guest"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.token").exists())
@@ -225,13 +230,13 @@ class AuthControllerTest {
         @Test
         @DisplayName("Multiple guests should have different usernames")
         void multipleGuestsShouldHaveDifferentUsernames() throws Exception {
-            String response1 = mockMvc.perform(post("/api/auth/guest"))
+            String response1 = mockMvc.perform(post("/api/v1/auth/guest"))
                     .andExpect(status().isOk())
                     .andReturn().getResponse().getContentAsString();
 
             Thread.sleep(10); // Ensure different timestamp
 
-            String response2 = mockMvc.perform(post("/api/auth/guest"))
+            String response2 = mockMvc.perform(post("/api/v1/auth/guest"))
                     .andExpect(status().isOk())
                     .andReturn().getResponse().getContentAsString();
 
@@ -253,7 +258,7 @@ class AuthControllerTest {
 
         @BeforeEach
         void registerUser() throws Exception {
-            mockMvc.perform(post("/api/auth/register")
+            mockMvc.perform(post("/api/v1/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)));
         }
@@ -264,7 +269,7 @@ class AuthControllerTest {
             UserEntity user = userRepository.findByEmail("test@example.com").orElseThrow();
             String code = user.getVerificationCode();
 
-            mockMvc.perform(post("/api/auth/email/verify")
+            mockMvc.perform(post("/api/v1/auth/email/verify")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"email\": \"test@example.com\", \"code\": \"" + code + "\"}"))
                     .andExpect(status().isOk())
@@ -279,7 +284,7 @@ class AuthControllerTest {
         @Test
         @DisplayName("Should return 400 for invalid verification code")
         void shouldReturn400ForInvalidCode() throws Exception {
-            mockMvc.perform(post("/api/auth/email/verify")
+            mockMvc.perform(post("/api/v1/auth/email/verify")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"email\": \"test@example.com\", \"code\": \"wrongcode\"}"))
                     .andExpect(status().isBadRequest())
@@ -289,7 +294,7 @@ class AuthControllerTest {
         @Test
         @DisplayName("Should resend verification email")
         void shouldResendVerificationEmail() throws Exception {
-            mockMvc.perform(post("/api/auth/email/resend")
+            mockMvc.perform(post("/api/v1/auth/email/resend")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"email\": \"test@example.com\"}"))
                     .andExpect(status().isOk())

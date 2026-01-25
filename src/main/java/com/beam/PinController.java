@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/pins")
+@RequestMapping("/api/v1/pins")
 @Tag(name = "Pinned Messages", description = "메시지 고정 관리 API")
 @SecurityRequirement(name = "bearerAuth")
 public class PinController {

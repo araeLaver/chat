@@ -16,7 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/health")
+@RequestMapping("/api/v1/health")
 @Tag(name = "Health", description = "서비스 상태 확인 API")
 public class HealthController {
 

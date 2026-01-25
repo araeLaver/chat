@@ -1,6 +1,8 @@
 package com.beam;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.beam.exception.FriendException;
+import com.beam.exception.UserException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -21,13 +23,11 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @Service
+@RequiredArgsConstructor
 public class FriendService {
 
-    @Autowired
-    private FriendRepository friendRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    private final FriendRepository friendRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     @Caching(evict = {
@@ -36,25 +36,25 @@ public class FriendService {
     })
     public FriendEntity sendFriendRequest(Long userId, Long friendId) {
         if (userId.equals(friendId)) {
-            throw new RuntimeException("Cannot add yourself as a friend");
+            throw FriendException.selfRequest();
         }
 
         UserEntity user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> UserException.notFound(userId));
         UserEntity friend = userRepository.findById(friendId)
-            .orElseThrow(() -> new RuntimeException("Friend user not found"));
+            .orElseThrow(() -> UserException.notFound(friendId));
 
         Optional<FriendEntity> existingFriendship = friendRepository.findFriendship(userId, friendId);
         if (existingFriendship.isPresent()) {
             FriendEntity existing = existingFriendship.get();
             if (existing.getStatus() == FriendEntity.FriendStatus.BLOCKED) {
-                throw new RuntimeException("Cannot send friend request to blocked user");
+                throw FriendException.blockedUser(userId, friendId);
             }
             if (existing.getStatus() == FriendEntity.FriendStatus.PENDING) {
-                throw new RuntimeException("Friend request already sent");
+                throw FriendException.requestExists(userId, friendId);
             }
             if (existing.getStatus() == FriendEntity.FriendStatus.ACCEPTED) {
-                throw new RuntimeException("Already friends");
+                throw FriendException.alreadyFriends(userId, friendId);
             }
         }
 
@@ -75,14 +75,14 @@ public class FriendService {
     })
     public FriendEntity acceptFriendRequest(Long userId, Long requesterId) {
         FriendEntity friendRequest = friendRepository.findFriendship(requesterId, userId)
-            .orElseThrow(() -> new RuntimeException("Friend request not found"));
+            .orElseThrow(() -> FriendException.requestNotFound(requesterId, userId));
 
         if (!friendRequest.getFriendId().equals(userId)) {
-            throw new RuntimeException("Cannot accept this friend request");
+            throw FriendException.unauthorized(userId, friendRequest.getId());
         }
 
         if (friendRequest.getStatus() != FriendEntity.FriendStatus.PENDING) {
-            throw new RuntimeException("Friend request is not pending");
+            throw FriendException.requestNotPending(requesterId, userId);
         }
 
         friendRequest.setStatus(FriendEntity.FriendStatus.ACCEPTED);
@@ -98,10 +98,10 @@ public class FriendService {
     })
     public void rejectFriendRequest(Long userId, Long requesterId) {
         FriendEntity friendRequest = friendRepository.findFriendship(requesterId, userId)
-            .orElseThrow(() -> new RuntimeException("Friend request not found"));
+            .orElseThrow(() -> FriendException.requestNotFound(requesterId, userId));
 
         if (!friendRequest.getFriendId().equals(userId)) {
-            throw new RuntimeException("Cannot reject this friend request");
+            throw FriendException.unauthorized(userId, friendRequest.getId());
         }
 
         friendRequest.setStatus(FriendEntity.FriendStatus.REJECTED);
@@ -139,7 +139,7 @@ public class FriendService {
     })
     public void unfriend(Long userId, Long friendId) {
         FriendEntity friendship = friendRepository.findFriendship(userId, friendId)
-            .orElseThrow(() -> new RuntimeException("Friendship not found"));
+            .orElseThrow(() -> FriendException.requestNotFound(userId, friendId));
 
         friendRepository.delete(friendship);
     }

@@ -5,16 +5,19 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import com.beam.exception.MessageException;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -38,13 +41,23 @@ class ReadReceiptServiceTest {
     @Mock
     private SimpMessageSendingOperations messagingTemplate;
 
-    @InjectMocks
     private ReadReceiptService readReceiptService;
 
     private static final Long MESSAGE_ID = 100L;
     private static final Long USER_ID = 1L;
     private static final Long SENDER_ID = 2L;
     private static final Long ROOM_ID = 10L;
+
+    @BeforeEach
+    void setUp() {
+        readReceiptService = new ReadReceiptService(
+            readReceiptRepository,
+            directMessageRepository,
+            groupMessageRepository,
+            userRepository
+        );
+        ReflectionTestUtils.setField(readReceiptService, "messagingTemplate", messagingTemplate);
+    }
 
     @Nested
     @DisplayName("markDirectMessageAsRead Tests")
@@ -91,9 +104,8 @@ class ReadReceiptServiceTest {
             when(directMessageRepository.findById(MESSAGE_ID)).thenReturn(Optional.empty());
 
             // When & Then
-            assertThrows(RuntimeException.class, () ->
-                readReceiptService.markDirectMessageAsRead(MESSAGE_ID, USER_ID)
-            );
+            assertThatThrownBy(() -> readReceiptService.markDirectMessageAsRead(MESSAGE_ID, USER_ID))
+                    .isInstanceOf(MessageException.class);
         }
 
         @Test
@@ -106,10 +118,8 @@ class ReadReceiptServiceTest {
             when(directMessageRepository.findById(MESSAGE_ID)).thenReturn(Optional.of(message));
 
             // When & Then
-            RuntimeException exception = assertThrows(RuntimeException.class, () ->
-                readReceiptService.markDirectMessageAsRead(MESSAGE_ID, anotherUserId)
-            );
-            assertEquals("Not authorized to mark this message as read", exception.getMessage());
+            assertThatThrownBy(() -> readReceiptService.markDirectMessageAsRead(MESSAGE_ID, anotherUserId))
+                    .isInstanceOf(MessageException.class);
         }
 
         @Test
@@ -192,9 +202,8 @@ class ReadReceiptServiceTest {
             when(groupMessageRepository.findById(MESSAGE_ID)).thenReturn(Optional.empty());
 
             // When & Then
-            assertThrows(RuntimeException.class, () ->
-                readReceiptService.markGroupMessageAsRead(MESSAGE_ID, USER_ID)
-            );
+            assertThatThrownBy(() -> readReceiptService.markGroupMessageAsRead(MESSAGE_ID, USER_ID))
+                    .isInstanceOf(MessageException.class);
         }
     }
 

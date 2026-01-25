@@ -9,6 +9,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.beam.exception.UserException;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -121,8 +123,7 @@ class DirectMessageServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> directMessageService.sendMessage(1L, 2L, "Hello"))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Sender not found");
+                    .isInstanceOf(UserException.class);
         }
 
         @Test
@@ -134,8 +135,7 @@ class DirectMessageServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> directMessageService.sendMessage(1L, 2L, "Hello"))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Receiver not found");
+                    .isInstanceOf(UserException.class);
         }
     }
 

@@ -23,6 +23,10 @@ class RateLimitServiceTest {
         ReflectionTestUtils.setField(rateLimitService, "wsCapacity", 50L);
         ReflectionTestUtils.setField(rateLimitService, "wsRefillTokens", 50L);
         ReflectionTestUtils.setField(rateLimitService, "wsRefillSeconds", 10L);
+        // Set TTL and max buckets for memory management
+        ReflectionTestUtils.setField(rateLimitService, "apiTtlMinutes", 30L);
+        ReflectionTestUtils.setField(rateLimitService, "wsTtlMinutes", 10L);
+        ReflectionTestUtils.setField(rateLimitService, "maxBuckets", 10000);
     }
 
     @Nested

@@ -20,7 +20,7 @@ import java.util.Map;
  * 프라이버시 설정 컨트롤러
  */
 @RestController
-@RequestMapping("/api/privacy")
+@RequestMapping("/api/v1/privacy")
 @Tag(name = "Privacy", description = "프라이버시 설정 API")
 public class PrivacySettingsController {
 

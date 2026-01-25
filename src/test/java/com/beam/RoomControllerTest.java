@@ -121,7 +121,7 @@ class RoomControllerTest {
                 }
                 """;
 
-            mockMvc.perform(post("/api/rooms")
+            mockMvc.perform(post("/api/v1/rooms")
                             .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
@@ -144,7 +144,7 @@ class RoomControllerTest {
                 }
                 """;
 
-            mockMvc.perform(post("/api/rooms")
+            mockMvc.perform(post("/api/v1/rooms")
                             .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
@@ -171,7 +171,7 @@ class RoomControllerTest {
                 }
                 """;
 
-            mockMvc.perform(put("/api/rooms/" + testRoom.getId())
+            mockMvc.perform(put("/api/v1/rooms/" + testRoom.getId())
                             .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
@@ -190,7 +190,7 @@ class RoomControllerTest {
         void shouldDeleteRoomSuccessfully() throws Exception {
             testRoom = createTestRoom("Room to Delete", RoomEntity.RoomType.PUBLIC);
 
-            mockMvc.perform(delete("/api/rooms/" + testRoom.getId())
+            mockMvc.perform(delete("/api/v1/rooms/" + testRoom.getId())
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
@@ -203,7 +203,7 @@ class RoomControllerTest {
             testRoom = createTestRoom("Room to Delete", RoomEntity.RoomType.PUBLIC);
             String otherToken = jwtUtil.generateToken(otherUser.getUsername(), otherUser.getId());
 
-            mockMvc.perform(delete("/api/rooms/" + testRoom.getId())
+            mockMvc.perform(delete("/api/v1/rooms/" + testRoom.getId())
                             .header("Authorization", "Bearer " + otherToken))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.error").exists());
@@ -221,7 +221,7 @@ class RoomControllerTest {
 
             String requestBody = "{\"userId\": " + otherUser.getId() + "}";
 
-            mockMvc.perform(post("/api/rooms/" + testRoom.getId() + "/members")
+            mockMvc.perform(post("/api/v1/rooms/" + testRoom.getId() + "/members")
                             .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
@@ -245,7 +245,7 @@ class RoomControllerTest {
                     .build();
             roomMemberRepository.save(member);
 
-            mockMvc.perform(delete("/api/rooms/" + testRoom.getId() + "/members/" + otherUser.getId())
+            mockMvc.perform(delete("/api/v1/rooms/" + testRoom.getId() + "/members/" + otherUser.getId())
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
@@ -268,7 +268,7 @@ class RoomControllerTest {
 
             String otherToken = jwtUtil.generateToken(otherUser.getUsername(), otherUser.getId());
 
-            mockMvc.perform(post("/api/rooms/" + testRoom.getId() + "/leave")
+            mockMvc.perform(post("/api/v1/rooms/" + testRoom.getId() + "/leave")
                             .header("Authorization", "Bearer " + otherToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
@@ -292,7 +292,7 @@ class RoomControllerTest {
                 }
                 """;
 
-            mockMvc.perform(post("/api/rooms/" + testRoom.getId() + "/messages")
+            mockMvc.perform(post("/api/v1/rooms/" + testRoom.getId() + "/messages")
                             .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
@@ -307,7 +307,7 @@ class RoomControllerTest {
         void shouldGetRoomMessages() throws Exception {
             testRoom = createTestRoom("Test Room", RoomEntity.RoomType.PUBLIC);
 
-            mockMvc.perform(get("/api/rooms/" + testRoom.getId() + "/messages")
+            mockMvc.perform(get("/api/v1/rooms/" + testRoom.getId() + "/messages")
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray());
@@ -318,7 +318,7 @@ class RoomControllerTest {
         void shouldMarkMessagesAsRead() throws Exception {
             testRoom = createTestRoom("Test Room", RoomEntity.RoomType.PUBLIC);
 
-            mockMvc.perform(post("/api/rooms/" + testRoom.getId() + "/read")
+            mockMvc.perform(post("/api/v1/rooms/" + testRoom.getId() + "/read")
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
@@ -334,7 +334,7 @@ class RoomControllerTest {
         void shouldGetMyRooms() throws Exception {
             testRoom = createTestRoom("My Test Room", RoomEntity.RoomType.PUBLIC);
 
-            mockMvc.perform(get("/api/rooms/my-rooms")
+            mockMvc.perform(get("/api/v1/rooms/my-rooms")
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
@@ -348,7 +348,7 @@ class RoomControllerTest {
         void shouldGetRoomMembers() throws Exception {
             testRoom = createTestRoom("Test Room", RoomEntity.RoomType.PUBLIC);
 
-            mockMvc.perform(get("/api/rooms/" + testRoom.getId() + "/members")
+            mockMvc.perform(get("/api/v1/rooms/" + testRoom.getId() + "/members")
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
@@ -361,7 +361,7 @@ class RoomControllerTest {
         void shouldSearchRooms() throws Exception {
             testRoom = createTestRoom("Searchable Room", RoomEntity.RoomType.PUBLIC);
 
-            mockMvc.perform(get("/api/rooms/search")
+            mockMvc.perform(get("/api/v1/rooms/search")
                             .header("Authorization", "Bearer " + token)
                             .param("keyword", "Searchable"))
                     .andExpect(status().isOk())

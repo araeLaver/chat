@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -65,7 +66,10 @@ class ChatIntegrationTest {
     void setUp() {
         when(rateLimitService.isApiRequestAllowed(anyString())).thenReturn(true);
         when(rateLimitService.getApiRemainingTokens(anyString())).thenReturn(100L);
-        doNothing().when(emailService).sendVerificationEmail(anyString(), anyString());
+        when(emailService.sendVerificationEmail(anyString(), anyString()))
+                .thenReturn(CompletableFuture.completedFuture(true));
+        when(emailService.sendWelcomeEmail(anyString(), anyString()))
+                .thenReturn(CompletableFuture.completedFuture(true));
     }
 
     @Test
@@ -78,7 +82,7 @@ class ChatIntegrationTest {
         registerRequest.setPassword(TEST_PASSWORD);
         registerRequest.setEmail(TEST_EMAIL1);
 
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest)))
             .andExpect(status().isOk())
@@ -94,7 +98,7 @@ class ChatIntegrationTest {
         loginRequest.setUsername(TEST_USER1);
         loginRequest.setPassword(TEST_PASSWORD);
 
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
             .andExpect(status().isOk())
@@ -118,7 +122,7 @@ class ChatIntegrationTest {
 
         // 1. 친구 요청 전송 (POST /api/friends/request with body)
         Map<String, Object> friendRequest = Map.of("friendId", user2.getId());
-        mockMvc.perform(post("/api/friends/request")
+        mockMvc.perform(post("/api/v1/friends/request")
                 .header("Authorization", "Bearer " + token1)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(friendRequest)))
@@ -126,14 +130,14 @@ class ChatIntegrationTest {
             .andExpect(jsonPath("$.success").value(true));
 
         // 2. 받은 친구 요청 조회
-        mockMvc.perform(get("/api/friends/requests/received")
+        mockMvc.perform(get("/api/v1/friends/requests/received")
                 .header("Authorization", "Bearer " + token2))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$").isArray());
 
         // 3. 친구 요청 수락
         Map<String, Object> acceptRequest = Map.of("requesterId", user1.getId());
-        mockMvc.perform(post("/api/friends/accept")
+        mockMvc.perform(post("/api/v1/friends/accept")
                 .header("Authorization", "Bearer " + token2)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(acceptRequest)))
@@ -141,7 +145,7 @@ class ChatIntegrationTest {
             .andExpect(jsonPath("$.success").value(true));
 
         // 4. 친구 목록 확인
-        mockMvc.perform(get("/api/friends/list")
+        mockMvc.perform(get("/api/v1/friends/list")
                 .header("Authorization", "Bearer " + token1))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$").isArray());
@@ -163,21 +167,21 @@ class ChatIntegrationTest {
             "content", "Hello, this is a test message!"
         );
 
-        mockMvc.perform(post("/api/dm/send")
+        mockMvc.perform(post("/api/v1/dm/send")
                 .header("Authorization", "Bearer " + token1)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dmRequest)))
             .andExpect(status().isOk());
 
         // 2. 대화 목록 조회
-        mockMvc.perform(get("/api/dm/conversations")
+        mockMvc.perform(get("/api/v1/dm/conversations")
                 .header("Authorization", "Bearer " + token1))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$").isArray());
 
         // 3. 메시지 조회 (GET /api/dm/conversation/{conversationId})
         String conversationId = DirectMessageEntity.generateConversationId(user1.getId(), user2.getId());
-        mockMvc.perform(get("/api/dm/conversation/" + conversationId)
+        mockMvc.perform(get("/api/v1/dm/conversation/" + conversationId)
                 .header("Authorization", "Bearer " + token2))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$").isArray());
@@ -198,7 +202,7 @@ class ChatIntegrationTest {
             "maxMembers", 100
         );
 
-        mockMvc.perform(post("/api/rooms")
+        mockMvc.perform(post("/api/v1/rooms")
                 .header("Authorization", "Bearer " + token1)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(roomRequest)))
@@ -206,7 +210,7 @@ class ChatIntegrationTest {
             .andExpect(jsonPath("$.roomName").value("Integration Test Room"));
 
         // 2. 내 채팅방 목록 조회
-        mockMvc.perform(get("/api/rooms/my-rooms")
+        mockMvc.perform(get("/api/v1/rooms/my-rooms")
                 .header("Authorization", "Bearer " + token1))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$").isArray());
@@ -216,7 +220,7 @@ class ChatIntegrationTest {
     @Order(5)
     @DisplayName("게스트 로그인 플로우")
     void testGuestLoginFlow() throws Exception {
-        MvcResult guestResult = mockMvc.perform(post("/api/auth/guest"))
+        MvcResult guestResult = mockMvc.perform(post("/api/v1/auth/guest"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.token").exists())
@@ -231,13 +235,13 @@ class ChatIntegrationTest {
     @Order(6)
     @DisplayName("Health Check 엔드포인트 테스트")
     void testHealthCheckEndpoint() throws Exception {
-        mockMvc.perform(get("/api/health"))
+        mockMvc.perform(get("/api/v1/health"))
             .andExpect(status().isOk());
 
-        mockMvc.perform(get("/api/health/live"))
+        mockMvc.perform(get("/api/v1/health/live"))
             .andExpect(status().isOk());
 
-        mockMvc.perform(get("/api/health/ready"))
+        mockMvc.perform(get("/api/v1/health/ready"))
             .andExpect(status().isOk());
     }
 

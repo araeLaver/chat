@@ -78,13 +78,21 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        // 세션 유효성 먼저 체크 (Race Condition 방지)
+        if (session == null || !session.isOpen()) {
+            logger.debug("Ignoring message for closed or null session");
+            return;
+        }
+
+        String sessionId = session.getId();
+
         try {
             // 세션 활동 시간 갱신
-            sessionManager.updateActivity(session.getId());
+            sessionManager.updateActivity(sessionId);
 
             // Rate Limiting
-            if (!rateLimitService.isWebSocketMessageAllowed(session.getId())) {
-                sendRateLimitError(session);
+            if (!rateLimitService.isWebSocketMessageAllowed(sessionId)) {
+                sendRateLimitErrorSafely(session);
                 return;
             }
 
@@ -95,8 +103,16 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
             logger.debug("Message processed: {} - {}", chatMessage.getSender(), chatMessage.getContent());
 
+        } catch (java.io.IOException e) {
+            // JSON 파싱 오류 - 클라이언트에 에러 전송
+            logger.warn("Invalid message format from session {}: {}", sessionId, e.getMessage());
+            sendErrorMessageSafely(session, "Invalid message format");
+        } catch (IllegalStateException e) {
+            // 세션 상태 오류 (이미 닫힌 경우 등)
+            logger.debug("Session {} is no longer valid: {}", sessionId, e.getMessage());
         } catch (Exception e) {
-            logger.error("Message processing error: {}", e.getMessage());
+            logger.error("Message processing error for session {}: {}", sessionId, e.getMessage(), e);
+            sendErrorMessageSafely(session, "Message processing failed");
         }
     }
 
@@ -181,13 +197,36 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         return null;
     }
 
-    private void sendRateLimitError(WebSocketSession session) throws Exception {
-        ChatMessage errorMessage = new ChatMessage();
-        errorMessage.setType("error");
-        errorMessage.setContent("Rate limit exceeded. Please slow down.");
-        errorMessage.setTimestamp(LocalDateTime.now().format(TIME_FORMATTER));
-        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(errorMessage)));
+    /**
+     * 안전하게 Rate Limit 에러 전송 (세션 상태 체크 포함)
+     */
+    private void sendRateLimitErrorSafely(WebSocketSession session) {
+        sendErrorMessageSafely(session, "Rate limit exceeded. Please slow down.");
         logger.warn("Rate limit exceeded for session: {}", session.getId());
+    }
+
+    /**
+     * 안전하게 에러 메시지 전송 (Race Condition 방지)
+     */
+    private void sendErrorMessageSafely(WebSocketSession session, String errorContent) {
+        if (session == null || !session.isOpen()) {
+            return;
+        }
+
+        try {
+            ChatMessage errorMessage = new ChatMessage();
+            errorMessage.setType("error");
+            errorMessage.setContent(errorContent);
+            errorMessage.setTimestamp(LocalDateTime.now().format(TIME_FORMATTER));
+
+            synchronized (session) {
+                if (session.isOpen()) {
+                    session.sendMessage(new TextMessage(objectMapper.writeValueAsString(errorMessage)));
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Failed to send error message to session {}: {}", session.getId(), e.getMessage());
+        }
     }
 
     /**

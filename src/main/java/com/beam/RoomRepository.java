@@ -26,4 +26,18 @@ public interface RoomRepository extends JpaRepository<RoomEntity, Long> {
 
     @Query("SELECT COUNT(r) FROM RoomEntity r WHERE r.createdBy = :userId AND r.isActive = true")
     Integer countRoomsByUser(@Param("userId") Long userId);
+
+    /**
+     * Batch fetch rooms by IDs - N+1 쿼리 방지용
+     */
+    @Query("SELECT r FROM RoomEntity r WHERE r.id IN :ids AND r.isActive = true")
+    List<RoomEntity> findByIdInAndIsActiveTrue(@Param("ids") List<Long> ids);
+
+    /**
+     * 사용자가 참여한 모든 방 조회 - N+1 쿼리 방지
+     * RoomMemberEntity와 조인하여 한 번의 쿼리로 처리
+     */
+    @Query("SELECT r FROM RoomEntity r WHERE r.isActive = true AND r.id IN " +
+           "(SELECT rm.roomId FROM RoomMemberEntity rm WHERE rm.userId = :userId AND rm.isActive = true)")
+    List<RoomEntity> findUserRooms(@Param("userId") Long userId);
 }

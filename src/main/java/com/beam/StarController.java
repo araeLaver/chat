@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/stars")
+@RequestMapping("/api/v1/stars")
 @Tag(name = "Starred Messages", description = "메시지 별표 관리 API")
 @SecurityRequirement(name = "bearerAuth")
 public class StarController {

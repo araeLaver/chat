@@ -45,4 +45,13 @@ public class FileException extends ApplicationException {
     public static FileException securityViolation(String reason) {
         return new FileException(ErrorCode.FILE_SECURITY_VIOLATION, reason);
     }
+
+    public static FileException deleteDenied(Long fileId, Long userId) {
+        return new FileException(ErrorCode.FILE_DELETE_DENIED,
+            "User " + userId + " has no permission to delete file " + fileId);
+    }
+
+    public static FileException thumbnailNotFound(Long fileId) {
+        return new FileException(ErrorCode.FILE_THUMBNAIL_NOT_FOUND, "File ID: " + fileId);
+    }
 }

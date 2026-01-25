@@ -15,6 +15,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -27,9 +30,11 @@ import java.util.concurrent.ThreadLocalRandom;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @Tag(name = "Authentication", description = "사용자 인증 및 회원가입 API")
 public class AuthController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Value("${app.guest.max-id:10000}")
     private int maxGuestId;
@@ -153,11 +158,16 @@ public class AuthController {
                     defaultRoomMaxMembers
                 ));
 
-            // 사용자를 방에 추가 (이미 있으면 무시)
+            // 사용자를 방에 추가 (이미 멤버인 경우만 무시)
             try {
                 roomService.addMember(defaultRoom.getId(), guestUser.getId(), guestUser.getId());
+            } catch (IllegalStateException e) {
+                // 이미 멤버인 경우는 정상 케이스로 무시
+                logger.debug("Guest user {} is already a member of room {}", guestUser.getId(), defaultRoom.getId());
             } catch (Exception e) {
-                // 이미 멤버인 경우 무시
+                // 다른 예외는 로깅하고 계속 진행 (게스트 로그인은 성공시켜야 함)
+                logger.warn("Failed to add guest {} to default room {}: {}",
+                        guestUser.getId(), defaultRoom.getId(), e.getMessage());
             }
 
             // JWT 토큰 생성

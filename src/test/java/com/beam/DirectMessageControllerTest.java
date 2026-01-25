@@ -109,7 +109,7 @@ class DirectMessageControllerTest {
                 }
                 """.formatted(otherUser.getId());
 
-            mockMvc.perform(post("/api/dm/send")
+            mockMvc.perform(post("/api/v1/dm/send")
                             .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
@@ -130,7 +130,7 @@ class DirectMessageControllerTest {
                 }
                 """.formatted(otherUser.getId());
 
-            mockMvc.perform(post("/api/dm/send")
+            mockMvc.perform(post("/api/v1/dm/send")
                             .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
@@ -149,7 +149,7 @@ class DirectMessageControllerTest {
         void shouldGetConversationsSuccessfully() throws Exception {
             ConversationEntity conversation = createConversation();
 
-            mockMvc.perform(get("/api/dm/conversations")
+            mockMvc.perform(get("/api/v1/dm/conversations")
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
@@ -161,7 +161,7 @@ class DirectMessageControllerTest {
         @Test
         @DisplayName("Should return empty list when no conversations")
         void shouldReturnEmptyListWhenNoConversations() throws Exception {
-            mockMvc.perform(get("/api/dm/conversations")
+            mockMvc.perform(get("/api/v1/dm/conversations")
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
@@ -189,7 +189,7 @@ class DirectMessageControllerTest {
                     .build();
             directMessageRepository.save(message);
 
-            mockMvc.perform(get("/api/dm/conversation/" + conversation.getConversationId())
+            mockMvc.perform(get("/api/v1/dm/conversation/" + conversation.getConversationId())
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
@@ -214,7 +214,7 @@ class DirectMessageControllerTest {
             directMessageRepository.save(message);
 
             // Get messages as otherUser
-            mockMvc.perform(get("/api/dm/conversation/" + conversation.getConversationId())
+            mockMvc.perform(get("/api/v1/dm/conversation/" + conversation.getConversationId())
                             .header("Authorization", "Bearer " + otherToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[0].isMine").value(false));
@@ -230,7 +230,7 @@ class DirectMessageControllerTest {
         void shouldStartNewConversationSuccessfully() throws Exception {
             String requestBody = "{\"userId\": " + otherUser.getId() + "}";
 
-            mockMvc.perform(post("/api/dm/conversation/start")
+            mockMvc.perform(post("/api/v1/dm/conversation/start")
                             .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
@@ -248,7 +248,7 @@ class DirectMessageControllerTest {
 
             String requestBody = "{\"userId\": " + otherUser.getId() + "}";
 
-            mockMvc.perform(post("/api/dm/conversation/start")
+            mockMvc.perform(post("/api/v1/dm/conversation/start")
                             .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
@@ -278,7 +278,7 @@ class DirectMessageControllerTest {
                     .build();
             directMessageRepository.save(message);
 
-            mockMvc.perform(post("/api/dm/conversation/" + conversation.getConversationId() + "/read")
+            mockMvc.perform(post("/api/v1/dm/conversation/" + conversation.getConversationId() + "/read")
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))

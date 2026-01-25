@@ -1,5 +1,7 @@
 package com.beam;
 
+import com.beam.exception.MessageException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
@@ -10,19 +12,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ReadReceiptService {
 
-    @Autowired
-    private ReadReceiptRepository readReceiptRepository;
-
-    @Autowired
-    private DirectMessageRepository directMessageRepository;
-
-    @Autowired
-    private GroupMessageRepository groupMessageRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    private final ReadReceiptRepository readReceiptRepository;
+    private final DirectMessageRepository directMessageRepository;
+    private final GroupMessageRepository groupMessageRepository;
+    private final UserRepository userRepository;
 
     @Autowired(required = false)
     private SimpMessageSendingOperations messagingTemplate;
@@ -34,10 +30,10 @@ public class ReadReceiptService {
         }
 
         DirectMessageEntity message = directMessageRepository.findById(messageId)
-            .orElseThrow(() -> new RuntimeException("Message not found"));
+            .orElseThrow(() -> MessageException.notFound(messageId));
 
         if (!message.getReceiverId().equals(userId)) {
-            throw new RuntimeException("Not authorized to mark this message as read");
+            throw MessageException.readUnauthorized(messageId, userId);
         }
 
         ReadReceiptEntity receipt = ReadReceiptEntity.builder()
@@ -75,7 +71,7 @@ public class ReadReceiptService {
         }
 
         GroupMessageEntity message = groupMessageRepository.findById(messageId)
-            .orElseThrow(() -> new RuntimeException("Message not found"));
+            .orElseThrow(() -> MessageException.notFound(messageId));
 
         if (message.getSenderId().equals(userId)) {
             return;

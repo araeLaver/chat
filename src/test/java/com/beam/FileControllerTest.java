@@ -154,7 +154,7 @@ class FileControllerTest {
                     "test image content".getBytes()
             );
 
-            mockMvc.perform(multipart("/api/files/upload/dm")
+            mockMvc.perform(multipart("/api/v1/files/upload/dm")
                             .file(file)
                             .param("conversationId", conversation.getConversationId())
                             .header("Authorization", "Bearer " + token))
@@ -180,7 +180,7 @@ class FileControllerTest {
                     "malicious content".getBytes()
             );
 
-            mockMvc.perform(multipart("/api/files/upload/dm")
+            mockMvc.perform(multipart("/api/v1/files/upload/dm")
                             .file(file)
                             .param("conversationId", conversation.getConversationId())
                             .header("Authorization", "Bearer " + token))
@@ -218,7 +218,7 @@ class FileControllerTest {
                     "pdf content".getBytes()
             );
 
-            mockMvc.perform(multipart("/api/files/upload/room")
+            mockMvc.perform(multipart("/api/v1/files/upload/room")
                             .file(file)
                             .param("roomId", room.getId().toString())
                             .header("Authorization", "Bearer " + token))
@@ -253,7 +253,7 @@ class FileControllerTest {
                     .build();
             fileMetadataRepository.save(fileMetadata);
 
-            mockMvc.perform(get("/api/files/conversation/" + conversation.getConversationId())
+            mockMvc.perform(get("/api/v1/files/conversation/" + conversation.getConversationId())
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
@@ -266,7 +266,7 @@ class FileControllerTest {
         void shouldReturnEmptyListWhenNoFiles() throws Exception {
             ConversationEntity conversation = createConversation();
 
-            mockMvc.perform(get("/api/files/conversation/" + conversation.getConversationId())
+            mockMvc.perform(get("/api/v1/files/conversation/" + conversation.getConversationId())
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
@@ -297,7 +297,7 @@ class FileControllerTest {
                     .build();
             fileMetadataRepository.save(fileMetadata);
 
-            mockMvc.perform(get("/api/files/room/" + room.getId())
+            mockMvc.perform(get("/api/v1/files/room/" + room.getId())
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
@@ -327,7 +327,7 @@ class FileControllerTest {
 
             doNothing().when(fileStorageService).deleteFile(anyLong(), anyLong());
 
-            mockMvc.perform(delete("/api/files/" + fileMetadata.getId())
+            mockMvc.perform(delete("/api/v1/files/" + fileMetadata.getId())
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
@@ -354,7 +354,7 @@ class FileControllerTest {
             doThrow(new RuntimeException("No permission to delete this file"))
                     .when(fileStorageService).deleteFile(eq(fileMetadata.getId()), eq(testUser.getId()));
 
-            mockMvc.perform(delete("/api/files/" + fileMetadata.getId())
+            mockMvc.perform(delete("/api/v1/files/" + fileMetadata.getId())
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.error").exists());

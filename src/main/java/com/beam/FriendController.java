@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("/api/friends")
+@RequestMapping("/api/v1/friends")
 @Tag(name = "Friends", description = "친구 관리 API")
 public class FriendController {
 

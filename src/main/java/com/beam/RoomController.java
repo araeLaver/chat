@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("/api/rooms")
+@RequestMapping("/api/v1/rooms")
 @Tag(name = "Rooms", description = "그룹 채팅방 관리 API")
 public class RoomController {
 

@@ -1,5 +1,7 @@
 package com.beam;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -15,6 +17,8 @@ import java.util.Map;
 
 @Controller
 public class ChatWebSocketController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ChatWebSocketController.class);
 
     @Autowired(required = false)
     private SimpMessageSendingOperations messagingTemplate;
@@ -169,7 +173,7 @@ public class ChatWebSocketController {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error handling typing: " + e.getMessage());
+            logger.error("Error handling typing: {}", e.getMessage());
         }
     }
 
@@ -189,7 +193,7 @@ public class ChatWebSocketController {
                 messagingTemplate.convertAndSend("/topic/user-status", response);
             }
         } catch (Exception e) {
-            System.err.println("Error updating user status: " + e.getMessage());
+            logger.error("Error updating user status: {}", e.getMessage());
         }
     }
 }

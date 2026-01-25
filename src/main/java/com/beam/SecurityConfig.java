@@ -50,8 +50,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> {
                 // 공개 엔드포인트 (인증 불필요)
                 auth.requestMatchers(
-                    "/api/auth/**",  // 모든 인증 관련 엔드포인트 허용
-                    "/api/health/**", // 헬스 체크 엔드포인트
+                    "/api/v1/auth/**",  // 모든 인증 관련 엔드포인트 허용
+                    "/api/v1/health/**", // 헬스 체크 엔드포인트
                     "/actuator/health",
                     "/actuator/health/**",
                     "/actuator/prometheus",

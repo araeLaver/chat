@@ -3,10 +3,16 @@ package com.beam;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PostConstruct;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>Per-session rate limiting for WebSocket messages</li>
  *   <li>Configurable capacity and refill rates</li>
  *   <li>Token bucket algorithm for smooth traffic flow</li>
+ *   <li>Automatic cleanup of expired entries to prevent memory leaks</li>
  * </ul>
  *
  * @since 1.1.0
@@ -29,8 +36,22 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class RateLimitService {
 
-    private final Map<String, Bucket> apiBuckets = new ConcurrentHashMap<>();
-    private final Map<String, Bucket> webSocketBuckets = new ConcurrentHashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(RateLimitService.class);
+
+    // Bucket과 마지막 접근 시간을 함께 저장
+    private final Map<String, BucketEntry> apiBuckets = new ConcurrentHashMap<>();
+    private final Map<String, BucketEntry> webSocketBuckets = new ConcurrentHashMap<>();
+
+    // TTL 설정 (기본: API 30분, WebSocket 10분)
+    @Value("${rate.limit.api.ttl-minutes:30}")
+    private long apiTtlMinutes;
+
+    @Value("${rate.limit.websocket.ttl-minutes:10}")
+    private long wsTtlMinutes;
+
+    // 최대 버킷 개수 제한 (메모리 보호)
+    @Value("${rate.limit.max-buckets:10000}")
+    private int maxBuckets;
 
     @Value("${rate.limit.api.capacity:100}")
     private long apiCapacity;
@@ -50,6 +71,12 @@ public class RateLimitService {
     @Value("${rate.limit.websocket.refill-duration-seconds:10}")
     private long wsRefillSeconds;
 
+    @PostConstruct
+    public void init() {
+        logger.info("RateLimitService initialized - API TTL: {}min, WebSocket TTL: {}min, Max buckets: {}",
+                apiTtlMinutes, wsTtlMinutes, maxBuckets);
+    }
+
     /**
      * Check if an API request is allowed for the given identifier (usually IP address)
      *
@@ -57,8 +84,15 @@ public class RateLimitService {
      * @return true if request is allowed, false if rate limit exceeded
      */
     public boolean isApiRequestAllowed(String identifier) {
-        Bucket bucket = apiBuckets.computeIfAbsent(identifier, k -> createApiBucket());
-        return bucket.tryConsume(1);
+        // 최대 버킷 수 초과 시 새 버킷 생성 거부 (DoS 방어)
+        if (!apiBuckets.containsKey(identifier) && apiBuckets.size() >= maxBuckets) {
+            logger.warn("API bucket limit reached ({}), rejecting new identifier: {}", maxBuckets, identifier);
+            return false;
+        }
+
+        BucketEntry entry = apiBuckets.computeIfAbsent(identifier, k -> new BucketEntry(createApiBucket()));
+        entry.updateLastAccess();
+        return entry.getBucket().tryConsume(1);
     }
 
     /**
@@ -68,8 +102,15 @@ public class RateLimitService {
      * @return true if message is allowed, false if rate limit exceeded
      */
     public boolean isWebSocketMessageAllowed(String sessionId) {
-        Bucket bucket = webSocketBuckets.computeIfAbsent(sessionId, k -> createWebSocketBucket());
-        return bucket.tryConsume(1);
+        // 최대 버킷 수 초과 시 새 버킷 생성 거부 (DoS 방어)
+        if (!webSocketBuckets.containsKey(sessionId) && webSocketBuckets.size() >= maxBuckets) {
+            logger.warn("WebSocket bucket limit reached ({}), rejecting new session: {}", maxBuckets, sessionId);
+            return false;
+        }
+
+        BucketEntry entry = webSocketBuckets.computeIfAbsent(sessionId, k -> new BucketEntry(createWebSocketBucket()));
+        entry.updateLastAccess();
+        return entry.getBucket().tryConsume(1);
     }
 
     /**
@@ -97,8 +138,8 @@ public class RateLimitService {
      * @return Number of available tokens
      */
     public long getApiRemainingTokens(String identifier) {
-        Bucket bucket = apiBuckets.get(identifier);
-        return bucket != null ? bucket.getAvailableTokens() : apiCapacity;
+        BucketEntry entry = apiBuckets.get(identifier);
+        return entry != null ? entry.getBucket().getAvailableTokens() : apiCapacity;
     }
 
     /**
@@ -108,8 +149,38 @@ public class RateLimitService {
      * @return Number of available tokens
      */
     public long getWebSocketRemainingTokens(String sessionId) {
-        Bucket bucket = webSocketBuckets.get(sessionId);
-        return bucket != null ? bucket.getAvailableTokens() : wsCapacity;
+        BucketEntry entry = webSocketBuckets.get(sessionId);
+        return entry != null ? entry.getBucket().getAvailableTokens() : wsCapacity;
+    }
+
+    /**
+     * Scheduled cleanup of expired bucket entries (runs every 5 minutes)
+     * Prevents memory leak from accumulated rate limit buckets
+     */
+    @Scheduled(fixedRate = 300000) // 5분마다 실행
+    public void cleanupExpiredBuckets() {
+        int apiRemoved = cleanupMap(apiBuckets, Duration.ofMinutes(apiTtlMinutes));
+        int wsRemoved = cleanupMap(webSocketBuckets, Duration.ofMinutes(wsTtlMinutes));
+
+        if (apiRemoved > 0 || wsRemoved > 0) {
+            logger.info("Rate limit cleanup: removed {} API buckets, {} WebSocket buckets. Current: API={}, WS={}",
+                    apiRemoved, wsRemoved, apiBuckets.size(), webSocketBuckets.size());
+        }
+    }
+
+    private int cleanupMap(Map<String, BucketEntry> map, Duration ttl) {
+        int removed = 0;
+        Instant cutoff = Instant.now().minus(ttl);
+
+        Iterator<Map.Entry<String, BucketEntry>> iterator = map.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, BucketEntry> entry = iterator.next();
+            if (entry.getValue().getLastAccess().isBefore(cutoff)) {
+                iterator.remove();
+                removed++;
+            }
+        }
+        return removed;
     }
 
     private Bucket createApiBucket() {
@@ -138,5 +209,41 @@ public class RateLimitService {
     public void clearAllLimiters() {
         apiBuckets.clear();
         webSocketBuckets.clear();
+        logger.info("All rate limiters cleared");
+    }
+
+    /**
+     * Get current bucket counts for monitoring
+     */
+    public Map<String, Integer> getBucketCounts() {
+        return Map.of(
+                "api", apiBuckets.size(),
+                "webSocket", webSocketBuckets.size()
+        );
+    }
+
+    /**
+     * Inner class to hold bucket with last access time for TTL management
+     */
+    private static class BucketEntry {
+        private final Bucket bucket;
+        private volatile Instant lastAccess;
+
+        public BucketEntry(Bucket bucket) {
+            this.bucket = bucket;
+            this.lastAccess = Instant.now();
+        }
+
+        public Bucket getBucket() {
+            return bucket;
+        }
+
+        public Instant getLastAccess() {
+            return lastAccess;
+        }
+
+        public void updateLastAccess() {
+            this.lastAccess = Instant.now();
+        }
     }
 }

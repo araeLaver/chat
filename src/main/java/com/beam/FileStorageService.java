@@ -1,5 +1,6 @@
 package com.beam;
 
+import com.beam.exception.FileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,11 +54,11 @@ public class FileStorageService {
     public FileMetadataEntity storeFile(MultipartFile file, Long uploaderId,
                                          String conversationId, Long roomId) {
         if (file.isEmpty()) {
-            throw new RuntimeException("Cannot store empty file");
+            throw FileException.empty();
         }
 
         if (file.getSize() > maxFileSize) {
-            throw new RuntimeException("File size exceeds maximum limit of " + (maxFileSize / 1024 / 1024) + "MB");
+            throw FileException.tooLarge(file.getSize(), maxFileSize);
         }
 
         // 보안 검증 추가
@@ -108,14 +109,14 @@ public class FileStorageService {
             return savedMetadata;
 
         } catch (IOException ex) {
-            throw new RuntimeException("Could not store file. Please try again!", ex);
+            throw FileException.uploadFailed("Could not store file", ex);
         }
     }
 
     public Resource loadFileAsResource(Long fileId) {
         try {
             FileMetadataEntity metadata = fileMetadataRepository.findByIdAndIsDeletedFalse(fileId)
-                .orElseThrow(() -> new RuntimeException("File not found"));
+                .orElseThrow(() -> FileException.notFound(fileId));
 
             Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
             Path filePath = uploadPath.resolve(metadata.getFilePath()).normalize();
@@ -126,20 +127,22 @@ public class FileStorageService {
                 fileMetadataRepository.save(metadata);
                 return resource;
             } else {
-                throw new RuntimeException("File not found");
+                throw FileException.notFound(fileId);
             }
+        } catch (FileException ex) {
+            throw ex;
         } catch (Exception ex) {
-            throw new RuntimeException("File not found", ex);
+            throw FileException.notFound(fileId);
         }
     }
 
     public Resource loadThumbnailAsResource(Long fileId) {
         try {
             FileMetadataEntity metadata = fileMetadataRepository.findByIdAndIsDeletedFalse(fileId)
-                .orElseThrow(() -> new RuntimeException("File not found"));
+                .orElseThrow(() -> FileException.notFound(fileId));
 
             if (metadata.getThumbnailPath() == null) {
-                throw new RuntimeException("Thumbnail not available");
+                throw FileException.thumbnailNotFound(fileId);
             }
 
             Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
@@ -149,19 +152,21 @@ public class FileStorageService {
             if (resource.exists()) {
                 return resource;
             } else {
-                throw new RuntimeException("Thumbnail not found");
+                throw FileException.thumbnailNotFound(fileId);
             }
+        } catch (FileException ex) {
+            throw ex;
         } catch (Exception ex) {
-            throw new RuntimeException("Thumbnail not found", ex);
+            throw FileException.thumbnailNotFound(fileId);
         }
     }
 
     public void deleteFile(Long fileId, Long userId) {
         FileMetadataEntity metadata = fileMetadataRepository.findByIdAndIsDeletedFalse(fileId)
-            .orElseThrow(() -> new RuntimeException("File not found"));
+            .orElseThrow(() -> FileException.notFound(fileId));
 
         if (!metadata.getUploaderId().equals(userId)) {
-            throw new RuntimeException("No permission to delete this file");
+            throw FileException.deleteDenied(fileId, userId);
         }
 
         metadata.setIsDeleted(true);

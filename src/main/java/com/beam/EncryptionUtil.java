@@ -1,5 +1,6 @@
 package com.beam;
 
+import com.beam.exception.EncryptionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +45,7 @@ public class EncryptionUtil {
             SecretKey secretKey = keyGenerator.generateKey();
             return Base64.getEncoder().encodeToString(secretKey.getEncoded());
         } catch (Exception e) {
-            throw new RuntimeException("키 생성 실패", e);
+            throw EncryptionException.keyGenerationFailed(e);
         }
     }
 
@@ -70,7 +71,7 @@ public class EncryptionUtil {
 
             return Base64.getEncoder().encodeToString(byteBuffer.array());
         } catch (Exception e) {
-            throw new RuntimeException("암호화 실패", e);
+            throw EncryptionException.encryptionFailed(e);
         }
     }
 
@@ -96,7 +97,7 @@ public class EncryptionUtil {
             byte[] decryptedData = cipher.doFinal(encryptedData);
             return new String(decryptedData, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            throw new RuntimeException("복호화 실패", e);
+            throw EncryptionException.decryptionFailed(e);
         }
     }
 
@@ -107,7 +108,7 @@ public class EncryptionUtil {
             byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(hash);
         } catch (Exception e) {
-            throw new RuntimeException("방 키 생성 실패", e);
+            throw EncryptionException.keyGenerationFailed("room key", e);
         }
     }
 
@@ -128,7 +129,7 @@ public class EncryptionUtil {
                 byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
                 return Base64.getEncoder().encodeToString(hash);
             } catch (Exception e) {
-                throw new RuntimeException("대화 키 파생 실패", e);
+                throw EncryptionException.keyDerivationFailed("conversation key", e);
             }
         });
     }
@@ -150,7 +151,7 @@ public class EncryptionUtil {
                 byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
                 return Base64.getEncoder().encodeToString(hash);
             } catch (Exception e) {
-                throw new RuntimeException("그룹 룸 키 파생 실패", e);
+                throw EncryptionException.keyDerivationFailed("group room key", e);
             }
         });
     }

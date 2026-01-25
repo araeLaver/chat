@@ -1,9 +1,10 @@
 package com.beam;
 
 import com.beam.dto.ConversationListItemProjection;
+import com.beam.exception.UserException;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -21,21 +22,15 @@ import java.util.Optional;
  * - 읽음 상태 관리
  */
 @Service
+@RequiredArgsConstructor
 public class DirectMessageService {
 
     private static final Logger logger = LoggerFactory.getLogger(DirectMessageService.class);
 
-    @Autowired
-    private DirectMessageRepository directMessageRepository;
-
-    @Autowired
-    private ConversationRepository conversationRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private MessageEncryptionService encryptionService;
+    private final DirectMessageRepository directMessageRepository;
+    private final ConversationRepository conversationRepository;
+    private final UserRepository userRepository;
+    private final MessageEncryptionService encryptionService;
 
     @Transactional
     @Caching(evict = {
@@ -59,10 +54,10 @@ public class DirectMessageService {
         @CacheEvict(value = "unreadCounts", key = "#receiverId + '_' + #senderId")
     })
     public DirectMessageEntity sendMessage(Long senderId, Long receiverId, String content, Long ttlSeconds, String sourceLanguage) {
-        UserEntity sender = userRepository.findById(senderId)
-            .orElseThrow(() -> new RuntimeException("Sender not found"));
-        UserEntity receiver = userRepository.findById(receiverId)
-            .orElseThrow(() -> new RuntimeException("Receiver not found"));
+        userRepository.findById(senderId)
+            .orElseThrow(() -> UserException.notFound(senderId));
+        userRepository.findById(receiverId)
+            .orElseThrow(() -> UserException.notFound(receiverId));
 
         String conversationId = DirectMessageEntity.generateConversationId(senderId, receiverId);
 

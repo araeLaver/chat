@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/reactions")
+@RequestMapping("/api/v1/reactions")
 @Tag(name = "Reactions", description = "메시지 이모지 리액션 API")
 @SecurityRequirement(name = "bearerAuth")
 public class MessageReactionController {

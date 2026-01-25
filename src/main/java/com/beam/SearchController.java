@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/search")
+@RequestMapping("/api/v1/search")
 @Tag(name = "Search", description = "메시지 검색 API")
 @SecurityRequirement(name = "bearerAuth")
 public class SearchController {

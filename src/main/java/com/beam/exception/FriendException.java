@@ -31,4 +31,19 @@ public class FriendException extends ApplicationException {
     public static FriendException selfRequest() {
         return new FriendException(ErrorCode.FRIEND_SELF_REQUEST);
     }
+
+    public static FriendException blockedUser(Long userId, Long blockedUserId) {
+        return new FriendException(ErrorCode.FRIEND_BLOCKED_USER,
+            "User " + userId + " cannot send request to blocked user " + blockedUserId);
+    }
+
+    public static FriendException requestNotPending(Long userId, Long friendId) {
+        return new FriendException(ErrorCode.FRIEND_REQUEST_NOT_PENDING,
+            "Request from " + userId + " to " + friendId + " is not pending");
+    }
+
+    public static FriendException unauthorized(Long userId, Long requestId) {
+        return new FriendException(ErrorCode.FRIEND_REQUEST_UNAUTHORIZED,
+            "User " + userId + " cannot handle request " + requestId);
+    }
 }

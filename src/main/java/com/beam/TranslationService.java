@@ -1,5 +1,6 @@
 package com.beam;
 
+import com.google.api.gax.rpc.ApiException;
 import com.google.cloud.translate.v3.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,8 +12,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 @Slf4j
 @Service
@@ -24,8 +24,12 @@ public class TranslationService {
     @Value("${google.cloud.project-id:}")
     private String projectId;
 
+    @Value("${translation.timeout-seconds:10}")
+    private int timeoutSeconds;
+
     private TranslationServiceClient translationClient;
     private LocationName parent;
+    private ExecutorService translationExecutor;
 
     // Supported languages cache
     private final Map<String, String> supportedLanguages = new ConcurrentHashMap<>();
@@ -50,7 +54,15 @@ public class TranslationService {
             try {
                 translationClient = TranslationServiceClient.create();
                 parent = LocationName.of(projectId, "global");
-                log.info("Google Cloud Translation initialized for project: {}", projectId);
+                // 타임아웃 처리를 위한 전용 스레드풀 생성
+                translationExecutor = Executors.newFixedThreadPool(5,
+                        r -> {
+                            Thread t = new Thread(r, "translation-worker");
+                            t.setDaemon(true);
+                            return t;
+                        });
+                log.info("Google Cloud Translation initialized for project: {} with {}s timeout",
+                        projectId, timeoutSeconds);
                 loadSupportedLanguages();
             } catch (IOException e) {
                 log.error("Failed to initialize Google Cloud Translation: {}", e.getMessage());
@@ -66,10 +78,21 @@ public class TranslationService {
         if (translationClient != null) {
             translationClient.close();
         }
+        if (translationExecutor != null) {
+            translationExecutor.shutdown();
+            try {
+                if (!translationExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    translationExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                translationExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     /**
-     * Translate text to target language (with caching)
+     * Translate text to target language (with caching and timeout)
      */
     @Cacheable(value = "translations", key = "#text.hashCode() + '_' + #targetLanguage",
                condition = "#text != null && #text.length() < 1000")
@@ -79,21 +102,41 @@ public class TranslationService {
         }
 
         try {
-            TranslateTextRequest request = TranslateTextRequest.newBuilder()
-                .setParent(parent.toString())
-                .setMimeType("text/plain")
-                .setTargetLanguageCode(targetLanguage)
-                .addContents(text)
-                .build();
+            // 타임아웃이 적용된 번역 실행
+            Future<String> future = translationExecutor.submit(() -> {
+                TranslateTextRequest request = TranslateTextRequest.newBuilder()
+                    .setParent(parent.toString())
+                    .setMimeType("text/plain")
+                    .setTargetLanguageCode(targetLanguage)
+                    .addContents(text)
+                    .build();
 
-            TranslateTextResponse response = translationClient.translateText(request);
+                TranslateTextResponse response = translationClient.translateText(request);
 
-            if (!response.getTranslationsList().isEmpty()) {
-                String translatedText = response.getTranslations(0).getTranslatedText();
+                if (!response.getTranslationsList().isEmpty()) {
+                    return response.getTranslations(0).getTranslatedText();
+                }
+                return null;
+            });
+
+            String translatedText = future.get(timeoutSeconds, TimeUnit.SECONDS);
+            if (translatedText != null) {
                 log.debug("Translated '{}' to '{}': '{}' (cache miss)",
                     truncate(text, 50), targetLanguage, truncate(translatedText, 50));
                 return translatedText;
             }
+        } catch (TimeoutException e) {
+            log.warn("Translation timeout after {}s for text: '{}'", timeoutSeconds, truncate(text, 30));
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof ApiException) {
+                log.error("Translation API error: {}", cause.getMessage());
+            } else {
+                log.error("Translation failed: {}", cause != null ? cause.getMessage() : e.getMessage());
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("Translation interrupted for text: '{}'", truncate(text, 30));
         } catch (Exception e) {
             log.error("Translation failed: {}", e.getMessage());
         }

@@ -1,5 +1,7 @@
 package com.beam;
 
+import com.beam.exception.FriendException;
+import com.beam.exception.UserException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -93,8 +95,7 @@ class FriendServiceTest {
         void shouldFailWhenAddingYourself() {
             // When & Then
             assertThatThrownBy(() -> friendService.sendFriendRequest(1L, 1L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Cannot add yourself as a friend");
+                    .isInstanceOf(FriendException.class);
         }
 
         @Test
@@ -105,8 +106,7 @@ class FriendServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> friendService.sendFriendRequest(1L, 2L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("User not found");
+                    .isInstanceOf(UserException.class);
         }
 
         @Test
@@ -118,8 +118,7 @@ class FriendServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> friendService.sendFriendRequest(1L, 2L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Friend user not found");
+                    .isInstanceOf(UserException.class);
         }
 
         @Test
@@ -136,8 +135,7 @@ class FriendServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> friendService.sendFriendRequest(1L, 2L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Cannot send friend request to blocked user");
+                    .isInstanceOf(FriendException.class);
         }
 
         @Test
@@ -150,8 +148,7 @@ class FriendServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> friendService.sendFriendRequest(1L, 2L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Friend request already sent");
+                    .isInstanceOf(FriendException.class);
         }
 
         @Test
@@ -164,8 +161,7 @@ class FriendServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> friendService.sendFriendRequest(1L, 2L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Already friends");
+                    .isInstanceOf(FriendException.class);
         }
     }
 
@@ -199,8 +195,7 @@ class FriendServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> friendService.acceptFriendRequest(2L, 1L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Friend request not found");
+                    .isInstanceOf(FriendException.class);
         }
 
         @Test
@@ -213,8 +208,7 @@ class FriendServiceTest {
 
             // When & Then (user1 tries to accept - but friendId=2, not 1)
             assertThatThrownBy(() -> friendService.acceptFriendRequest(1L, 1L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Cannot accept this friend request");
+                    .isInstanceOf(FriendException.class);
         }
 
         @Test
@@ -226,8 +220,7 @@ class FriendServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> friendService.acceptFriendRequest(2L, 1L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Friend request is not pending");
+                    .isInstanceOf(FriendException.class);
         }
     }
 
@@ -258,8 +251,7 @@ class FriendServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> friendService.rejectFriendRequest(2L, 1L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Friend request not found");
+                    .isInstanceOf(FriendException.class);
         }
     }
 
@@ -324,8 +316,7 @@ class FriendServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> friendService.unfriend(1L, 2L))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("Friendship not found");
+                    .isInstanceOf(FriendException.class);
         }
     }
 
