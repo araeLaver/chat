@@ -1,8 +1,11 @@
 package com.beam;
 
 import com.beam.dto.ConversationListItemProjection;
+import com.beam.dto.SendDirectMessageRequest;
+import com.beam.dto.StartConversationRequest;
 import com.beam.util.AuthUtil;
 import com.beam.util.ResponseHelper;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -40,31 +43,11 @@ public class DirectMessageController {
     @PostMapping("/send")
     public ResponseEntity<?> sendMessage(
             @Parameter(description = "JWT 토큰", required = true) @RequestHeader("Authorization") String token,
-            @RequestBody Map<String, Object> request) {
+            @Valid @RequestBody SendDirectMessageRequest request) {
         try {
             Long senderId = AuthUtil.extractUserId(token, jwtUtil);
-
-            // Null 체크 및 유효성 검증
-            Object receiverIdObj = request.get("receiverId");
-            Object contentObj = request.get("content");
-
-            if (receiverIdObj == null) {
-                return ResponseEntity.badRequest().body(ResponseHelper.error("receiverId is required"));
-            }
-            if (contentObj == null) {
-                return ResponseEntity.badRequest().body(ResponseHelper.error("content is required"));
-            }
-
-            Long receiverId;
-            try {
-                receiverId = Long.valueOf(receiverIdObj.toString());
-            } catch (NumberFormatException e) {
-                return ResponseEntity.badRequest().body(ResponseHelper.error("Invalid receiverId format"));
-            }
-
-            String content = contentObj.toString();
-
-            DirectMessageEntity message = directMessageService.sendMessage(senderId, receiverId, content);
+            DirectMessageEntity message = directMessageService.sendMessage(
+                senderId, request.getReceiverId(), request.getContent());
 
             return ResponseEntity.ok(ResponseHelper.builder()
                 .put("messageId", message.getId())
@@ -162,10 +145,10 @@ public class DirectMessageController {
     @PostMapping("/conversation/start")
     public ResponseEntity<?> startConversation(
             @Parameter(description = "JWT 토큰", required = true) @RequestHeader("Authorization") String token,
-            @RequestBody Map<String, Object> request) {
+            @Valid @RequestBody StartConversationRequest request) {
         try {
             Long userId = AuthUtil.extractUserId(token, jwtUtil);
-            Long otherUserId = Long.valueOf(request.get("userId").toString());
+            Long otherUserId = request.getUserId();
 
             ConversationEntity conversation = directMessageService.getOrCreateConversation(userId, otherUserId);
 

@@ -35,23 +35,55 @@ public class JwtUtil {
                 "JWT secret is not configured. Set the JWT_SECRET environment variable.");
         }
 
-        if (secret.startsWith(DEFAULT_SECRET_PREFIX)) {
-            if (isProductionEnvironment()) {
-                throw new IllegalStateException(
-                    "Default JWT secret detected in production environment. " +
-                    "Set a secure JWT_SECRET environment variable. " +
-                    "Generate one with: openssl rand -base64 64");
-            }
-            logger.warn("⚠️ Using default JWT secret. This is only acceptable for development.");
-        }
-
         if (secret.length() < MIN_SECRET_LENGTH) {
             throw new IllegalStateException(
                 "JWT secret must be at least " + MIN_SECRET_LENGTH + " characters (256 bits). " +
                 "Current length: " + secret.length());
         }
 
-        logger.info("✅ JWT configuration validated successfully");
+        if (secret.startsWith(DEFAULT_SECRET_PREFIX)) {
+            if (isTestEnvironment()) {
+                logger.info("Using test JWT secret for testing environment");
+            } else {
+                throw new IllegalStateException(
+                    "Default JWT secret (beam-*) is not allowed. " +
+                    "Set a secure JWT_SECRET environment variable. " +
+                    "Generate one with: openssl rand -base64 64");
+            }
+        }
+
+        if (isWeakSecret(secret)) {
+            throw new IllegalStateException(
+                "JWT secret is too weak. Avoid repeated characters or simple patterns. " +
+                "Generate a secure one with: openssl rand -base64 64");
+        }
+
+        logger.info("JWT configuration validated successfully");
+    }
+
+    private boolean isTestEnvironment() {
+        return "test".equalsIgnoreCase(activeProfile);
+    }
+
+    private boolean isWeakSecret(String secret) {
+        if (secret.length() < MIN_SECRET_LENGTH) {
+            return true;
+        }
+
+        // Check for repeated single character (e.g., "aaaaaaa...")
+        char first = secret.charAt(0);
+        boolean allSame = secret.chars().allMatch(c -> c == first);
+        if (allSame) {
+            return true;
+        }
+
+        // Check for low entropy (less than 10 unique characters)
+        long uniqueChars = secret.chars().distinct().count();
+        if (uniqueChars < 10) {
+            return true;
+        }
+
+        return false;
     }
 
     private boolean isProductionEnvironment() {

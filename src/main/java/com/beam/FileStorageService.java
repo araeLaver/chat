@@ -84,7 +84,13 @@ public class FileStorageService {
 
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            String mimeType = file.getContentType();
+            // 클라이언트 제공 MIME 대신 매직 바이트 기반 검증된 MIME 사용
+            String mimeType;
+            try {
+                mimeType = fileSecurityValidator.detectMimeTypeFromContent(file);
+            } catch (IOException e) {
+                mimeType = fileSecurityValidator.getVerifiedMimeType(file);
+            }
             FileMetadataEntity.FileCategory category = FileMetadataEntity.getCategoryFromMimeType(mimeType);
 
             FileMetadataEntity metadata = FileMetadataEntity.builder()

@@ -5,6 +5,7 @@ import com.beam.exception.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,9 @@ public class AuthService {
     @Autowired
     private AuthRateLimiter authRateLimiter;
 
+    @Value("${app.user.username-prefix:user_}")
+    private String usernamePrefix;
+
     @Transactional
     public AuthResponse register(AuthRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
@@ -51,7 +55,7 @@ public class AuthService {
 
         String phoneNumber = request.getPhoneNumber();
         if (phoneNumber == null || phoneNumber.isBlank()) {
-            phoneNumber = "user_" + System.currentTimeMillis();
+            phoneNumber = usernamePrefix + System.currentTimeMillis();
         }
 
         String verificationCode = VerificationCodeGenerator.generate();
@@ -191,7 +195,7 @@ public class AuthService {
         user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(5));
         userRepository.save(user);
 
-        logger.info("📱 인증 코드 전송 - 전화번호: {}, 코드: {}", phoneNumber, code);
+        logger.info("Verification code sent to phone: {}", maskPhoneNumber(phoneNumber));
 
         return "Verification code sent";
     }
@@ -272,5 +276,20 @@ public class AuthService {
         userRepository.save(user);
 
         emailService.sendVerificationEmail(email, verificationCode);
+    }
+
+    /**
+     * 전화번호 마스킹 (로깅용)
+     * 예: 010-1234-5678 -> 010-****-5678
+     */
+    private String maskPhoneNumber(String phoneNumber) {
+        if (phoneNumber == null || phoneNumber.length() < 4) {
+            return "***";
+        }
+        int length = phoneNumber.length();
+        if (length <= 7) {
+            return phoneNumber.substring(0, 3) + "****";
+        }
+        return phoneNumber.substring(0, 3) + "-****-" + phoneNumber.substring(length - 4);
     }
 }

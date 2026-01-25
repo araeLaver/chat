@@ -519,4 +519,122 @@ class FileSecurityValidatorTest {
                     .hasMessageContaining("파일명이 유효하지 않습니다");
         }
     }
+
+    @Nested
+    @DisplayName("MIME Type Detection Tests")
+    class MimeTypeDetectionTests {
+
+        @Test
+        @DisplayName("getVerifiedMimeType should return correct MIME for PNG")
+        void shouldReturnCorrectMimeForPNG() {
+            MockMultipartFile file = new MockMultipartFile(
+                    "file", "test.png", "wrong/type", new byte[10]);
+
+            assertThat(validator.getVerifiedMimeType(file)).isEqualTo("image/png");
+        }
+
+        @Test
+        @DisplayName("getVerifiedMimeType should return correct MIME for JPEG")
+        void shouldReturnCorrectMimeForJPEG() {
+            MockMultipartFile file = new MockMultipartFile(
+                    "file", "test.jpg", "wrong/type", new byte[10]);
+
+            assertThat(validator.getVerifiedMimeType(file)).isEqualTo("image/jpeg");
+        }
+
+        @Test
+        @DisplayName("getVerifiedMimeType should return correct MIME for PDF")
+        void shouldReturnCorrectMimeForPDF() {
+            MockMultipartFile file = new MockMultipartFile(
+                    "file", "doc.pdf", "wrong/type", new byte[10]);
+
+            assertThat(validator.getVerifiedMimeType(file)).isEqualTo("application/pdf");
+        }
+
+        @Test
+        @DisplayName("getVerifiedMimeType should return octet-stream for unknown extension")
+        void shouldReturnOctetStreamForUnknown() {
+            MockMultipartFile file = new MockMultipartFile(
+                    "file", "file.unknown", "wrong/type", new byte[10]);
+
+            assertThat(validator.getVerifiedMimeType(file)).isEqualTo("application/octet-stream");
+        }
+
+        @Test
+        @DisplayName("detectMimeTypeFromContent should detect PNG from magic bytes")
+        void shouldDetectPNGFromMagicBytes() throws Exception {
+            byte[] pngContent = new byte[]{
+                    (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+                    0x00, 0x00, 0x00, 0x00
+            };
+            MockMultipartFile file = new MockMultipartFile(
+                    "file", "test.png", "wrong/type", pngContent);
+
+            assertThat(validator.detectMimeTypeFromContent(file)).isEqualTo("image/png");
+        }
+
+        @Test
+        @DisplayName("detectMimeTypeFromContent should detect JPEG from magic bytes")
+        void shouldDetectJPEGFromMagicBytes() throws Exception {
+            byte[] jpegContent = new byte[]{
+                    (byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0,
+                    0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x00
+            };
+            MockMultipartFile file = new MockMultipartFile(
+                    "file", "test.jpg", "wrong/type", jpegContent);
+
+            assertThat(validator.detectMimeTypeFromContent(file)).isEqualTo("image/jpeg");
+        }
+
+        @Test
+        @DisplayName("detectMimeTypeFromContent should detect GIF from magic bytes")
+        void shouldDetectGIFFromMagicBytes() throws Exception {
+            byte[] gifContent = new byte[]{
+                    0x47, 0x49, 0x46, 0x38, 0x39, 0x61,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+            };
+            MockMultipartFile file = new MockMultipartFile(
+                    "file", "test.gif", "wrong/type", gifContent);
+
+            assertThat(validator.detectMimeTypeFromContent(file)).isEqualTo("image/gif");
+        }
+
+        @Test
+        @DisplayName("detectMimeTypeFromContent should detect PDF from magic bytes")
+        void shouldDetectPDFFromMagicBytes() throws Exception {
+            byte[] pdfContent = new byte[]{
+                    0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34,
+                    0x0A, 0x00, 0x00, 0x00
+            };
+            MockMultipartFile file = new MockMultipartFile(
+                    "file", "test.pdf", "wrong/type", pdfContent);
+
+            assertThat(validator.detectMimeTypeFromContent(file)).isEqualTo("application/pdf");
+        }
+
+        @Test
+        @DisplayName("detectMimeTypeFromContent should detect MP3 with ID3 tag")
+        void shouldDetectMP3FromID3Tag() throws Exception {
+            byte[] mp3Content = new byte[]{
+                    0x49, 0x44, 0x33, 0x04, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+            };
+            MockMultipartFile file = new MockMultipartFile(
+                    "file", "test.mp3", "wrong/type", mp3Content);
+
+            assertThat(validator.detectMimeTypeFromContent(file)).isEqualTo("audio/mpeg");
+        }
+
+        @Test
+        @DisplayName("detectMimeTypeFromContent should fallback to extension for unknown content")
+        void shouldFallbackToExtensionForUnknown() throws Exception {
+            byte[] unknownContent = new byte[]{
+                    0x00, 0x01, 0x02, 0x03, 0x04, 0x05
+            };
+            MockMultipartFile file = new MockMultipartFile(
+                    "file", "test.txt", "wrong/type", unknownContent);
+
+            assertThat(validator.detectMimeTypeFromContent(file)).isEqualTo("text/plain");
+        }
+    }
 }

@@ -109,17 +109,11 @@ public class RoomService {
         room.setIsActive(false);
         roomRepository.save(room);
 
-        // 멤버 목록 조회 및 비활성화
-        List<RoomMemberEntity> members = roomMemberRepository.findByRoomIdAndIsActiveTrue(roomId);
-        List<Long> affectedUserIds = members.stream()
-            .map(RoomMemberEntity::getUserId)
-            .toList();
+        // 캐시 무효화를 위해 먼저 영향받는 사용자 ID 조회
+        List<Long> affectedUserIds = roomMemberRepository.findActiveUserIdsByRoomId(roomId);
 
-        members.forEach(m -> {
-            m.setIsActive(false);
-            m.setLeftAt(LocalDateTime.now());
-        });
-        roomMemberRepository.saveAll(members);
+        // 한 번의 쿼리로 모든 멤버 비활성화 (N+1 방지)
+        roomMemberRepository.deactivateAllMembersByRoomId(roomId, LocalDateTime.now());
 
         // 영향받는 사용자의 캐시만 선택적으로 삭제 (thundering herd 방지)
         evictRoomCaches(roomId, affectedUserIds);

@@ -1,6 +1,8 @@
 package com.beam;
 
 import com.beam.exception.EncryptionException;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,24 +15,28 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.util.Base64;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 암호화 유틸리티
  * - AES-256-GCM 암호화/복호화
- * - 키 파생 및 캐싱
+ * - 키 파생 및 캐싱 (Caffeine LRU 캐시)
  * - 보안 로깅
  */
 public class EncryptionUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(EncryptionUtil.class);
 
-    // 파생된 키 캐시 (성능 최적화)
-    private static final Map<String, String> derivedKeyCache = new ConcurrentHashMap<>();
-    private static final int MAX_CACHE_SIZE = 1000;
+    // Caffeine LRU 캐시 - 최대 1000개, 30분 후 만료, 10분 미사용 시 제거
+    private static final Cache<String, String> derivedKeyCache = Caffeine.newBuilder()
+            .maximumSize(1000)
+            .expireAfterWrite(Duration.ofMinutes(30))
+            .expireAfterAccess(Duration.ofMinutes(10))
+            .recordStats()
+            .build();
+
     private static final String ALGORITHM = "AES";
     private static final String TRANSFORMATION = "AES/GCM/NoPadding";
     private static final int GCM_IV_LENGTH = 12;  // 96 bits
@@ -113,17 +119,12 @@ public class EncryptionUtil {
     }
 
     /**
-     * DM 대화용 키 파생 (캐싱 적용)
+     * DM 대화용 키 파생 (Caffeine LRU 캐싱 적용)
      */
     public static String deriveConversationKey(String masterKey, String conversationId) {
         String cacheKey = "dm:" + conversationId;
-        return derivedKeyCache.computeIfAbsent(cacheKey, k -> {
+        return derivedKeyCache.get(cacheKey, k -> {
             try {
-                // 캐시 크기 제한
-                if (derivedKeyCache.size() >= MAX_CACHE_SIZE) {
-                    derivedKeyCache.clear();
-                    logger.debug("Derived key cache cleared (max size reached)");
-                }
                 MessageDigest digest = MessageDigest.getInstance("SHA-256");
                 String input = masterKey + ":dm:" + conversationId;
                 byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
@@ -135,17 +136,12 @@ public class EncryptionUtil {
     }
 
     /**
-     * 그룹 메시지용 키 파생 (캐싱 적용)
+     * 그룹 메시지용 키 파생 (Caffeine LRU 캐싱 적용)
      */
     public static String deriveGroupRoomKey(String masterKey, Long roomId) {
         String cacheKey = "group:" + roomId;
-        return derivedKeyCache.computeIfAbsent(cacheKey, k -> {
+        return derivedKeyCache.get(cacheKey, k -> {
             try {
-                // 캐시 크기 제한
-                if (derivedKeyCache.size() >= MAX_CACHE_SIZE) {
-                    derivedKeyCache.clear();
-                    logger.debug("Derived key cache cleared (max size reached)");
-                }
                 MessageDigest digest = MessageDigest.getInstance("SHA-256");
                 String input = masterKey + ":group:" + roomId;
                 byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
@@ -226,7 +222,17 @@ public class EncryptionUtil {
      * 파생 키 캐시 초기화
      */
     public static void clearKeyCache() {
-        derivedKeyCache.clear();
+        derivedKeyCache.invalidateAll();
         logger.info("Derived key cache cleared manually");
+    }
+
+    /**
+     * 캐시 통계 조회 (모니터링용)
+     */
+    public static String getCacheStats() {
+        var stats = derivedKeyCache.stats();
+        return String.format("hits=%d, misses=%d, hitRate=%.2f%%, size=%d",
+                stats.hitCount(), stats.missCount(),
+                stats.hitRate() * 100, derivedKeyCache.estimatedSize());
     }
 }

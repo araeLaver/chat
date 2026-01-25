@@ -1,6 +1,7 @@
 package com.beam;
 
 import com.beam.dto.*;
+import com.beam.util.ResponseHelper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -10,12 +11,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -39,6 +39,18 @@ public class ChatController {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private VerificationService verificationService;
+
+    @Value("${app.user.default-display-name:사용자}")
+    private String defaultDisplayName;
+
+    @Value("${app.user.username-prefix:user_}")
+    private String usernamePrefix;
+
+    @Value("${app.user.temp-phone-prefix:temp_}")
+    private String tempPhonePrefix;
+
     @Operation(summary = "이메일 인증 코드 발송", description = "회원가입을 위한 이메일 인증 코드를 발송합니다. 인증 코드는 5분간 유효합니다.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "인증 코드 발송 성공",
@@ -53,14 +65,8 @@ public class ChatController {
 
             // 이미 가입된 이메일인지 확인
             if (userRepository.existsByEmail(email)) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "이미 가입된 이메일입니다");
-                return ResponseEntity.badRequest().body(error);
+                return ResponseEntity.badRequest().body(ResponseHelper.error("이미 가입된 이메일입니다"));
             }
-
-            // 6자리 랜덤 인증번호 생성
-            String verificationCode = VerificationCodeGenerator.generate();
 
             // 기존 사용자가 있으면 업데이트, 없으면 생성
             Optional<UserEntity> existingUser = userRepository.findByEmail(email);
@@ -68,38 +74,30 @@ public class ChatController {
 
             if (existingUser.isPresent()) {
                 user = existingUser.get();
-                user.setVerificationCode(verificationCode);
-                user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(5));
             } else {
                 user = UserEntity.builder()
                     .email(email)
-                    .username("user_" + System.currentTimeMillis())
-                    .phoneNumber("temp_" + System.currentTimeMillis())
-                    .displayName("사용자")
-                    .password(passwordEncoder.encode("temp_password"))
-                    .verificationCode(verificationCode)
-                    .verificationCodeExpiresAt(LocalDateTime.now().plusMinutes(5))
+                    .username(usernamePrefix + System.currentTimeMillis())
+                    .phoneNumber(tempPhonePrefix + System.currentTimeMillis())
+                    .displayName(defaultDisplayName)
+                    .password(passwordEncoder.encode(usernamePrefix + System.currentTimeMillis()))
                     .isPhoneVerified(false)
                     .isActive(false)
                     .isOnline(false)
                     .build();
             }
 
+            // 인증 코드 생성 및 설정 (통합 서비스 사용)
+            String verificationCode = verificationService.generateAndSetCode(user);
+
             userRepository.save(user);
 
             // 이메일 발송
             emailService.sendVerificationEmail(email, verificationCode);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "인증번호가 이메일로 발송되었습니다");
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseHelper.success("인증번호가 이메일로 발송되었습니다"));
         } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("success", false);
-            error.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.error(e.getMessage()));
         }
     }
 
@@ -120,18 +118,12 @@ public class ChatController {
                 .orElseThrow(() -> new RuntimeException("등록되지 않은 이메일입니다"));
 
             if (!user.getIsPhoneVerified() || !user.getIsActive()) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "이메일 인증을 먼저 완료해주세요");
-                return ResponseEntity.badRequest().body(error);
+                return ResponseEntity.badRequest().body(ResponseHelper.error("이메일 인증을 먼저 완료해주세요"));
             }
 
             // 중복 사용자명 확인
             if (userRepository.existsByUsername(username)) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "이미 사용중인 사용자명입니다");
-                return ResponseEntity.badRequest().body(error);
+                return ResponseEntity.badRequest().body(ResponseHelper.error("이미 사용중인 사용자명입니다"));
             }
 
             // 사용자 정보 업데이트
@@ -146,23 +138,18 @@ public class ChatController {
             // 환영 이메일 발송
             emailService.sendWelcomeEmail(email, displayName);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "회원가입이 완료되었습니다");
-            response.put("token", token);
-            response.put("user", Map.of(
-                "id", user.getId(),
-                "username", user.getUsername(),
-                "displayName", user.getDisplayName(),
-                "email", user.getEmail()
-            ));
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseHelper.builder()
+                .message("회원가입이 완료되었습니다")
+                .put("token", token)
+                .put("user", Map.of(
+                    "id", user.getId(),
+                    "username", user.getUsername(),
+                    "displayName", user.getDisplayName(),
+                    "email", user.getEmail()
+                ))
+                .build());
         } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("success", false);
-            error.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.error(e.getMessage()));
         }
     }
 
@@ -180,30 +167,18 @@ public class ChatController {
                 .orElseThrow(() -> new RuntimeException("등록되지 않은 이메일입니다"));
 
             if (!user.getIsPhoneVerified() || !user.getIsActive()) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "계정이 활성화되지 않았습니다");
-                return ResponseEntity.badRequest().body(error);
+                return ResponseEntity.badRequest().body(ResponseHelper.error("계정이 활성화되지 않았습니다"));
             }
 
             // 로그인 시에도 인증번호 발송 (OTP 방식)
-            String verificationCode = VerificationCodeGenerator.generate();
-            user.setVerificationCode(verificationCode);
-            user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(5));
+            String verificationCode = verificationService.generateAndSetCode(user);
             userRepository.save(user);
 
             emailService.sendVerificationEmail(email, verificationCode);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "로그인 인증번호가 이메일로 발송되었습니다");
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseHelper.success("로그인 인증번호가 이메일로 발송되었습니다"));
         } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("success", false);
-            error.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.error(e.getMessage()));
         }
     }
 
@@ -222,47 +197,30 @@ public class ChatController {
                 .orElseThrow(() -> new RuntimeException("등록되지 않은 이메일입니다"));
 
             // 인증번호 확인
-            if (!code.equals(user.getVerificationCode())) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "인증번호가 일치하지 않습니다");
-                return ResponseEntity.badRequest().body(error);
-            }
-
-            // 인증번호 만료 확인
-            if (user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "인증번호가 만료되었습니다");
-                return ResponseEntity.badRequest().body(error);
+            if (!verificationService.isValidCode(user, code)) {
+                return ResponseEntity.badRequest().body(ResponseHelper.error("인증번호가 일치하지 않거나 만료되었습니다"));
             }
 
             // 로그인 처리
-            user.setVerificationCode(null);
-            user.setVerificationCodeExpiresAt(null);
+            verificationService.clearVerificationCode(user);
             user.setIsOnline(true);
             userRepository.save(user);
 
             // JWT 토큰 생성
             String token = jwtUtil.generateToken(user.getUsername(), user.getId());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "로그인 성공");
-            response.put("token", token);
-            response.put("user", Map.of(
-                "id", user.getId(),
-                "username", user.getUsername(),
-                "displayName", user.getDisplayName(),
-                "email", user.getEmail()
-            ));
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseHelper.builder()
+                .message("로그인 성공")
+                .put("token", token)
+                .put("user", Map.of(
+                    "id", user.getId(),
+                    "username", user.getUsername(),
+                    "displayName", user.getDisplayName(),
+                    "email", user.getEmail()
+                ))
+                .build());
         } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("success", false);
-            error.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.error(e.getMessage()));
         }
     }
 
@@ -278,14 +236,8 @@ public class ChatController {
 
             // 이미 가입된 번호인지 확인
             if (userRepository.existsByPhoneNumber(phoneNumber)) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "이미 가입된 휴대폰 번호입니다");
-                return ResponseEntity.badRequest().body(error);
+                return ResponseEntity.badRequest().body(ResponseHelper.error("이미 가입된 휴대폰 번호입니다"));
             }
-
-            // 6자리 랜덤 인증번호 생성
-            String verificationCode = VerificationCodeGenerator.generate();
 
             // 기존 사용자가 있으면 업데이트, 없으면 생성
             Optional<UserEntity> existingUser = userRepository.findByPhoneNumber(phoneNumber);
@@ -293,37 +245,29 @@ public class ChatController {
 
             if (existingUser.isPresent()) {
                 user = existingUser.get();
-                user.setVerificationCode(verificationCode);
-                user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(5));
             } else {
                 user = UserEntity.builder()
                     .phoneNumber(phoneNumber)
-                    .username("user_" + phoneNumber.substring(phoneNumber.length() - 4))
-                    .displayName("사용자")
-                    .password(passwordEncoder.encode("temp_password"))
-                    .verificationCode(verificationCode)
-                    .verificationCodeExpiresAt(LocalDateTime.now().plusMinutes(5))
+                    .username(usernamePrefix + phoneNumber.substring(phoneNumber.length() - 4))
+                    .displayName(defaultDisplayName)
+                    .password(passwordEncoder.encode(usernamePrefix + System.currentTimeMillis()))
                     .isPhoneVerified(false)
                     .isActive(false)
                     .isOnline(false)
                     .build();
             }
 
+            // 인증 코드 생성 및 설정 (통합 서비스 사용)
+            String verificationCode = verificationService.generateAndSetCode(user);
+
             userRepository.save(user);
 
             // Note: SMS integration pending - email verification recommended
             // smsService.sendVerificationCode(phoneNumber, verificationCode);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "인증번호가 발송되었습니다 (SMS 미구현 - 이메일 인증을 사용해주세요)");
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseHelper.success("인증번호가 발송되었습니다 (SMS 미구현 - 이메일 인증을 사용해주세요)"));
         } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("success", false);
-            error.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.error(e.getMessage()));
         }
     }
 
@@ -341,41 +285,24 @@ public class ChatController {
             UserEntity user = userRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new RuntimeException("등록되지 않은 휴대폰 번호입니다"));
 
-            // 인증번호 확인
-            if (!code.equals(user.getVerificationCode())) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "인증번호가 일치하지 않습니다");
-                return ResponseEntity.badRequest().body(error);
-            }
-
-            // 인증번호 만료 확인
-            if (user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "인증번호가 만료되었습니다");
-                return ResponseEntity.badRequest().body(error);
+            // 인증번호 확인 (통합 서비스 사용)
+            if (!verificationService.isValidCode(user, code)) {
+                return ResponseEntity.badRequest().body(ResponseHelper.error("인증번호가 일치하지 않거나 만료되었습니다"));
             }
 
             // 인증 완료 처리
             user.setIsPhoneVerified(true);
             user.setIsActive(true);
-            user.setVerificationCode(null);
-            user.setVerificationCodeExpiresAt(null);
+            verificationService.clearVerificationCode(user);
             userRepository.save(user);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "핸드폰 인증이 완료되었습니다");
-            response.put("phoneNumber", phoneNumber);
-            response.put("userId", user.getId());
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseHelper.builder()
+                .message("핸드폰 인증이 완료되었습니다")
+                .put("phoneNumber", phoneNumber)
+                .put("userId", user.getId())
+                .build());
         } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("success", false);
-            error.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.error(e.getMessage()));
         }
     }
 
@@ -395,18 +322,12 @@ public class ChatController {
                 .orElseThrow(() -> new RuntimeException("등록되지 않은 휴대폰 번호입니다"));
 
             if (!user.getIsPhoneVerified()) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "핸드폰 인증을 먼저 완료해주세요");
-                return ResponseEntity.badRequest().body(error);
+                return ResponseEntity.badRequest().body(ResponseHelper.error("핸드폰 인증을 먼저 완료해주세요"));
             }
 
             // 중복 사용자명 확인
             if (userRepository.existsByUsername(username)) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "이미 사용중인 사용자명입니다");
-                return ResponseEntity.badRequest().body(error);
+                return ResponseEntity.badRequest().body(ResponseHelper.error("이미 사용중인 사용자명입니다"));
             }
 
             // 사용자 정보 업데이트
@@ -418,23 +339,18 @@ public class ChatController {
             // JWT 토큰 생성
             String token = jwtUtil.generateToken(user.getUsername(), user.getId());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "회원가입이 완료되었습니다");
-            response.put("token", token);
-            response.put("user", Map.of(
-                "id", user.getId(),
-                "username", user.getUsername(),
-                "displayName", user.getDisplayName(),
-                "phoneNumber", user.getPhoneNumber()
-            ));
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseHelper.builder()
+                .message("회원가입이 완료되었습니다")
+                .put("token", token)
+                .put("user", Map.of(
+                    "id", user.getId(),
+                    "username", user.getUsername(),
+                    "displayName", user.getDisplayName(),
+                    "phoneNumber", user.getPhoneNumber()
+                ))
+                .build());
         } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("success", false);
-            error.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.error(e.getMessage()));
         }
     }
 
@@ -452,10 +368,7 @@ public class ChatController {
                 .orElseThrow(() -> new RuntimeException("등록되지 않은 휴대폰 번호입니다"));
 
             if (!user.getIsPhoneVerified() || !user.getIsActive()) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "계정이 활성화되지 않았습니다");
-                return ResponseEntity.badRequest().body(error);
+                return ResponseEntity.badRequest().body(ResponseHelper.error("계정이 활성화되지 않았습니다"));
             }
 
             // 사용자 온라인 상태 업데이트
@@ -465,23 +378,18 @@ public class ChatController {
             // JWT 토큰 생성
             String token = jwtUtil.generateToken(user.getUsername(), user.getId());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "로그인 성공");
-            response.put("token", token);
-            response.put("user", Map.of(
-                "id", user.getId(),
-                "username", user.getUsername(),
-                "displayName", user.getDisplayName(),
-                "phoneNumber", user.getPhoneNumber()
-            ));
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseHelper.builder()
+                .message("로그인 성공")
+                .put("token", token)
+                .put("user", Map.of(
+                    "id", user.getId(),
+                    "username", user.getUsername(),
+                    "displayName", user.getDisplayName(),
+                    "phoneNumber", user.getPhoneNumber()
+                ))
+                .build());
         } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("success", false);
-            error.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(ResponseHelper.error(e.getMessage()));
         }
     }
 }

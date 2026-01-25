@@ -172,4 +172,99 @@ class JwtUtilTest {
             assertFalse(shortExpiryJwtUtil.validateToken(token));
         }
     }
+
+    @Nested
+    @DisplayName("시크릿 검증 테스트")
+    class SecretValidationTest {
+
+        @Test
+        @DisplayName("빈 시크릿 - 예외 발생")
+        void emptySecret_throwsException() {
+            JwtUtil jwtUtil = new JwtUtil();
+            ReflectionTestUtils.setField(jwtUtil, "secret", "");
+            ReflectionTestUtils.setField(jwtUtil, "activeProfile", "test");
+
+            assertThrows(IllegalStateException.class, jwtUtil::validateConfiguration);
+        }
+
+        @Test
+        @DisplayName("null 시크릿 - 예외 발생")
+        void nullSecret_throwsException() {
+            JwtUtil jwtUtil = new JwtUtil();
+            ReflectionTestUtils.setField(jwtUtil, "secret", null);
+            ReflectionTestUtils.setField(jwtUtil, "activeProfile", "test");
+
+            assertThrows(IllegalStateException.class, jwtUtil::validateConfiguration);
+        }
+
+        @Test
+        @DisplayName("짧은 시크릿 - 예외 발생")
+        void shortSecret_throwsException() {
+            JwtUtil jwtUtil = new JwtUtil();
+            ReflectionTestUtils.setField(jwtUtil, "secret", "short");
+            ReflectionTestUtils.setField(jwtUtil, "activeProfile", "test");
+
+            assertThrows(IllegalStateException.class, jwtUtil::validateConfiguration);
+        }
+
+        @Test
+        @DisplayName("기본 시크릿(beam-*)을 dev 환경에서 사용 - 예외 발생")
+        void defaultSecretInDev_throwsException() {
+            JwtUtil jwtUtil = new JwtUtil();
+            ReflectionTestUtils.setField(jwtUtil, "secret", "beam-default-secret-key-for-development-environment-testing");
+            ReflectionTestUtils.setField(jwtUtil, "activeProfile", "dev");
+
+            assertThrows(IllegalStateException.class, jwtUtil::validateConfiguration);
+        }
+
+        @Test
+        @DisplayName("기본 시크릿(beam-*)을 prod 환경에서 사용 - 예외 발생")
+        void defaultSecretInProd_throwsException() {
+            JwtUtil jwtUtil = new JwtUtil();
+            ReflectionTestUtils.setField(jwtUtil, "secret", "beam-default-secret-key-for-development-environment-testing");
+            ReflectionTestUtils.setField(jwtUtil, "activeProfile", "prod");
+
+            assertThrows(IllegalStateException.class, jwtUtil::validateConfiguration);
+        }
+
+        @Test
+        @DisplayName("기본 시크릿(beam-*)을 test 환경에서 사용 - 허용")
+        void defaultSecretInTest_allowed() {
+            JwtUtil jwtUtil = new JwtUtil();
+            ReflectionTestUtils.setField(jwtUtil, "secret", "beam-test-secret-key-for-unit-testing-long-enough");
+            ReflectionTestUtils.setField(jwtUtil, "activeProfile", "test");
+
+            assertDoesNotThrow(jwtUtil::validateConfiguration);
+        }
+
+        @Test
+        @DisplayName("반복 문자 시크릿 - 예외 발생")
+        void repeatedCharSecret_throwsException() {
+            JwtUtil jwtUtil = new JwtUtil();
+            ReflectionTestUtils.setField(jwtUtil, "secret", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+            ReflectionTestUtils.setField(jwtUtil, "activeProfile", "test");
+
+            assertThrows(IllegalStateException.class, jwtUtil::validateConfiguration);
+        }
+
+        @Test
+        @DisplayName("낮은 엔트로피 시크릿 - 예외 발생")
+        void lowEntropySecret_throwsException() {
+            JwtUtil jwtUtil = new JwtUtil();
+            ReflectionTestUtils.setField(jwtUtil, "secret", "abcabcabcabcabcabcabcabcabcabcab");
+            ReflectionTestUtils.setField(jwtUtil, "activeProfile", "test");
+
+            assertThrows(IllegalStateException.class, jwtUtil::validateConfiguration);
+        }
+
+        @Test
+        @DisplayName("유효한 시크릿 - 성공")
+        void validSecret_success() {
+            JwtUtil jwtUtil = new JwtUtil();
+            ReflectionTestUtils.setField(jwtUtil, "secret", TEST_SECRET);
+            ReflectionTestUtils.setField(jwtUtil, "activeProfile", "test");
+
+            assertDoesNotThrow(jwtUtil::validateConfiguration);
+        }
+    }
 }

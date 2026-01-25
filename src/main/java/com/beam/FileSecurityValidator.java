@@ -39,6 +39,9 @@ public class FileSecurityValidator {
     // 파일 시그니처 (매직 넘버) - 주요 파일 타입
     private static final Map<String, byte[][]> FILE_SIGNATURES = new HashMap<>();
 
+    // 매직 바이트 → MIME 타입 매핑
+    private static final Map<String, String> EXTENSION_TO_MIME = new HashMap<>();
+
     static {
         // JPEG
         FILE_SIGNATURES.put("jpg", new byte[][]{
@@ -56,6 +59,11 @@ public class FileSecurityValidator {
             {0x47, 0x49, 0x46, 0x38, 0x39, 0x61}   // GIF89a
         });
 
+        // WebP
+        FILE_SIGNATURES.put("webp", new byte[][]{
+            {0x52, 0x49, 0x46, 0x46}  // RIFF (WebP starts with RIFF....WEBP)
+        });
+
         // PDF
         FILE_SIGNATURES.put("pdf", new byte[][]{
             {0x25, 0x50, 0x44, 0x46}  // %PDF
@@ -64,7 +72,8 @@ public class FileSecurityValidator {
         // MP4
         FILE_SIGNATURES.put("mp4", new byte[][]{
             {0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70},
-            {0x00, 0x00, 0x00, 0x1C, 0x66, 0x74, 0x79, 0x70}
+            {0x00, 0x00, 0x00, 0x1C, 0x66, 0x74, 0x79, 0x70},
+            {0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70}
         });
 
         // MP3
@@ -73,12 +82,41 @@ public class FileSecurityValidator {
             {(byte) 0xFF, (byte) 0xFB}
         });
 
+        // WAV
+        FILE_SIGNATURES.put("wav", new byte[][]{
+            {0x52, 0x49, 0x46, 0x46}  // RIFF
+        });
+
         // ZIP (DOCX, XLSX, etc.)
         FILE_SIGNATURES.put("zip", new byte[][]{
             {0x50, 0x4B, 0x03, 0x04},
             {0x50, 0x4B, 0x05, 0x06},
             {0x50, 0x4B, 0x07, 0x08}
         });
+
+        // Extension to MIME type mapping
+        EXTENSION_TO_MIME.put("jpg", "image/jpeg");
+        EXTENSION_TO_MIME.put("jpeg", "image/jpeg");
+        EXTENSION_TO_MIME.put("png", "image/png");
+        EXTENSION_TO_MIME.put("gif", "image/gif");
+        EXTENSION_TO_MIME.put("webp", "image/webp");
+        EXTENSION_TO_MIME.put("bmp", "image/bmp");
+        EXTENSION_TO_MIME.put("mp4", "video/mp4");
+        EXTENSION_TO_MIME.put("webm", "video/webm");
+        EXTENSION_TO_MIME.put("mov", "video/quicktime");
+        EXTENSION_TO_MIME.put("avi", "video/x-msvideo");
+        EXTENSION_TO_MIME.put("mp3", "audio/mpeg");
+        EXTENSION_TO_MIME.put("wav", "audio/wav");
+        EXTENSION_TO_MIME.put("ogg", "audio/ogg");
+        EXTENSION_TO_MIME.put("m4a", "audio/mp4");
+        EXTENSION_TO_MIME.put("pdf", "application/pdf");
+        EXTENSION_TO_MIME.put("doc", "application/msword");
+        EXTENSION_TO_MIME.put("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        EXTENSION_TO_MIME.put("xls", "application/vnd.ms-excel");
+        EXTENSION_TO_MIME.put("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        EXTENSION_TO_MIME.put("ppt", "application/vnd.ms-powerpoint");
+        EXTENSION_TO_MIME.put("pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation");
+        EXTENSION_TO_MIME.put("txt", "text/plain");
     }
 
     /**
@@ -262,5 +300,81 @@ public class FileSecurityValidator {
 
         // 특수문자 제거, 알파벳/숫자/점/하이픈/언더스코어만 허용
         return filename.replaceAll("[^a-zA-Z0-9가-힣._-]", "_");
+    }
+
+    /**
+     * 파일 확장자 기반 검증된 MIME 타입 반환
+     * 클라이언트 제공 MIME 타입 대신 사용
+     */
+    public String getVerifiedMimeType(MultipartFile file) {
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || !originalFilename.contains(".")) {
+            return "application/octet-stream";
+        }
+
+        String extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
+        return EXTENSION_TO_MIME.getOrDefault(extension, "application/octet-stream");
+    }
+
+    /**
+     * 매직 바이트 기반 MIME 타입 탐지
+     * 파일 헤더를 읽어 실제 파일 타입 확인
+     */
+    public String detectMimeTypeFromContent(MultipartFile file) throws IOException {
+        try (InputStream is = file.getInputStream()) {
+            byte[] header = new byte[20];
+            int bytesRead = is.read(header);
+
+            if (bytesRead < 4) {
+                return "application/octet-stream";
+            }
+
+            // JPEG: FF D8 FF
+            if (matchesSignature(header, new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF})) {
+                return "image/jpeg";
+            }
+
+            // PNG: 89 50 4E 47
+            if (matchesSignature(header, new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47})) {
+                return "image/png";
+            }
+
+            // GIF: 47 49 46 38
+            if (matchesSignature(header, new byte[]{0x47, 0x49, 0x46, 0x38})) {
+                return "image/gif";
+            }
+
+            // WebP: RIFF....WEBP
+            if (matchesSignature(header, new byte[]{0x52, 0x49, 0x46, 0x46}) && bytesRead >= 12) {
+                if (header[8] == 0x57 && header[9] == 0x45 && header[10] == 0x42 && header[11] == 0x50) {
+                    return "image/webp";
+                }
+            }
+
+            // PDF: %PDF
+            if (matchesSignature(header, new byte[]{0x25, 0x50, 0x44, 0x46})) {
+                return "application/pdf";
+            }
+
+            // MP4: ftyp at offset 4
+            if (bytesRead >= 8 && header[4] == 0x66 && header[5] == 0x74 && header[6] == 0x79 && header[7] == 0x70) {
+                return "video/mp4";
+            }
+
+            // MP3: ID3 or FF FB
+            if (matchesSignature(header, new byte[]{0x49, 0x44, 0x33}) ||
+                matchesSignature(header, new byte[]{(byte) 0xFF, (byte) 0xFB})) {
+                return "audio/mpeg";
+            }
+
+            // ZIP (Office documents): PK
+            if (matchesSignature(header, new byte[]{0x50, 0x4B, 0x03, 0x04})) {
+                // Could be docx, xlsx, pptx - return extension-based
+                return getVerifiedMimeType(file);
+            }
+
+            // Fallback to extension-based
+            return getVerifiedMimeType(file);
+        }
     }
 }
