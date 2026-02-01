@@ -418,7 +418,7 @@ const observer = new IntersectionObserver((entries) => {
 
 // Initialize animations on DOM Load
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('BEAM Application Initialized');
+
 
     // Observe animated elements
     const animatedElements = document.querySelectorAll('.feature-card, .tech-item, .arch-layer, .security-card');

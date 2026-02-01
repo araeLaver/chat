@@ -5,6 +5,9 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.SQLException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Database setup utility for initializing chat server schemas.
  *
@@ -22,18 +25,20 @@ import java.sql.SQLException;
  */
 public class DatabaseSetup {
 
+    private static final Logger log = LoggerFactory.getLogger(DatabaseSetup.class);
+
     private static final String DB_URL = System.getenv("DATABASE_URL");
     private static final String USERNAME = System.getenv("DATABASE_USERNAME");
     private static final String PASSWORD = System.getenv("DATABASE_PASSWORD");
 
     public static void main(String[] args) {
         if (DB_URL == null || USERNAME == null || PASSWORD == null) {
-            System.err.println("Error: Required environment variables not set.");
-            System.err.println("Please set: DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD");
+            log.error("Required environment variables not set.");
+            log.error("Please set: DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD");
             System.exit(1);
         }
 
-        System.out.println("Starting PostgreSQL database initialization...");
+        log.info("Starting PostgreSQL database initialization...");
 
         try {
             Class.forName("org.postgresql.Driver");
@@ -41,28 +46,27 @@ public class DatabaseSetup {
             Connection connection = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
             Statement statement = connection.createStatement();
 
-            System.out.println("Creating schemas...");
+            log.info("Creating schemas...");
             statement.execute("CREATE SCHEMA IF NOT EXISTS chat_dev");
             statement.execute("CREATE SCHEMA IF NOT EXISTS chat_prod");
-            System.out.println("Schemas created successfully.");
+            log.info("Schemas created successfully.");
 
-            System.out.println("Initializing chat_dev schema...");
+            log.info("Initializing chat_dev schema...");
             setupSchema(statement, "chat_dev");
-            System.out.println("chat_dev initialized.");
+            log.info("chat_dev initialized.");
 
-            System.out.println("Initializing chat_prod schema...");
+            log.info("Initializing chat_prod schema...");
             setupSchema(statement, "chat_prod");
-            System.out.println("chat_prod initialized.");
+            log.info("chat_prod initialized.");
 
             verifyTables(statement);
 
             statement.close();
             connection.close();
-            System.out.println("Database initialization completed!");
+            log.info("Database initialization completed!");
 
         } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Database initialization failed: {}", e.getMessage(), e);
             System.exit(1);
         }
     }
@@ -209,24 +213,24 @@ public class DatabaseSetup {
     }
 
     private static void verifyTables(Statement statement) throws SQLException {
-        System.out.println("\nchat_dev schema tables:");
+        log.info("chat_dev schema tables:");
         var devResult = statement.executeQuery("""
             SELECT table_name FROM information_schema.tables
             WHERE table_schema = 'chat_dev'
             ORDER BY table_name
         """);
         while (devResult.next()) {
-            System.out.println("  - " + devResult.getString("table_name"));
+            log.info("  - {}", devResult.getString("table_name"));
         }
 
-        System.out.println("\nchat_prod schema tables:");
+        log.info("chat_prod schema tables:");
         var prodResult = statement.executeQuery("""
             SELECT table_name FROM information_schema.tables
             WHERE table_schema = 'chat_prod'
             ORDER BY table_name
         """);
         while (prodResult.next()) {
-            System.out.println("  - " + prodResult.getString("table_name"));
+            log.info("  - {}", prodResult.getString("table_name"));
         }
     }
 }

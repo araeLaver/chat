@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import org.springframework.test.util.ReflectionTestUtils;
+
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AuthService Unit Tests")
 class AuthServiceTest {
@@ -47,9 +49,11 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
+        ReflectionTestUtils.setField(authService, "usernamePrefix", "user_");
+
         validRequest = new AuthRequest();
         validRequest.setUsername("testuser");
-        validRequest.setPassword("password123");
+        validRequest.setPassword("Password1!");
         validRequest.setEmail("test@example.com");
         validRequest.setPhoneNumber("010-1234-5678");
         validRequest.setDisplayName("Test User");
@@ -177,7 +181,7 @@ class AuthServiceTest {
         void shouldLoginSuccessfully() {
             // Given
             when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(existingUser));
-            when(passwordEncoder.matches("password123", "encodedPassword")).thenReturn(true);
+            when(passwordEncoder.matches("Password1!", "encodedPassword")).thenReturn(true);
             when(jwtUtil.generateToken("testuser", 1L)).thenReturn("jwt-token");
             when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
 
@@ -198,7 +202,7 @@ class AuthServiceTest {
         void shouldFailWithWrongPassword() {
             // Given
             when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(existingUser));
-            when(passwordEncoder.matches("password123", "encodedPassword")).thenReturn(false);
+            when(passwordEncoder.matches("Password1!", "encodedPassword")).thenReturn(false);
 
             // When & Then
             assertThatThrownBy(() -> authService.login(validRequest))
@@ -224,7 +228,7 @@ class AuthServiceTest {
             // Given
             existingUser.setIsActive(false);
             when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(existingUser));
-            when(passwordEncoder.matches("password123", "encodedPassword")).thenReturn(true);
+            when(passwordEncoder.matches("Password1!", "encodedPassword")).thenReturn(true);
 
             // When & Then
             assertThatThrownBy(() -> authService.login(validRequest))

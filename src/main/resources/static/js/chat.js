@@ -60,7 +60,6 @@ class ChatApp {
         this.ws = new WebSocket(wsUrl, [`access_token,${this.token}`]);
 
         this.ws.onopen = () => {
-            console.log('WebSocket connected');
             this.reconnectAttempts = 0;
             this.showToast(i18n.t('status.connected'), 'success');
             if (this.currentRoom) {
@@ -79,7 +78,6 @@ class ChatApp {
         };
 
         this.ws.onclose = () => {
-            console.log('WebSocket disconnected');
             if (this.reconnectAttempts < this.maxReconnectAttempts) {
                 this.reconnectAttempts++;
                 this.showToast(`${i18n.t('status.reconnecting')} (${this.reconnectAttempts}/${this.maxReconnectAttempts})`, 'warning');
@@ -105,7 +103,7 @@ class ChatApp {
                 this.showTypingIndicator(message.sender);
                 break;
             default:
-                console.log('Unknown message type:', message);
+                break;
         }
     }
 
@@ -616,8 +614,27 @@ class ChatApp {
         const file = event.target.files[0];
         if (!file) return;
 
-        this.showToast(i18n.t('file.upload', { name: file.name }), 'info');
-        // TODO: Implement file upload to server
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('roomId', this.currentRoom);
+
+        fetch('/api/v1/files/upload/room', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${this.token}` },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                this.showToast(i18n.t('file.upload', { name: file.name }), 'success');
+            } else {
+                this.showToast(data.message || 'Upload failed', 'error');
+            }
+        })
+        .catch(err => {
+            console.error('File upload error:', err);
+            this.showToast('Upload failed', 'error');
+        });
     }
 
     logout() {
@@ -692,8 +709,26 @@ class ChatApp {
     }
 
     startDirectMessage(friendId) {
-        this.showToast('Direct messaging coming soon', 'info');
-        // TODO: Implement direct messaging
+        fetch('/api/v1/dm/conversation/start', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${this.token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userId: friendId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                this.showToast('DM conversation started', 'success');
+            } else {
+                this.showToast(data.message || 'Failed to start DM', 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Start DM error:', err);
+            this.showToast('Failed to start DM', 'error');
+        });
     }
 
     openModal(modalId) {

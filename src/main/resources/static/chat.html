@@ -19,7 +19,7 @@
 <body>
     <div class="app-container">
         <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
+        <aside class="sidebar" id="sidebar" aria-label="Chat sidebar">
             <!-- Sidebar Header -->
             <div class="sidebar-header">
                 <div class="sidebar-brand">
@@ -30,7 +30,7 @@
                     </div>
                     <span class="brand-name">BEAM</span>
                 </div>
-                <button class="icon-btn sidebar-close" id="sidebarClose">
+                <button class="icon-btn sidebar-close" id="sidebarClose" aria-label="Close sidebar">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 6L6 18M6 6l12 12"/>
                     </svg>
@@ -49,14 +49,14 @@
             </div>
 
             <!-- Tabs -->
-            <div class="sidebar-tabs">
-                <button class="tab-btn active" data-tab="chats">
+            <div class="sidebar-tabs" role="tablist" aria-label="Chat sections">
+                <button class="tab-btn active" data-tab="chats" role="tab" aria-selected="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
                     </svg>
                     <span data-i18n="chat.chats">Chats</span>
                 </button>
-                <button class="tab-btn" data-tab="friends">
+                <button class="tab-btn" data-tab="friends" role="tab" aria-selected="false">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
                         <circle cx="9" cy="7" r="4"/>
@@ -64,7 +64,7 @@
                     </svg>
                     <span data-i18n="chat.friends">Friends</span>
                 </button>
-                <button class="tab-btn" data-tab="rooms">
+                <button class="tab-btn" data-tab="rooms" role="tab" aria-selected="false">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
                         <polyline points="9,22 9,12 15,12 15,22"/>
@@ -83,7 +83,7 @@
                         <span data-i18n="chat.newRoom">New Room</span>
                     </button>
                 </div>
-                <div class="conversation-list" id="conversationList">
+                <div class="conversation-list" id="conversationList" role="listbox" aria-label="Conversations">
                     <!-- Populated by JavaScript -->
                 </div>
             </div>
@@ -114,7 +114,7 @@
             <!-- Chat Header -->
             <header class="chat-header">
                 <div class="header-left">
-                    <button class="icon-btn mobile-menu-btn" id="menuBtn">
+                    <button class="icon-btn mobile-menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M3 12h18M3 6h18M3 18h18"/>
                         </svg>
@@ -156,7 +156,7 @@
             </header>
 
             <!-- Messages Container -->
-            <div class="messages-container" id="messagesContainer">
+            <div class="messages-container" id="messagesContainer" role="log" aria-live="polite" aria-label="Chat messages">
                 <!-- Welcome State -->
                 <div class="welcome-state" id="welcomeState">
                     <div class="welcome-icon">
@@ -187,6 +187,7 @@
                             data-i18n-placeholder="chat.typeMessage"
                             placeholder="Type a message..."
                             rows="1"
+                            aria-label="Message input"
                         ></textarea>
                     </div>
                     <button class="send-btn" id="sendBtn" data-i18n-title="chat.sendMessage" title="Send message">
@@ -206,14 +207,14 @@
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
     <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
+    <div class="toast-container" id="toastContainer" role="status" aria-live="polite"></div>
 
     <!-- Settings Modal -->
     <div class="modal-overlay" id="settingsModal">
-        <div class="modal">
+        <div class="modal" role="dialog" aria-modal="true" aria-label="Settings">
             <div class="modal-header">
                 <h3 data-i18n="settings.title">Settings</h3>
-                <button class="icon-btn modal-close" onclick="chatApp.closeModal('settingsModal')">
+                <button class="icon-btn modal-close" onclick="chatApp.closeModal('settingsModal')" aria-label="Close settings">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 6L6 18M6 6l12 12"/>
                     </svg>
@@ -263,10 +264,10 @@
 
     <!-- Create Room Modal -->
     <div class="modal-overlay" id="createRoomModal">
-        <div class="modal">
+        <div class="modal" role="dialog" aria-modal="true" aria-label="Create chat room">
             <div class="modal-header">
                 <h3 data-i18n="room.createTitle">Create Chat Room</h3>
-                <button class="icon-btn modal-close" onclick="chatApp.closeModal('createRoomModal')">
+                <button class="icon-btn modal-close" onclick="chatApp.closeModal('createRoomModal')" aria-label="Close dialog">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 6L6 18M6 6l12 12"/>
                     </svg>

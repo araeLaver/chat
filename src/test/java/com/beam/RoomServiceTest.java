@@ -236,8 +236,8 @@ class RoomServiceTest {
             when(roomRepository.findByIdAndIsActiveTrue(1L)).thenReturn(Optional.of(testRoom));
             when(roomMemberRepository.findByRoomIdAndUserIdAndIsActiveTrue(1L, 1L))
                     .thenReturn(Optional.of(ownerMember));
-            when(roomMemberRepository.findByRoomIdAndIsActiveTrue(1L))
-                    .thenReturn(List.of(ownerMember, regularMember));
+            when(roomMemberRepository.findActiveUserIdsByRoomId(1L))
+                    .thenReturn(List.of(1L, 2L));
             when(roomRepository.save(any(RoomEntity.class))).thenReturn(testRoom);
 
             // When
@@ -245,7 +245,7 @@ class RoomServiceTest {
 
             // Then
             verify(roomRepository).save(argThat(room -> !room.getIsActive()));
-            verify(roomMemberRepository).saveAll(anyList());
+            verify(roomMemberRepository).deactivateAllMembersByRoomId(eq(1L), any(LocalDateTime.class));
         }
 
         @Test

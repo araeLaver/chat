@@ -16,11 +16,9 @@ const STATIC_ASSETS = [
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
-    console.log('[SW] Installing...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                console.log('[SW] Caching static assets');
                 return cache.addAll(STATIC_ASSETS);
             })
             .then(() => self.skipWaiting())
@@ -29,7 +27,6 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean old caches
 self.addEventListener('activate', (event) => {
-    console.log('[SW] Activating...');
     event.waitUntil(
         caches.keys()
             .then((cacheNames) => {
@@ -37,7 +34,6 @@ self.addEventListener('activate', (event) => {
                     cacheNames
                         .filter((name) => name !== CACHE_NAME)
                         .map((name) => {
-                            console.log('[SW] Deleting old cache:', name);
                             return caches.delete(name);
                         })
                 );
@@ -149,12 +145,54 @@ self.addEventListener('notificationclick', (event) => {
     );
 });
 
-// Background sync event
+// Background sync event - send queued messages when back online
 self.addEventListener('sync', (event) => {
     if (event.tag === 'sync-messages') {
-        console.log('[SW] Syncing messages...');
-        // TODO: Implement message sync
+        event.waitUntil(syncPendingMessages());
     }
 });
 
-console.log('[SW] Service Worker loaded');
+async function syncPendingMessages() {
+    const db = await openMessageQueue();
+    const tx = db.transaction('pending-messages', 'readwrite');
+    const store = tx.objectStore('pending-messages');
+    const messages = await promisifyRequest(store.getAll());
+
+    for (const msg of messages) {
+        try {
+            const res = await fetch('/api/v1/messages/send', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${msg.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(msg.payload)
+            });
+            if (res.ok) {
+                const delTx = db.transaction('pending-messages', 'readwrite');
+                delTx.objectStore('pending-messages').delete(msg.id);
+            }
+        } catch (e) {
+            // Will retry on next sync event
+        }
+    }
+}
+
+function openMessageQueue() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('beam-offline', 1);
+        request.onupgradeneeded = () => {
+            request.result.createObjectStore('pending-messages', { keyPath: 'id', autoIncrement: true });
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+function promisifyRequest(request) {
+    return new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+

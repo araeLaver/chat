@@ -52,7 +52,7 @@ class AuthControllerTest {
     void setUp() {
         validRequest = new AuthRequest();
         validRequest.setUsername("testuser");
-        validRequest.setPassword("password123");
+        validRequest.setPassword("Password1!");
         validRequest.setEmail("test@example.com");
 
         // Mock email service
@@ -142,7 +142,7 @@ class AuthControllerTest {
         void shouldLoginSuccessfully() throws Exception {
             AuthRequest loginRequest = new AuthRequest();
             loginRequest.setUsername("testuser");
-            loginRequest.setPassword("password123");
+            loginRequest.setPassword("Password1!");
 
             mockMvc.perform(post("/api/v1/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -158,7 +158,7 @@ class AuthControllerTest {
         void shouldReturn401ForWrongPassword() throws Exception {
             AuthRequest loginRequest = new AuthRequest();
             loginRequest.setUsername("testuser");
-            loginRequest.setPassword("wrongpassword");
+            loginRequest.setPassword("WrongPass1!");
 
             mockMvc.perform(post("/api/v1/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -172,7 +172,7 @@ class AuthControllerTest {
         void shouldReturn401ForNonExistentUser() throws Exception {
             AuthRequest loginRequest = new AuthRequest();
             loginRequest.setUsername("nonexistent");
-            loginRequest.setPassword("password123");
+            loginRequest.setPassword("Password1!");
 
             mockMvc.perform(post("/api/v1/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)

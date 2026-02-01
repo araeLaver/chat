@@ -40,7 +40,7 @@
     </div>
 
     <!-- Navigation -->
-    <nav class="navbar" id="navbar">
+    <nav class="navbar" id="navbar" aria-label="Main navigation">
         <div class="nav-container">
             <a href="#" class="nav-logo">
                 <div class="logo-icon">
@@ -75,7 +75,7 @@
                 </button>
             </div>
 
-            <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()">
+            <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()" aria-label="Toggle menu" aria-expanded="false">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -105,6 +105,7 @@
     </div>
 
     <!-- Hero Section -->
+    <main>
     <section class="hero">
         <div class="hero-content">
             <div class="hero-badge animate-fade-in">
@@ -354,7 +355,7 @@
                                 <span class="tech-emoji">🍃</span>
                             </div>
                             <div class="tech-info">
-                                <span class="tech-name">Spring Boot 3.2</span>
+                                <span class="tech-name">Spring Boot 3.5</span>
                                 <span class="tech-desc" data-i18n="technology.framework">Framework</span>
                             </div>
                         </div>
@@ -654,9 +655,11 @@
     </section>
 
     <!-- Auth Modal -->
-    <div class="modal-overlay" id="authModal">
+    </main>
+
+    <div class="modal-overlay" id="authModal" role="dialog" aria-modal="true" aria-label="Authentication">
         <div class="modal-container">
-            <button class="modal-close" onclick="closeAuthModal()">
+            <button class="modal-close" onclick="closeAuthModal()" aria-label="Close dialog">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M18 6L6 18M6 6l12 12"/>
                 </svg>

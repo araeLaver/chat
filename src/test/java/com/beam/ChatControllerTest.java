@@ -372,7 +372,7 @@ class ChatControllerTest {
                             .content(requestBody))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.message").value("인증번호가 일치하지 않습니다"));
+                    .andExpect(jsonPath("$.message").value("인증번호가 일치하지 않거나 만료되었습니다"));
         }
 
         @Test
@@ -404,7 +404,7 @@ class ChatControllerTest {
                             .content(requestBody))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.message").value("인증번호가 만료되었습니다"));
+                    .andExpect(jsonPath("$.message").value("인증번호가 일치하지 않거나 만료되었습니다"));
         }
     }
 
