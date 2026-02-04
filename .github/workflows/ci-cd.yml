@@ -99,11 +99,14 @@ jobs:
         cache-to: type=gha,mode=max
 
     - name: Install Koyeb CLI
-      run: curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | sh
+      run: |
+        curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | sh
+        echo "$HOME/.koyeb/bin" >> $GITHUB_PATH
 
     - name: Deploy to Koyeb
+      if: ${{ secrets.KOYEB_API_TOKEN != '' }}
       env:
         KOYEB_TOKEN: ${{ secrets.KOYEB_API_TOKEN }}
       run: |
-        koyeb service redeploy beam-server/beam-server \
+        $HOME/.koyeb/bin/koyeb service redeploy beam-server/beam-server \
           --image "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
