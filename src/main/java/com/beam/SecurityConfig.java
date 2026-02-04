@@ -87,6 +87,14 @@ public class SecurityConfig {
         if (isDevEnvironment()) {
             http.headers(headers -> headers
                 .frameOptions(frameOptions -> frameOptions.disable()));
+        } else {
+            // 프로덕션 환경: 보안 헤더 활성화
+            http.headers(headers -> headers
+                .httpStrictTransportSecurity(hsts -> hsts
+                    .includeSubDomains(true)
+                    .maxAgeInSeconds(31536000))  // 1년
+                .contentTypeOptions(contentType -> {})
+                .frameOptions(frameOptions -> frameOptions.deny()));
         }
 
         http
