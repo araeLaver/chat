@@ -1,0 +1,49 @@
+{
+  "name": "beam-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start",
+    "test": "jest",
+    "lint": "eslint .",
+    "clean": "cd android && ./gradlew clean && cd .. && cd ios && xcodebuild clean && cd .."
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.1.0",
+    "@react-native-firebase/app": "^21.6.1",
+    "@react-native-firebase/messaging": "^21.6.1",
+    "@react-navigation/bottom-tabs": "^7.2.0",
+    "@react-navigation/native": "^7.0.14",
+    "@react-navigation/native-stack": "^7.2.0",
+    "axios": "^1.7.9",
+    "date-fns": "^4.1.0",
+    "react": "18.3.1",
+    "react-native": "0.76.6",
+    "react-native-gesture-handler": "^2.21.2",
+    "react-native-safe-area-context": "^5.0.0",
+    "react-native-screens": "^4.4.0",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "@babel/runtime": "^7.26.0",
+    "@react-native/babel-preset": "0.76.6",
+    "@react-native/eslint-config": "0.76.6",
+    "@react-native/metro-config": "0.76.6",
+    "@react-native/typescript-config": "0.76.6",
+    "@types/react": "^18.3.18",
+    "@types/react-test-renderer": "^18.3.1",
+    "babel-jest": "^29.7.0",
+    "eslint": "^8.57.1",
+    "jest": "^29.7.0",
+    "prettier": "3.4.2",
+    "react-test-renderer": "18.3.1",
+    "typescript": "5.7.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

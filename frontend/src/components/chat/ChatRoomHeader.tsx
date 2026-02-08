@@ -2,6 +2,7 @@ import {
   Box,
   Typography,
   IconButton,
+  keyframes,
 } from '@mui/material';
 import {
   MoreVert,
@@ -9,6 +10,48 @@ import {
   Circle,
 } from '@mui/icons-material';
 import type { TypingIndicator } from '../../types';
+
+// 타이핑 점 애니메이션
+const bounce = keyframes`
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+`;
+
+function TypingDots() {
+  return (
+    <Box
+      component="span"
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '3px',
+        ml: 0.5,
+      }}
+    >
+      {[0, 1, 2].map((index) => (
+        <Box
+          key={index}
+          component="span"
+          sx={{
+            width: 5,
+            height: 5,
+            borderRadius: '50%',
+            bgcolor: 'primary.main',
+            display: 'inline-block',
+            animation: `${bounce} 1.4s ease-in-out infinite`,
+            animationDelay: `${index * 0.16}s`,
+          }}
+        />
+      ))}
+    </Box>
+  );
+}
 
 interface ChatRoomHeaderProps {
   title: string;
@@ -27,10 +70,10 @@ export function ChatRoomHeader({
   onInfoClick,
   onMoreClick,
 }: ChatRoomHeaderProps) {
-  const typingText = typingUsers.length > 0
+  const typingUserName = typingUsers.length > 0
     ? typingUsers.length === 1
-      ? `${typingUsers[0].username}님이 입력 중...`
-      : `${typingUsers.length}명이 입력 중...`
+      ? typingUsers[0].username
+      : `${typingUsers.length}명`
     : null;
 
   return (
@@ -60,9 +103,17 @@ export function ChatRoomHeader({
             />
           )}
         </Box>
-        {typingText ? (
-          <Typography variant="caption" color="primary" sx={{ fontStyle: 'italic' }}>
-            {typingText}
+        {typingUserName ? (
+          <Typography
+            variant="caption"
+            color="primary"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            {typingUserName}님이 입력 중
+            <TypingDots />
           </Typography>
         ) : subtitle ? (
           <Typography variant="caption" color="text.secondary">

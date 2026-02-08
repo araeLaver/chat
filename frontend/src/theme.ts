@@ -1,5 +1,18 @@
 import { createTheme, type ThemeOptions } from '@mui/material/styles';
 
+// KakaoTalk 스타일 색상
+const kakaoColors = {
+  yellow: '#FEE500',        // 카카오톡 메인 노란색
+  yellowDark: '#F5DC00',    // 어두운 노란색
+  yellowLight: '#FFF9C4',   // 밝은 노란색
+  brown: '#3C1E1E',         // 카카오 브라운
+  chatBubbleOwn: '#FEE500', // 내 메시지 배경
+  chatBubbleOther: '#FFFFFF', // 상대 메시지 배경 (라이트모드)
+  chatBubbleOtherDark: '#2D2D2D', // 상대 메시지 배경 (다크모드)
+  chatBackground: '#B2C7D9', // 채팅방 배경 (라이트모드)
+  chatBackgroundDark: '#1A1A1A', // 채팅방 배경 (다크모드)
+};
+
 const baseTheme: ThemeOptions = {
   typography: {
     fontFamily: [
@@ -100,14 +113,15 @@ export const lightTheme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#1976d2',
-      light: '#42a5f5',
-      dark: '#1565c0',
+      main: kakaoColors.yellow,
+      light: kakaoColors.yellowLight,
+      dark: kakaoColors.yellowDark,
+      contrastText: kakaoColors.brown,
     },
     secondary: {
-      main: '#9c27b0',
-      light: '#ba68c8',
-      dark: '#7b1fa2',
+      main: '#3C1E1E',
+      light: '#6D4C41',
+      dark: '#1B0C0C',
     },
     background: {
       default: '#f5f5f5',
@@ -118,7 +132,13 @@ export const lightTheme = createTheme({
       secondary: '#757575',
     },
     divider: 'rgba(0, 0, 0, 0.08)',
-  },
+    // 커스텀 색상 (채팅 관련)
+    chat: {
+      bubbleOwn: kakaoColors.chatBubbleOwn,
+      bubbleOther: kakaoColors.chatBubbleOther,
+      background: kakaoColors.chatBackground,
+    },
+  } as any,
 });
 
 export const darkTheme = createTheme({
@@ -126,14 +146,15 @@ export const darkTheme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#90caf9',
-      light: '#e3f2fd',
-      dark: '#42a5f5',
+      main: kakaoColors.yellow,
+      light: kakaoColors.yellowLight,
+      dark: kakaoColors.yellowDark,
+      contrastText: kakaoColors.brown,
     },
     secondary: {
-      main: '#ce93d8',
-      light: '#f3e5f5',
-      dark: '#ab47bc',
+      main: '#A1887F',
+      light: '#D7CCC8',
+      dark: '#6D4C41',
     },
     background: {
       default: '#121212',
@@ -144,7 +165,34 @@ export const darkTheme = createTheme({
       secondary: '#b0b0b0',
     },
     divider: 'rgba(255, 255, 255, 0.08)',
-  },
+    // 커스텀 색상 (채팅 관련)
+    chat: {
+      bubbleOwn: kakaoColors.chatBubbleOwn,
+      bubbleOther: kakaoColors.chatBubbleOtherDark,
+      background: kakaoColors.chatBackgroundDark,
+    },
+  } as any,
 });
 
 export type ThemeMode = 'light' | 'dark';
+
+// 커스텀 팔레트 타입 확장
+declare module '@mui/material/styles' {
+  interface Palette {
+    chat: {
+      bubbleOwn: string;
+      bubbleOther: string;
+      background: string;
+    };
+  }
+  interface PaletteOptions {
+    chat?: {
+      bubbleOwn?: string;
+      bubbleOther?: string;
+      background?: string;
+    };
+  }
+}
+
+// 테마 색상 내보내기
+export { kakaoColors };

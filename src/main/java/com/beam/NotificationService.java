@@ -1,6 +1,7 @@
 package com.beam;
 
 import com.beam.NotificationEntity.NotificationType;
+import com.beam.service.PushNotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class NotificationService {
@@ -20,6 +22,9 @@ public class NotificationService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PushNotificationService pushNotificationService;
 
     @Value("${app.notification.content-max-length:100}")
     private int contentMaxLength;
@@ -43,14 +48,26 @@ public class NotificationService {
     @Transactional
     public NotificationEntity createMentionNotification(Long userId, Long actorUserId,
                                                          Long messageId, String content, String roomId) {
-        return createNotification(userId, NotificationType.MENTION, messageId, actorUserId, content, roomId);
+        NotificationEntity notification = createNotification(userId, NotificationType.MENTION, messageId, actorUserId, content, roomId);
+
+        // Send push notification
+        String actorName = getActorName(actorUserId);
+        pushNotificationService.sendMentionNotification(userId, actorName, content, roomId);
+
+        return notification;
     }
 
     @Transactional
     public NotificationEntity createReactionNotification(Long userId, Long actorUserId,
                                                           Long messageId, String emoji, String roomId) {
         String content = "님이 회원님의 메시지에 " + emoji + " 반응을 남겼습니다.";
-        return createNotification(userId, NotificationType.REACTION, messageId, actorUserId, content, roomId);
+        NotificationEntity notification = createNotification(userId, NotificationType.REACTION, messageId, actorUserId, content, roomId);
+
+        // Send push notification
+        String actorName = getActorName(actorUserId);
+        pushNotificationService.sendReactionNotification(userId, actorName, emoji, roomId);
+
+        return notification;
     }
 
     @Transactional
@@ -112,5 +129,27 @@ public class NotificationService {
         if (content == null) return null;
         if (content.length() <= contentMaxLength) return content;
         return content.substring(0, contentMaxLength - 3) + "...";
+    }
+
+    private String getActorName(Long actorUserId) {
+        if (actorUserId == null) return "알 수 없음";
+        return userRepository.findById(actorUserId)
+            .map(user -> user.getDisplayName() != null ? user.getDisplayName() : user.getUsername())
+            .orElse("알 수 없음");
+    }
+
+    /**
+     * Send push notification for a new message
+     */
+    public void sendMessagePushNotification(Long userId, String senderName, String messageContent,
+                                             String roomId, String roomName) {
+        pushNotificationService.sendMessageNotification(userId, senderName, messageContent, roomId, roomName);
+    }
+
+    /**
+     * Send push notification for friend request
+     */
+    public void sendFriendRequestPushNotification(Long userId, String requesterName) {
+        pushNotificationService.sendFriendRequestNotification(userId, requesterName);
     }
 }
