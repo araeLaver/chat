@@ -28,7 +28,7 @@ public class PushNotificationService {
     @Autowired
     private FirebaseConfig firebaseConfig;
 
-    @Autowired
+    @Autowired(required = false)
     private FirebaseMessaging firebaseMessaging;
 
     @Autowired
@@ -53,7 +53,7 @@ public class PushNotificationService {
      */
     @Async
     public CompletableFuture<Boolean> sendToUser(Long userId, String title, String body, Map<String, String> data) {
-        if (!firebaseConfig.isEnabled()) {
+        if (!firebaseConfig.isEnabled() || firebaseMessaging == null) {
             logger.debug("Firebase is disabled. Skipping push notification.");
             return CompletableFuture.completedFuture(false);
         }
@@ -96,7 +96,7 @@ public class PushNotificationService {
      */
     @Async
     public CompletableFuture<Integer> sendToUsers(List<Long> userIds, String title, String body, Map<String, String> data) {
-        if (!firebaseConfig.isEnabled()) {
+        if (!firebaseConfig.isEnabled() || firebaseMessaging == null) {
             return CompletableFuture.completedFuture(0);
         }
 
